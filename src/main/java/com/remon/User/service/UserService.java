@@ -39,4 +39,8 @@ public class UserService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public Optional<User> findByProviderAndProvierId(String provider, String providerID){
+        return userRepository.findByProviderAndProviderId(provider, providerID);
+    }
 }
