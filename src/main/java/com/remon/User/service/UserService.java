@@ -6,6 +6,7 @@ import com.remon.User.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,5 +43,9 @@ public class UserService {
 
     public Optional<User> findByProviderAndProviderId(String provider, String providerID){
         return userRepository.findByProviderAndProviderId(provider, providerID);
+    }
+
+    public java.util.List<User> findAll(){
+        return userRepository.findAll();
     }
 }
