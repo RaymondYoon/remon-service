@@ -40,7 +40,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findByProviderAndProvierId(String provider, String providerID){
+    public Optional<User> findByProviderAndProviderId(String provider, String providerID){
         return userRepository.findByProviderAndProviderId(provider, providerID);
     }
 }
