@@ -1,4 +1,4 @@
-package com.remon.User.entity;
+package com.remon.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

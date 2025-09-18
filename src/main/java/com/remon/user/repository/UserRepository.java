@@ -1,6 +1,6 @@
-package com.remon.User.repository;
+package com.remon.user.repository;
 
-import com.remon.User.entity.User;
+import com.remon.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
