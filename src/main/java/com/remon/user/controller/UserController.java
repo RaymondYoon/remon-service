@@ -1,7 +1,9 @@
-package com.remon.User.controller;
+package com.remon.user.controller;
 
-import com.remon.User.entity.User;
-import com.remon.User.service.UserService;
+import com.remon.user.dto.UserRequest;
+import com.remon.user.dto.UserResponse;
+import com.remon.user.entity.User;
+import com.remon.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +20,21 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User register(@RequestBody User userRequest){
-        return userService.registerUser(
-                userRequest.getEmail(),
-                userRequest.getPassword(),
-                userRequest.getProvider(),
-                userRequest.getProviderId(),
-                userRequest.getNickname()
+    public UserResponse register(@RequestBody UserRequest request){
+        User user =  userService.registerUser(
+                request.getEmail(),
+                request.getPassword(),
+                request.getProvider(),
+                request.getProviderId(),
+                request.getNickname()
         );
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .role(user.getRole())
+                .emailVerified(user.isEmailVerified())
+                .build();
     }
 
     @GetMapping("/{email}")
