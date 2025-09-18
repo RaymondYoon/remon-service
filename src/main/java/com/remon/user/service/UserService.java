@@ -1,12 +1,11 @@
-package com.remon.User.service;
+package com.remon.user.service;
 
-import com.remon.User.entity.Role;
-import com.remon.User.entity.User;
-import com.remon.User.repository.UserRepository;
+import com.remon.user.entity.Role;
+import com.remon.user.entity.User;
+import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
