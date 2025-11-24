@@ -1,70 +1,113 @@
-# Getting Started with Create React App
+📘 Remon-Service Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+이 프로젝트는 React 기반 전자책(e-book) 서비스 프론트엔드입니다.
+사용자가 도서 목록을 조회하고, 로그인/회원가입을 통해 개인 라이브러리를 관리할 수 있는 UI를 제공합니다.
 
-## Available Scripts
+🚀 기술 스택
 
-In the project directory, you can run:
+React 18
 
-### `npm start`
+React Router v6
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Axios
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+CSS Modules or Global CSS
 
-### `npm test`
+Create React App (CRA) 기반
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+📁 프로젝트 구조
+frontend/
+ ├─ public/
+ ├─ src/
+ │   ├─ api/
+ │   │   ├─ bookApi.js
+ │   │   └─ userApi.js
+ │   ├─ components/
+ │   │   ├─ Header.jsx
+ │   │   ├─ Header.css
+ │   │   ├─ BookCard.jsx
+ │   │   ├─ BookCard.css
+ │   │   └─ BookList.jsx
+ │   ├─ pages/
+ │   │   ├─ Home.jsx
+ │   │   ├─ Login.jsx
+ │   │   ├─ Login.css
+ │   │   ├─ Signup.jsx
+ │   │   ├─ BookDetail.jsx
+ │   │   └─ MyLibrary.jsx
+ │   ├─ hooks/
+ │   │   └─ useBooks.js
+ │   ├─ styles/
+ │   │   ├─ global.css
+ │   │   └─ variables.css
+ │   ├─ App.js
+ │   └─ index.js
+ ├─ package.json
+ └─ README.md
 
-### `npm run build`
+📄 주요 기능
+🔐 사용자 인증
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+로그인 / 로그아웃
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+회원가입
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+JWT 기반 인증 (백엔드 연동)
 
-### `npm run eject`
+📚 도서 기능
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+전체 도서 목록 조회
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+개별 도서 상세 페이지
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+내 서재(My Library) 기능 (추가 예정)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+🧩 공통 컴포넌트
 
-## Learn More
+Header
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+BookCard
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+BookList
 
-### Code Splitting
+🛠 실행 방법
+1️⃣ 패키지 설치
+npm install
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2️⃣ 개발 서버 실행
+npm start
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+브라우저가 자동으로 열리며 다음 주소에서 확인할 수 있습니다:
 
-### Making a Progressive Web App
+👉 http://localhost:3000
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+🔗 API 연동
 
-### Advanced Configuration
+프론트엔드는 다음 엔드포인트들과 통신합니다.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+/api/user/login
 
-### Deployment
+/api/user/signup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+/api/books
 
-### `npm run build` fails to minify
+/api/books/{id}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+src/api/userApi.js, src/api/bookApi.js 에 정리되어 있습니다.
+
+📌 앞으로 추가될 기능 (계획)
+
+ 로그인 후 토큰 저장 및 상태관리 개선
+
+ My Library 페이지 기능 완성
+
+ 도서 검색 기능
+
+ 반응형 UI 개선
+
+ 크로스 플랫폼 환경 대비 UX 최적화
+
+© Author
+
+Remon Service Frontend Developer – YOON
