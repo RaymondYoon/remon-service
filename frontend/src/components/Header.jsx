@@ -5,7 +5,7 @@ import "./Header.css";
 const Header = () => {
     return (
         <header className="header">
-            <Link to="7" className="logo">📚 Remon E-Book</Link>
+            <Link to="/" className="logo">📚 Remon E-Book</Link>
 
             <nav>
                 <Link to="/library">내 서재</Link>
