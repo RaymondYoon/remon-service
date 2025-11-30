@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
@@ -48,7 +48,8 @@ function Login() {
      </form>
  
      <p className="login-helper">
-       계정이 없나요? <span className="signup-link">회원가입</span>
+      계정이 없나요?
+      <Link to="/signup" className="signup-link">회원가입</Link>
      </p>
  </div>
  );
