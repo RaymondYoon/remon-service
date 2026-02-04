@@ -23,7 +23,10 @@ public class Book {
     private String title;
     private String author;
     private String isbn;
-    private LocalDate publishedDate;
+    private String coverImageUrl;
+    private String fileurl;
     private double price;
     private String description;
+    private LocalDate publishedDate;
+    private Long publishedBy;
 }
