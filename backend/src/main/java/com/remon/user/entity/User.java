@@ -2,8 +2,13 @@ package com.remon.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -30,6 +35,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    private boolean emailVerified = false;
+    @CreatedDate
+    @Column(updatable = false)
+    private LocalDateTime created_at;
 
+    private boolean emailVerified = false;
 }
