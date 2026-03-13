@@ -39,5 +39,6 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime created_at;
 
+    @Builder.Default
     private boolean emailVerified = false;
 }
