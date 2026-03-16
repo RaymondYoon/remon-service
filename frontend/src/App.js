@@ -1,23 +1,52 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import BookDetail from "./pages/BookDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyLibrary from "./pages/MyLibrary";
-import Header from "./components/Header";
+import OAuthCallback from "./pages/OAuthCallback";
+import GeneratePage from "./pages/GeneratePage";
+import { migrateOrClearLegacyAuth } from "./utils/auth";
+import "./styles/global.css";
+
+// 앱 최초 로드 시 구 형식 localStorage 정리 (재로그인 유도)
+migrateOrClearLegacyAuth();
 
 function App() {
   return (
     <Router>
       <Header />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/book/:id" element={<BookDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/library" element={<MyLibrary />} />
-      </Routes>
+      <main>
+        <Routes>
+          {/* 공개 라우트 */}
+          <Route path="/" element={<Home />} />
+          <Route path="/book/:id" element={<BookDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
+
+          {/* 인증 필요 라우트 */}
+          <Route
+            path="/library"
+            element={
+              <ProtectedRoute>
+                <MyLibrary />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/generate"
+            element={
+              <ProtectedRoute>
+                <GeneratePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
     </Router>
   );
 }

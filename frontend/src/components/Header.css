@@ -1,17 +1,93 @@
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 20px;
-    background: white;
-    border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 60px;
+  background-color: #fff;
+  border-bottom: 1px solid #ebebeb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.header .logo {
-    font-size: 20px;
-    font-weight: bold;
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #5b7e5a;
+  text-decoration: none;
+  letter-spacing: -0.3px;
 }
-header nav a {
-    margin-left: 18px;
-    font-size: 16px;
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 15px;
+  color: #444;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #5b7e5a;
+}
+
+.nav-link--signup {
+  padding: 7px 16px;
+  background: #5b7e5a;
+  color: #fff;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.nav-link--signup:hover {
+  background: #4a6a49;
+  color: #fff;
+}
+
+.nav-link--generate {
+  padding: 7px 16px;
+  background: #f5c842;
+  color: #2c2c2c;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.nav-link--generate:hover {
+  background: #e8b830;
+  color: #2c2c2c;
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nickname {
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+}
+
+.logout-btn {
+  border: 1px solid #d9d9d4;
+  background: none;
+  color: #6b6b6b;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  border-color: #5b7e5a;
+  color: #5b7e5a;
 }
