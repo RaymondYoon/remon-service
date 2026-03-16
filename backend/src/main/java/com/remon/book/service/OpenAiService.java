@@ -51,7 +51,7 @@ public class OpenAiService {
                         Map.of("role", "user",   "content", userPrompt)
                 ),
                 "response_format", Map.of("type", "json_object"),
-                "max_tokens", 4096
+                "max_completion_tokens", 4096
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
@@ -104,14 +104,24 @@ public class OpenAiService {
     private String[] parseResponse(String responseBody) {
         try {
             JsonNode root    = objectMapper.readTree(responseBody);
-            String rawJson   = root.path("choices").get(0)
-                                   .path("message").path("content").asText();
+            JsonNode choices = root.path("choices");
+            if (choices.isEmpty()) {
+                throw new RuntimeException("OpenAI 응답에 choices가 없습니다. 응답: " + responseBody);
+            }
+
+            String rawJson = choices.get(0).path("message").path("content").asText().strip();
+
+            // 마크다운 코드블록(```json ... ```) 래핑 제거
+            if (rawJson.startsWith("```")) {
+                rawJson = rawJson.replaceAll("(?s)^```(?:json)?\\s*", "").replaceAll("(?s)\\s*```$", "").strip();
+            }
+
             JsonNode parsed  = objectMapper.readTree(rawJson);
             String title     = parsed.path("title").asText("");
             String content   = parsed.path("content").asText("");
 
             if (title.isBlank() || content.isBlank()) {
-                throw new RuntimeException("AI 응답에서 title 또는 content를 찾을 수 없습니다.");
+                throw new RuntimeException("AI 응답에서 title 또는 content를 찾을 수 없습니다. rawJson: " + rawJson);
             }
             return new String[]{title, content};
 
