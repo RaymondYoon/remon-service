@@ -1,113 +1,111 @@
-# 📘 Remon-Service Frontend
+# Remon Service — Frontend
 
-이 프로젝트는 **React 기반 전자책(e-book) 서비스 프론트엔드**입니다.  
-사용자가 도서 목록을 조회하고, 로그인/회원가입을 통해 개인 라이브러리를 관리할 수 있는 UI를 제공합니다.
-
----
-
-## 🚀 기술 스택
-
-- **React 18**
-- **React Router v6**
-- **Axios**
-- **CSS Modules / Global CSS**
-- **Create React App (CRA) 기반**
+AI가 짧은 전자책/소설을 생성해주는 서비스 **Remon**의 프론트엔드입니다.
 
 ---
 
-## 📁 프로젝트 구조
+## 기술 스택
+
+| 항목 | 내용 |
+|------|------|
+| Framework | React 19 |
+| 라우팅 | react-router-dom v7 |
+| HTTP | axios (공통 인스턴스 기반) |
+| 상태 관리 | useState / useEffect (전역 라이브러리 없음) |
+| 스타일 | 컴포넌트별 CSS + CSS 변수 (`variables.css`) |
+
+---
+
+## 실행 방법
 
 ```bash
-frontend/
- ├─ public/
- ├─ src/
- │   ├─ api/
- │   │   ├─ bookApi.js
- │   │   └─ userApi.js
- │   ├─ components/
- │   │   ├─ Header.jsx
- │   │   ├─ Header.css
- │   │   ├─ BookCard.jsx
- │   │   ├─ BookCard.css
- │   │   └─ BookList.jsx
- │   ├─ pages/
- │   │   ├─ Home.jsx
- │   │   ├─ Login.jsx
- │   │   ├─ Login.css
- │   │   ├─ Signup.jsx
- │   │   ├─ BookDetail.jsx
- │   │   └─ MyLibrary.jsx
- │   ├─ hooks/
- │   │   └─ useBooks.js
- │   ├─ styles/
- │   │   ├─ global.css
- │   │   └─ variables.css
- │   ├─ App.js
- │   └─ index.js
- ├─ package.json
- └─ README.md
+npm install
+npm start
 ```
 
-📄 주요 기능
-🔐 사용자 인증
-로그인 / 로그아웃
+기본 포트: `http://localhost:3000`
+백엔드 서버가 `http://localhost:8080`에서 실행 중이어야 합니다.
 
-회원가입
+---
 
-JWT 기반 인증 (백엔드 연동)
+## 현재 구현 페이지
 
-📚 도서 기능
-전체 도서 목록 조회
+| 경로 | 페이지 | 설명 |
+|------|--------|------|
+| `/` | Home | 책 목록 + 키워드 검색 |
+| `/book/:id` | BookDetail | 책 상세, 본문 읽기, 서재 담기 |
+| `/login` | Login | 이메일 로그인 + 카카오 로그인 |
+| `/signup` | Signup | 회원가입 |
+| `/library` | MyLibrary | 내 서재 (로그인 필수) |
+| `/oauth-callback` | OAuthCallback | 카카오 로그인 콜백 처리 |
+| `/generate` | GeneratePage | AI 책 생성 폼 + 로딩 화면 (로그인 필수) |
 
-개별 도서 상세 페이지
+---
 
-내 서재(My Library) 기능 (추가 예정)
+## 로그인 흐름
 
-🧩 공통 컴포넌트
-Header
+### 이메일 로그인
 
-BookCard
+```
+POST /api/users/login → JWT 수신 → localStorage 저장 → 홈으로 이동
+```
 
-BookList
+### 카카오 로그인
 
-🛠 실행 방법
-1️⃣ 패키지 설치
-bash
-코드 복사
-npm install
-2️⃣ 개발 서버 실행
-bash
-코드 복사
-npm start
-브라우저가 자동으로 열리며 다음 주소에서 확인할 수 있습니다:
+```
+카카오 로그인 버튼 클릭
+→ GET http://localhost:8080/api/auth/kakao (백엔드 경유)
+→ 카카오 인증 페이지
+→ /oauth-callback?token=...&nickname=...&email=...
+→ localStorage 저장 → 홈으로 이동
+```
 
-👉 http://localhost:3000
+- JWT와 사용자 정보는 `localStorage`에 `token` / `user` 키로 분리 저장
+- JWT 만료는 payload `exp` 기준으로 클라이언트에서 직접 확인 (별도 라이브러리 없음)
+- 401 응답 시 자동 로그아웃 + `/login` 리다이렉트 (axios 인터셉터 처리)
 
-🔗 API 연동
-프론트엔드는 다음 엔드포인트들과 통신합니다:
+---
 
-bash
-코드 복사
-/api/user/login
-/api/user/signup
-/api/books
-/api/books/{id}
-상세 로직은 아래 파일에 정리되어 있습니다:
+## AI 책 생성 흐름 (`/generate`)
 
-src/api/userApi.js
+`/generate`는 단일 페이지로 구현되어 있으며, 생성 중에는 같은 페이지 내에서 로딩 화면으로 전환됩니다.
 
-src/api/bookApi.js
+```
+키워드 입력 (최대 3개, Enter로 추가)
++ 장르 선택 (SF / 판타지 / 로맨스 / 일상 / 공포)
++ 분량 선택 (짧게 / 보통 / 길게)
++ 분위기 선택 (따뜻하게 / 긴장감 있게 / 유쾌하게)
+↓
+"이야기 만들기" 클릭
+↓
+로딩 화면 전환 ("Remon이 이야기를 쓰고 있어요", 10~30초)
+↓
+완료 → /book/:id 이동 + "이야기가 완성됐어요!" 배너 표시
+```
 
-📌 앞으로 추가될 기능 (계획)
-로그인 후 토큰 저장 및 상태관리 개선
+- 비로그인 접근 시 `/login`으로 리다이렉트 (ProtectedRoute)
+- axios timeout 60초 설정 (AI 응답 대기)
 
-My Library 페이지 기능 완성
+---
 
-도서 검색 기능
+## 디자인 방향 (Remon 톤)
 
-반응형 UI 개선
+따뜻하고 차분한 전자책 서비스. 레몬빛 청량함 + 독서의 편안함.
 
-크로스 플랫폼 환경 대비 UX 최적화
+| 역할 | 색상 | 값 |
+|------|------|----|
+| Primary | 세이지 그린 | `#5b7e5a` |
+| Background | 크림 화이트 | `#fafaf7` |
+| Accent | 레몬 옐로우 | `#f5c842` |
 
-© Author
-Remon Service Frontend Developer – YOON
+- 둥근 카드 (14~16px radius), 안정적인 여백, 미니멀한 구성
+- 과한 애니메이션 지양 — 필요한 곳에만 subtle한 transition
+
+---
+
+## 다음 작업
+
+- [ ] 내 서재 삭제 기능 (백엔드 API 준비 후)
+- [ ] 생성한 책 목록 별도 조회 페이지
+- [ ] 반응형 모바일 레이아웃 개선
+- [ ] 로딩/에러 상태 토스트 메시지 통일
