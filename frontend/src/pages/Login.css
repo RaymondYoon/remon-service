@@ -1,60 +1,130 @@
 .login-container {
-    max-width: 360px;
-    margin: 80px auto;
-    padding: 32px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
-    background: white;
-  }
-  
-  .login-container h2 {
-    text-align: center;
-    margin-bottom: 24px;
-    font-size: 24px;
-  }
-  
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .login-form input {
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 15px;
-  }
-  
-  .login-btn {
-    margin-top: 10px;
-    padding: 12px;
-    background: #2d79f3;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  
-  .login-btn:hover {
-    background: #1d64d9;
-  }
-  
-  .login-error {
-    color: red;
-    font-size: 14px;
-    margin-top: -4px;
-  }
-  
-  .login-helper {
-    text-align: center;
-    margin-top: 16px;
-    font-size: 14px;
-  }
-  
-  .signup-link {
-    color: #2d79f3;
-    cursor: pointer;
-  }
-  
+  max-width: 360px;
+  margin: 80px auto;
+  padding: 36px 32px;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 28px;
+  font-size: 22px;
+  color: #2c2c2c;
+  font-weight: 700;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form input {
+  padding: 12px 14px;
+  border: 1px solid #d9d9d4;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #2c2c2c;
+  background: #fafaf7;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.login-form input:focus {
+  border-color: #5b7e5a;
+  background: #fff;
+}
+
+.login-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-btn {
+  margin-top: 6px;
+  padding: 12px;
+  background: #5b7e5a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-btn:hover:not(:disabled) {
+  background: #4a6a49;
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-error {
+  color: #c0392b;
+  font-size: 13px;
+  margin: 0;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e4e4df;
+}
+
+.kakao-btn {
+  width: 100%;
+  padding: 12px;
+  background: #fee500;
+  color: #3c1e1e;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.kakao-btn:hover {
+  background: #f0d800;
+}
+
+.kakao-icon {
+  font-size: 18px;
+}
+
+.login-helper {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.signup-link {
+  color: #5b7e5a;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}

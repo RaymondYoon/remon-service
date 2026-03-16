@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Signup.css";
+import { registerUser } from "../api/userApi";
 
 function Signup() {
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ function Signup() {
         setForm({ ...form, [e.target.name]: e.target.value});
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (form.password !== form.confirmPassword) {
@@ -24,9 +25,24 @@ function Signup() {
             return;
         }
 
-        console.log("회원가입 요청 데이터:", form);
+        const requestBody = {
+            email: form.email,
+            password: form.password,
+            provider: "local",
+            providerid: null,
+            nickname: form.username,
+        };
 
-        navigate("/login");
+        try {
+            const response = await registerUser(requestBody);
+            console.log("회원가입 성공:", response.data);
+
+            alert("회원가입이 완료되었습니다!");
+            navigate("/login")
+
+        } catch (error){
+            console.error("회원가입 실패:", error);
+        }
     };
 
     return (
