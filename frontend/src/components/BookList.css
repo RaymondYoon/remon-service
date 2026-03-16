@@ -1,0 +1,40 @@
+.booklist-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.booklist-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  color: #8a8a8a;
+}
+
+.booklist-state p {
+  margin: 12px 0 0;
+  font-size: 15px;
+}
+
+.booklist-empty {
+  font-size: 15px;
+  color: #aaa;
+}
+
+.booklist-error {
+  color: #c0392b;
+}
+
+.booklist-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e4e4df;
+  border-top-color: #5b7e5a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

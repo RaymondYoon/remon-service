@@ -1,20 +1,30 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./BookCard.css"
+import "./BookCard.css";
 
 const BookCard = ({ book }) => {
-    return (
-        <div className="book-card">
-            <div className="book-cover"></div>
+  return (
+    <div className="book-card">
+      <div
+        className="book-cover"
+        style={book.coverImage ? { backgroundImage: `url(${book.coverImage})` } : {}}
+      >
+        {!book.coverImage && (
+          <span className="book-cover-placeholder">📖</span>
+        )}
+      </div>
 
-            <h3>{book.title}</h3>
-            <p>{book.author}</p>
+      <div className="book-info">
+        <h3 className="book-title">{book.title}</h3>
+        <p className="book-author">{book.author}</p>
+      </div>
 
-            <Link to-={'/book/${book.id}'} className="detail-btn">
-                자세히 보기
-            </Link>
-        </div>
-    );
+      {/* 버그 수정: 작은따옴표 → 백틱(템플릿 리터럴) */}
+      <Link to={`/book/${book.id}`} className="detail-btn">
+        자세히 보기
+      </Link>
+    </div>
+  );
 };
 
-export default BookCard
+export default BookCard;
