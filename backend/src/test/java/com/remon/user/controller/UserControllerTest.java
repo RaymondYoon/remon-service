@@ -84,8 +84,8 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/users/login - 존재하지 않는 이메일로 로그인 시 500")
-    void login_withUnknownEmail_shouldReturn500() throws Exception {
+    @DisplayName("POST /api/users/login - 존재하지 않는 이메일로 로그인 시 400")
+    void login_withUnknownEmail_shouldReturn400() throws Exception {
         when(userService.login("nobody@test.com", "pass"))
                 .thenThrow(new IllegalStateException("존재하지 않는 이메일입니다."));
 
@@ -96,7 +96,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());  // GlobalExceptionHandler: IllegalStateException → 400
     }
 
     // ── 회원가입 ────────────────────────────────────────────────────────────

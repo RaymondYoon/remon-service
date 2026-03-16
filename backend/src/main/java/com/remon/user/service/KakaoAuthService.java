@@ -23,11 +23,25 @@ public class KakaoAuthService {
     @Value("${kakao.client-id}")
     private String clientId;
 
+    @Value("${kakao.client-secret:}")
+    private String clientSecret;
+
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
     public KakaoAuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    /**
+     * 카카오 인증 페이지 URL 반환
+     * 프론트에서 GET /api/auth/kakao 로 진입하면 이 URL로 redirect
+     */
+    public String getAuthorizationUrl() {
+        return "https://kauth.kakao.com/oauth/authorize"
+                + "?client_id=" + clientId
+                + "&redirect_uri=" + redirectUri
+                + "&response_type=code";
     }
 
     /**
@@ -48,6 +62,9 @@ public class KakaoAuthService {
         params.add("client_id", clientId);
         params.add("redirect_uri", redirectUri);
         params.add("code", code);
+        if (clientSecret != null && !clientSecret.isBlank()) {
+            params.add("client_secret", clientSecret);
+        }
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
         ResponseEntity<KakaoTokenResponse> response = restTemplate.postForEntity(

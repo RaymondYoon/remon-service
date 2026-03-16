@@ -15,4 +15,10 @@ public class BookResponse {
     private String publishedDate;
     private double price;
     private String description;
+
+    // AI 생성 책 필드
+    private String content;
+    private boolean isAiGenerated;
+    private String genre;
+    private String tone;
 }

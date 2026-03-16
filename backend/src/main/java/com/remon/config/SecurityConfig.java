@@ -36,8 +36,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 인증 없이 접근 허용
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        // 카카오 OAuth 콜백
-                        .requestMatchers("/api/auth/kakao/**").permitAll()
+                        // 카카오 OAuth 진입점 + 콜백
+                        // "/api/auth/kakao"   → Ant 패턴 /** 로는 매칭 안 되므로 명시적으로 추가
+                        // "/api/auth/kakao/**" → /kakao/callback 등 하위 경로 허용
+                        .requestMatchers("/api/auth/kakao", "/api/auth/kakao/**").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // 그 외 모든 요청은 JWT 인증 필요

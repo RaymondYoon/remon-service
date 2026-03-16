@@ -1,0 +1,115 @@
+########################################
+# Global Ignore
+########################################
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+HELP.md
+
+########################################
+# OS
+########################################
+ehthumbs.db
+Icon?
+Desktop.ini
+
+########################################
+# IDE: IntelliJ / VSCode
+########################################
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+########################################
+# STS / Eclipse
+########################################
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+########################################
+# NetBeans
+########################################
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+########################################
+# Backend (Spring Boot + Gradle)
+########################################
+# Build output
+backend/build/
+backend/bin/
+backend/out/
+
+# Root-level Gradle directories
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Spring properties
+application.properties
+application.yml
+application-local.properties
+application-local.yml
+application-secret.properties
+application-secret.yml
+
+# JAR/WAR/EAR
+*.jar
+*.war
+*.ear
+
+########################################
+# Frontend (React + Node)
+########################################
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# dotenv files
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+frontend/.env.test.local
+
+# Node cache
+*.cache/
+.pnp
+.pnp.js
+
+########################################
+# Coverage / Test Artifacts
+########################################
+coverage/
+.coverage
+coverage-final.json
+.nyc_output/
+
+########################################
+# Misc
+########################################
+*.orig
+*.rej

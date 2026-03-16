@@ -2,6 +2,7 @@ package com.remon.book.controller;
 //녹원 아파트?
 import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
+import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,5 +25,15 @@ public class BookController {
     @GetMapping
     public List<BookResponse> getAllBooks(){
         return bookService.getAllBooks();
+    }
+
+    @GetMapping("/{id}")
+    public BookResponse getBookById(@PathVariable Long id) {
+        return bookService.getBookById(id);
+    }
+
+    @PostMapping("/generate")
+    public BookResponse generateBook(@RequestBody GenerateBookRequest request) {
+        return bookService.generateBook(request);
     }
 }
