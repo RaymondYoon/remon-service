@@ -132,6 +132,10 @@
   font-weight: 500;
 }
 
+.detail-add-msg--error {
+  color: #c0392b;
+}
+
 /* 로딩/에러 상태 */
 .detail-state {
   display: flex;

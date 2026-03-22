@@ -20,7 +20,19 @@ const MyLibrary = () => {
       try {
         const response = await getMyLibrary();
         const data = response.data;
-        setBooks(Array.isArray(data) ? data : (data.content ?? []));
+        const raw = Array.isArray(data) ? data : (data.content ?? []);
+        // LibraryResponse → BookCard 호환 형태로 변환
+        // - id: bookId (BookCard의 /book/:id 링크에 사용)
+        // - coverImage: coverImageUrl (BookCard가 기대하는 필드명)
+        const mapped = raw.map((item) => ({
+          id: item.bookId,
+          title: item.title,
+          author: item.author,
+          coverImage: item.coverImageUrl,
+          genre: item.genre,
+          status: item.status,
+        }));
+        setBooks(mapped);
       } catch {
         setError("서재를 불러오지 못했습니다.");
       } finally {
@@ -40,19 +52,18 @@ const MyLibrary = () => {
         <p className="library-sub">담아둔 책들을 모아 볼 수 있어요</p>
       </div>
 
-      {/* 독서 통계 영역 - 추후 백엔드 지원 시 연결 예정 */}
       <div className="library-stats">
         <div className="stat-card">
           <span className="stat-num">{books.length}</span>
-          <span className="stat-label">담은 책</span>
+          <span className="stat-label">전체</span>
         </div>
-        <div className="stat-card stat-coming">
-          <span className="stat-num">—</span>
-          <span className="stat-label">읽은 책 (준비중)</span>
+        <div className="stat-card">
+          <span className="stat-num">{books.filter(b => b.status === "READING").length}</span>
+          <span className="stat-label">읽는 중</span>
         </div>
-        <div className="stat-card stat-coming">
-          <span className="stat-num">—</span>
-          <span className="stat-label">읽는 중 (준비중)</span>
+        <div className="stat-card">
+          <span className="stat-num">{books.filter(b => b.status === "DONE").length}</span>
+          <span className="stat-label">완독</span>
         </div>
       </div>
 

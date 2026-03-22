@@ -15,6 +15,7 @@ const BookDetail = () => {
   const [error, setError] = useState(null);
   const [addLoading, setAddLoading] = useState(false);
   const [addMessage, setAddMessage] = useState("");
+  const [addSuccess, setAddSuccess] = useState(false);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -41,11 +42,13 @@ const BookDetail = () => {
     setAddLoading(true);
     setAddMessage("");
     try {
-      await addToLibrary(id);
+      await addToLibrary(Number(id));
       setAddMessage("내 서재에 추가되었습니다! 📚");
+      setAddSuccess(true);
     } catch (err) {
-      const msg = err.response?.data?.message || "서재 추가에 실패했습니다.";
+      const msg = err.response?.data?.error || "서재 추가에 실패했습니다.";
       setAddMessage(msg);
+      setAddSuccess(false);
     } finally {
       setAddLoading(false);
     }
@@ -119,14 +122,16 @@ const BookDetail = () => {
             <button
               className="add-library-btn"
               onClick={handleAddToLibrary}
-              disabled={addLoading}
+              disabled={addLoading || addSuccess}
             >
-              {addLoading ? "추가 중..." : "내 서재에 담기"}
+              {addLoading ? "추가 중..." : addSuccess ? "서재에 담겼어요 ✓" : "내 서재에 담기"}
             </button>
           </div>
 
           {addMessage && (
-            <p className="detail-add-msg">{addMessage}</p>
+            <p className={addSuccess ? "detail-add-msg" : "detail-add-msg detail-add-msg--error"}>
+              {addMessage}
+            </p>
           )}
         </div>
       </div>
