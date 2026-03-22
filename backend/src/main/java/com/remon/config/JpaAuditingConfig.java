@@ -1,7 +1,5 @@
 package com.remon.config;
 
-import jakarta.persistence.EntityManagerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -12,11 +10,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  * @WebMvcTest 환경에서 JPA 컨텍스트 없이 jpaAuditingHandler 빈을 생성하려다
  * "JPA metamodel must not be empty" 오류가 발생한다.
  *
- * @ConditionalOnBean(EntityManagerFactory.class) 를 통해
- * JPA가 실제로 초기화된 환경(운영, @SpringBootTest)에서만 활성화된다.
+ * 이 문제는 @WebMvcTest 쪽에서 @MockitoBean JpaMetamodelMappingContext 를 선언해
+ * 해결한다. @ConditionalOnBean 은 사용자 정의 @Configuration 에서 평가 순서를
+ * 보장할 수 없어 운영 환경에서 @EnableJpaAuditing 이 비활성화되는 원인이 됐다.
  */
 @Configuration
 @EnableJpaAuditing
-@ConditionalOnBean(EntityManagerFactory.class)
 public class JpaAuditingConfig {
 }
