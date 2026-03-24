@@ -4,6 +4,7 @@ import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class BookController {
 
     @PostMapping("/generate")
     public BookResponse generateBook(@RequestBody GenerateBookRequest request) {
-        return bookService.generateBook(request);
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return bookService.generateBook(request, email);
     }
 }

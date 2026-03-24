@@ -5,6 +5,7 @@ import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
+import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,10 +17,13 @@ import java.util.stream.Collectors;
 public class BookService {
     private final BookRepository bookRepository;
     private final OpenAiService openAiService;
+    private final UserRepository userRepository;
 
-    public BookService(BookRepository bookRepository, OpenAiService openAiService) {
+    public BookService(BookRepository bookRepository, OpenAiService openAiService,
+                       UserRepository userRepository) {
         this.bookRepository = bookRepository;
         this.openAiService  = openAiService;
+        this.userRepository = userRepository;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -37,10 +41,15 @@ public class BookService {
         return mapToResponse(savedBook);
     }
 
-    public BookResponse generateBook(GenerateBookRequest request) {
+    public BookResponse generateBook(GenerateBookRequest request, String email) {
         if (request.getKeywords() == null || request.getKeywords().isEmpty()) {
             throw new IllegalArgumentException("키워드를 1개 이상 입력해주세요.");
         }
+
+        String author = userRepository.findByEmail(email)
+                .map(u -> (u.getNickname() != null && !u.getNickname().isBlank())
+                        ? u.getNickname() : "Remon AI")
+                .orElse("Remon AI");
 
         String[] result  = openAiService.generate(
                 request.getKeywords(), request.getGenre(),
@@ -50,7 +59,7 @@ public class BookService {
 
         Book book = Book.builder()
                 .title(title)
-                .author("Remon AI")
+                .author(author)
                 .description("키워드: " + String.join(", ", request.getKeywords()))
                 .content(content)
                 .isAiGenerated(true)
