@@ -7,6 +7,8 @@ import com.remon.user.dto.UserRequest;
 import com.remon.user.dto.UserResponse;
 import com.remon.user.entity.User;
 import com.remon.user.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,5 +64,11 @@ public class UserController {
     @GetMapping
     public List<User> getAllUsers() {
         return userService.findAll();
+    }
+
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAccount(Authentication authentication) {
+        userService.deleteAccount(authentication.getName());
     }
 }
