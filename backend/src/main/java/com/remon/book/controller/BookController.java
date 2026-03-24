@@ -4,6 +4,8 @@ import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +31,11 @@ public class BookController {
         return bookService.getAllBooks(keyword);
     }
 
+    @GetMapping("/my")
+    public List<BookResponse> getMyBooks(Authentication authentication) {
+        return bookService.getMyBooks(authentication.getName());
+    }
+
     @GetMapping("/{id}")
     public BookResponse getBookById(@PathVariable Long id) {
         return bookService.getBookById(id);
@@ -38,5 +45,11 @@ public class BookController {
     public BookResponse generateBook(@RequestBody GenerateBookRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return bookService.generateBook(request, email);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMyBook(@PathVariable Long id, Authentication authentication) {
+        bookService.deleteMyBook(authentication.getName(), id);
     }
 }

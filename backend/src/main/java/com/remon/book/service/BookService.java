@@ -5,8 +5,11 @@ import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
+import com.remon.library.repository.UserBookRepository;
+import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,16 +17,19 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BookService {
     private final BookRepository bookRepository;
     private final OpenAiService openAiService;
     private final UserRepository userRepository;
+    private final UserBookRepository userBookRepository;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
-                       UserRepository userRepository) {
-        this.bookRepository = bookRepository;
-        this.openAiService  = openAiService;
-        this.userRepository = userRepository;
+                       UserRepository userRepository, UserBookRepository userBookRepository) {
+        this.bookRepository     = bookRepository;
+        this.openAiService      = openAiService;
+        this.userRepository     = userRepository;
+        this.userBookRepository = userBookRepository;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -46,10 +52,10 @@ public class BookService {
             throw new IllegalArgumentException("키워드를 1개 이상 입력해주세요.");
         }
 
-        String author = userRepository.findByEmail(email)
-                .map(u -> (u.getNickname() != null && !u.getNickname().isBlank())
-                        ? u.getNickname() : "Remon AI")
-                .orElse("Remon AI");
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        String author = (user.getNickname() != null && !user.getNickname().isBlank())
+                ? user.getNickname() : "Remon AI";
 
         String[] result  = openAiService.generate(
                 request.getKeywords(), request.getGenre(),
@@ -67,9 +73,31 @@ public class BookService {
                 .tone(request.getTone())
                 .publishedDate(LocalDate.now())
                 .price(0.0)
+                .publishedBy(user.getId())
                 .build();
 
         return mapToResponse(bookRepository.save(book));
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookResponse> getMyBooks(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        return bookRepository.findMyGeneratedBooks(user.getId()).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteMyBook(String email, Long bookId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+        if (!user.getId().equals(book.getPublishedBy())) {
+            throw new IllegalStateException("삭제 권한이 없습니다.");
+        }
+        userBookRepository.deleteByBookId(bookId);
+        bookRepository.delete(book);
     }
 
     public BookResponse getBookById(Long id) {
