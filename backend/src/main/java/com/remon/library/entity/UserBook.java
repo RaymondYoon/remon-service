@@ -38,11 +38,19 @@ public class UserBook {
     @Builder.Default
     private ReadingStatus status = ReadingStatus.SAVED;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int lastReadPage = 0;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime savedAt;
 
     public void updateStatus(ReadingStatus newStatus) {
         this.status = newStatus;
+    }
+
+    public void updateLastReadPage(int page) {
+        this.lastReadPage = page;
     }
 }

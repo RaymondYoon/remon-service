@@ -18,6 +18,7 @@ public class LibraryResponse {
     private String coverImageUrl;
     private String genre;
     private ReadingStatus status;
+    private int lastReadPage;
     private LocalDateTime savedAt;
 
     public static LibraryResponse from(UserBook userBook) {
@@ -29,6 +30,7 @@ public class LibraryResponse {
                 .coverImageUrl(userBook.getBook().getCoverImageUrl())
                 .genre(userBook.getBook().getGenre())
                 .status(userBook.getStatus())
+                .lastReadPage(userBook.getLastReadPage())
                 .savedAt(userBook.getSavedAt())
                 .build();
     }

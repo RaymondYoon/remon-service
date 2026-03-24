@@ -4,6 +4,7 @@ import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
 import com.remon.library.dto.LibraryRequest;
 import com.remon.library.dto.LibraryResponse;
+import com.remon.library.dto.SavePageRequest;
 import com.remon.library.dto.UpdateStatusRequest;
 import com.remon.library.entity.ReadingStatus;
 import com.remon.library.entity.UserBook;
@@ -80,6 +81,28 @@ public class LibraryService {
                         ub.updateStatus(ReadingStatus.READING);
                     }
                 });
+    }
+
+    /**
+     * 현재 읽은 페이지 저장. 서재에 없으면 무시.
+     */
+    public void savePage(String email, Long bookId, int page) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
+                .ifPresent(ub -> ub.updateLastReadPage(page));
+    }
+
+    /**
+     * 마지막 페이지 도달 시 DONE 처리. 서재에 없으면 무시.
+     */
+    public void markAsDone(String email, Long bookId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
+                .ifPresent(ub -> ub.updateStatus(ReadingStatus.DONE));
     }
 
     public void deleteFromLibrary(String email, Long bookId) {

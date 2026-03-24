@@ -2,6 +2,7 @@ package com.remon.library.controller;
 
 import com.remon.library.dto.LibraryRequest;
 import com.remon.library.dto.LibraryResponse;
+import com.remon.library.dto.SavePageRequest;
 import com.remon.library.dto.UpdateStatusRequest;
 import com.remon.library.service.LibraryService;
 import jakarta.validation.Valid;
@@ -49,6 +50,25 @@ public class LibraryController {
             Authentication authentication
     ) {
         libraryService.startReading(authentication.getName(), bookId);
+    }
+
+    @PatchMapping("/{bookId}/page")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void savePage(
+            @PathVariable Long bookId,
+            @RequestBody SavePageRequest request,
+            Authentication authentication
+    ) {
+        libraryService.savePage(authentication.getName(), bookId, request.getPage());
+    }
+
+    @PatchMapping("/{bookId}/finish")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markAsDone(
+            @PathVariable Long bookId,
+            Authentication authentication
+    ) {
+        libraryService.markAsDone(authentication.getName(), bookId);
     }
 
     @DeleteMapping("/{bookId}")
