@@ -6,6 +6,8 @@ const useBooks = (params = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const paramsKey = JSON.stringify(params);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -13,7 +15,7 @@ const useBooks = (params = {}) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await getBooks(params);
+        const response = await getBooks(JSON.parse(paramsKey));
         if (!cancelled) {
           // 배열 응답과 Spring Page({ content: [] }) 응답 모두 대응
           const data = response.data;
@@ -30,8 +32,7 @@ const useBooks = (params = {}) => {
 
     fetchBooks();
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [paramsKey]);
 
   return { books, loading, error };
 };

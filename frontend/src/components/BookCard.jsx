@@ -1,8 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "./BookCard.css";
 
 const BookCard = ({ book }) => {
+  const location = useLocation();
+
   return (
     <div className="book-card">
       <div
@@ -19,8 +21,11 @@ const BookCard = ({ book }) => {
         <p className="book-author">{book.author}</p>
       </div>
 
-      {/* 버그 수정: 작은따옴표 → 백틱(템플릿 리터럴) */}
-      <Link to={`/book/${book.id}`} className="detail-btn">
+      <Link
+        to={`/book/${book.id}`}
+        state={{ from: location.pathname }}
+        className="detail-btn"
+      >
         자세히 보기
       </Link>
     </div>

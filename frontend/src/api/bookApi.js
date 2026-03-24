@@ -20,6 +20,21 @@ export const addToLibrary = async (bookId) => {
   return await axiosInstance.post("/api/library", { bookId });
 };
 
+// 읽기 상태 변경 (인증 필요) — SAVED | READING | DONE
+export const updateBookStatus = async (bookId, status) => {
+  return await axiosInstance.patch(`/api/library/${bookId}/status`, { status });
+};
+
+// 읽기 시작 — SAVED일 때만 READING으로 변경, DONE은 유지 (인증 필요)
+export const startReading = async (bookId) => {
+  return await axiosInstance.patch(`/api/library/${bookId}/start-reading`);
+};
+
+// 서재에서 삭제 (인증 필요)
+export const deleteFromLibrary = async (bookId) => {
+  return await axiosInstance.delete(`/api/library/${bookId}`);
+};
+
 // AI 책 생성 (인증 필요) — OpenAI 응답 대기로 60초 타임아웃 적용
 export const generateBook = async (data) => {
   return await axiosInstance.post("/api/books/generate", data, { timeout: 60000 });

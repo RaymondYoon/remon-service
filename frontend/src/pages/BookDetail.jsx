@@ -9,6 +9,7 @@ const BookDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromGenerate = location.state?.fromGenerate ?? false;
+  const from = location.state?.from ?? null;
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,12 @@ const BookDetail = () => {
 
   return (
     <div className="detail-container">
-      <button className="detail-back-btn" onClick={() => navigate(-1)}>← 뒤로</button>
+      <button
+        className="detail-back-btn"
+        onClick={() => from ? navigate(from) : navigate(-1)}
+      >
+        ← 뒤로
+      </button>
 
       {/* AI 생성 직후 진입 시 축하 배너 */}
       {fromGenerate && (
@@ -119,6 +125,14 @@ const BookDetail = () => {
           )}
 
           <div className="detail-actions">
+            {book.content && (
+              <button
+                className="read-book-btn"
+                onClick={() => navigate(`/book/${id}/read`, { state: { from } })}
+              >
+                본문 보기
+              </button>
+            )}
             <button
               className="add-library-btn"
               onClick={handleAddToLibrary}
@@ -136,19 +150,6 @@ const BookDetail = () => {
         </div>
       </div>
 
-      {/* 본문 읽기 영역 — content 있을 때만 표시 */}
-      {book.content && (
-        <div className="detail-content-section">
-          <h2 className="detail-content-title">본문</h2>
-          <div className="detail-content-body">
-            {book.content.split("\n").map((line, i) => (
-              line.trim()
-                ? <p key={i}>{line}</p>
-                : <br key={i} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

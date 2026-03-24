@@ -8,6 +8,7 @@ import Signup from "./pages/Signup";
 import MyLibrary from "./pages/MyLibrary";
 import OAuthCallback from "./pages/OAuthCallback";
 import GeneratePage from "./pages/GeneratePage";
+import ReadPage from "./pages/ReadPage";
 import { migrateOrClearLegacyAuth } from "./utils/auth";
 import "./styles/global.css";
 
@@ -24,6 +25,7 @@ function App() {
           {/* 공개 라우트 */}
           <Route path="/" element={<Home />} />
           <Route path="/book/:id" element={<BookDetail />} />
+          <Route path="/book/:id/read" element={<ReadPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />

@@ -6,7 +6,7 @@ import "./Home.css";
 const Home = () => {
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const { books, loading, error } = useBooks(searchTerm ? { q: searchTerm } : {});
+  const { books, loading, error } = useBooks(searchTerm ? { keyword: searchTerm } : {});
 
   const handleSearch = (e) => {
     e.preventDefault();
