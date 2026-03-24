@@ -41,4 +41,8 @@ public class UserBook {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime savedAt;
+
+    public void updateStatus(ReadingStatus newStatus) {
+        this.status = newStatus;
+    }
 }

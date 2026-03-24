@@ -4,6 +4,7 @@ import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
 import com.remon.library.dto.LibraryRequest;
 import com.remon.library.dto.LibraryResponse;
+import com.remon.library.dto.UpdateStatusRequest;
 import com.remon.library.entity.UserBook;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.user.entity.User;
@@ -51,5 +52,16 @@ public class LibraryService {
         return userBookRepository.findByUserId(user.getId()).stream()
                 .map(LibraryResponse::from)
                 .toList();
+    }
+
+    public LibraryResponse updateStatus(String email, Long bookId, UpdateStatusRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        UserBook userBook = userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
+                .orElseThrow(() -> new NoSuchElementException("서재에 없는 책입니다. bookId=" + bookId));
+
+        userBook.updateStatus(request.getStatus());
+        return LibraryResponse.from(userBook);
     }
 }

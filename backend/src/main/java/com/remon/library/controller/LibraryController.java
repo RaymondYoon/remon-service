@@ -2,6 +2,7 @@ package com.remon.library.controller;
 
 import com.remon.library.dto.LibraryRequest;
 import com.remon.library.dto.LibraryResponse;
+import com.remon.library.dto.UpdateStatusRequest;
 import com.remon.library.service.LibraryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,14 @@ public class LibraryController {
     @GetMapping
     public List<LibraryResponse> getMyLibrary(Authentication authentication) {
         return libraryService.getMyLibrary(authentication.getName());
+    }
+
+    @PatchMapping("/{bookId}/status")
+    public LibraryResponse updateStatus(
+            @PathVariable Long bookId,
+            @Valid @RequestBody UpdateStatusRequest request,
+            Authentication authentication
+    ) {
+        return libraryService.updateStatus(authentication.getName(), bookId, request);
     }
 }
