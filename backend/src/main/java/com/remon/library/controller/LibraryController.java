@@ -41,4 +41,22 @@ public class LibraryController {
     ) {
         return libraryService.updateStatus(authentication.getName(), bookId, request);
     }
+
+    @PatchMapping("/{bookId}/start-reading")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void startReading(
+            @PathVariable Long bookId,
+            Authentication authentication
+    ) {
+        libraryService.startReading(authentication.getName(), bookId);
+    }
+
+    @DeleteMapping("/{bookId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFromLibrary(
+            @PathVariable Long bookId,
+            Authentication authentication
+    ) {
+        libraryService.deleteFromLibrary(authentication.getName(), bookId);
+    }
 }

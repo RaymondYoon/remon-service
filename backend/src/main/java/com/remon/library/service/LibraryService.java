@@ -5,6 +5,7 @@ import com.remon.book.repository.BookRepository;
 import com.remon.library.dto.LibraryRequest;
 import com.remon.library.dto.LibraryResponse;
 import com.remon.library.dto.UpdateStatusRequest;
+import com.remon.library.entity.ReadingStatus;
 import com.remon.library.entity.UserBook;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.user.entity.User;
@@ -63,5 +64,31 @@ public class LibraryService {
 
         userBook.updateStatus(request.getStatus());
         return LibraryResponse.from(userBook);
+    }
+
+    /**
+     * 읽기 시작 — SAVED 상태일 때만 READING으로 변경.
+     * 서재에 없거나 이미 READING/DONE이면 아무것도 하지 않음.
+     */
+    public void startReading(String email, Long bookId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
+                .ifPresent(ub -> {
+                    if (ub.getStatus() == ReadingStatus.SAVED) {
+                        ub.updateStatus(ReadingStatus.READING);
+                    }
+                });
+    }
+
+    public void deleteFromLibrary(String email, Long bookId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        UserBook userBook = userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
+                .orElseThrow(() -> new NoSuchElementException("서재에 없는 책입니다. bookId=" + bookId));
+
+        userBookRepository.delete(userBook);
     }
 }
