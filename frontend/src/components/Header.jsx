@@ -26,6 +26,7 @@ const Header = () => {
           <>
             <Link to="/generate" className="nav-link nav-link--generate">✨ 책 만들기</Link>
             <Link to="/library" className="nav-link">내 서재</Link>
+            <Link to="/my-books" className="nav-link">내 책</Link>
             <div className="user-box">
               <span className="nickname">{user?.nickname}님</span>
               <button className="logout-btn" onClick={handleLogout}>

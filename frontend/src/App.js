@@ -6,6 +6,7 @@ import BookDetail from "./pages/BookDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyLibrary from "./pages/MyLibrary";
+import MyBooks from "./pages/MyBooks";
 import OAuthCallback from "./pages/OAuthCallback";
 import GeneratePage from "./pages/GeneratePage";
 import ReadPage from "./pages/ReadPage";
@@ -44,6 +45,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <GeneratePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-books"
+            element={
+              <ProtectedRoute>
+                <MyBooks />
               </ProtectedRoute>
             }
           />
