@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
+import { deleteAccount } from "../api/bookApi";
 import "./Header.css";
 
 const Header = () => {
@@ -11,6 +12,17 @@ const Header = () => {
   const handleLogout = () => {
     clearAuth();
     navigate("/login");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("정말 탈퇴하시겠어요? 모든 서재 데이터가 삭제되며 되돌릴 수 없습니다.")) return;
+    try {
+      await deleteAccount();
+      clearAuth();
+      navigate("/login");
+    } catch {
+      alert("탈퇴에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -31,6 +43,9 @@ const Header = () => {
               <span className="nickname">{user?.nickname}님</span>
               <button className="logout-btn" onClick={handleLogout}>
                 로그아웃
+              </button>
+              <button className="withdraw-btn" onClick={handleDeleteAccount}>
+                계정 탈퇴
               </button>
             </div>
           </>
