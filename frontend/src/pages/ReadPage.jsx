@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getBookById, startReading } from "../api/bookApi";
+import { getBookById, startReading, savePage, markAsDone } from "../api/bookApi";
 import { isLoggedIn } from "../utils/auth";
 import "./ReadPage.css";
 
 const CHARS_PER_PAGE = 500;
+const SAVE_DEBOUNCE_MS = 1500;
 
 function buildPages(content) {
   if (!content) return [];
@@ -36,17 +37,23 @@ function buildPages(content) {
   return pages;
 }
 
+const LS_KEY = (id) => `remon_page_${id}`;
+
 const ReadPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from ?? null;
+  const initialPage = location.state?.lastReadPage ?? null;
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+
+  const saveTimer = useRef(null);
+  const loggedIn = isLoggedIn();
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -56,9 +63,19 @@ const ReadPage = () => {
         const response = await getBookById(id);
         const data = response.data;
         setBook(data);
-        setPages(buildPages(data.content));
-        // 로그인 사용자: 서재에 담긴 책이면 READING으로 자동 전환 (DONE은 유지)
-        if (isLoggedIn()) {
+        const built = buildPages(data.content);
+        setPages(built);
+
+        // 이어서 보기: state > localStorage > 0
+        const lsPage = parseInt(localStorage.getItem(LS_KEY(id)) ?? "", 10);
+        const startPage = initialPage != null
+          ? Math.min(initialPage, Math.max(built.length - 1, 0))
+          : !isNaN(lsPage)
+            ? Math.min(lsPage, Math.max(built.length - 1, 0))
+            : 0;
+        setCurrentPage(startPage);
+
+        if (loggedIn) {
           startReading(id).catch(() => {});
         }
       } catch {
@@ -68,7 +85,32 @@ const ReadPage = () => {
       }
     };
     fetchBook();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // 페이지 바뀔 때마다 localStorage + 백엔드 저장
+  useEffect(() => {
+    if (pages.length === 0) return;
+
+    localStorage.setItem(LS_KEY(id), String(currentPage));
+
+    if (loggedIn) {
+      // 완독 처리
+      if (currentPage === pages.length - 1) {
+        markAsDone(id).catch(() => {});
+      }
+
+      // 페이지 저장 디바운스
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        savePage(id, currentPage).catch(() => {});
+      }, SAVE_DEBOUNCE_MS);
+    }
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [currentPage, pages.length, id, loggedIn]);
 
   const goNext = useCallback(() => {
     setCurrentPage((p) => Math.min(p + 1, pages.length - 1));

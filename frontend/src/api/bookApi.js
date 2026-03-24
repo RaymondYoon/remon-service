@@ -39,3 +39,28 @@ export const deleteFromLibrary = async (bookId) => {
 export const generateBook = async (data) => {
   return await axiosInstance.post("/api/books/generate", data, { timeout: 60000 });
 };
+
+// 현재 읽은 페이지 저장 (인증 필요)
+export const savePage = async (bookId, page) => {
+  return await axiosInstance.patch(`/api/library/${bookId}/page`, { page });
+};
+
+// 마지막 페이지 완독 처리 (인증 필요)
+export const markAsDone = async (bookId) => {
+  return await axiosInstance.patch(`/api/library/${bookId}/finish`);
+};
+
+// 내가 만든 AI 책 목록 조회 (인증 필요)
+export const getMyBooks = async () => {
+  return await axiosInstance.get("/api/books/my");
+};
+
+// 내가 만든 AI 책 삭제 (인증 필요)
+export const deleteMyBook = async (bookId) => {
+  return await axiosInstance.delete(`/api/books/${bookId}`);
+};
+
+// 회원 탈퇴 (인증 필요)
+export const deleteAccount = async () => {
+  return await axiosInstance.delete("/api/users/me");
+};

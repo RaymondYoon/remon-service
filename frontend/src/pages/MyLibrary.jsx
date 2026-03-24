@@ -44,6 +44,7 @@ const MyLibrary = () => {
           coverImage: item.coverImageUrl,
           genre: item.genre,
           status: item.status,
+          lastReadPage: item.lastReadPage ?? 0,
         })));
       } catch {
         setError("서재를 불러오지 못했습니다.");
@@ -196,11 +197,11 @@ const MyLibrary = () => {
                 </div>
 
                 <Link
-                  to={`/book/${book.id}`}
-                  state={{ from: location.pathname }}
+                  to={`/book/${book.id}/read`}
+                  state={{ from: location.pathname, lastReadPage: book.lastReadPage }}
                   className="lib-detail-btn"
                 >
-                  자세히 보기
+                  이어서 보기
                 </Link>
               </div>
             ))}
