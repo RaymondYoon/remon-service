@@ -24,8 +24,9 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookResponse> getAllBooks(){
-        return bookService.getAllBooks();
+    public List<BookResponse> getAllBooks(
+            @RequestParam(required = false) String keyword) {
+        return bookService.getAllBooks(keyword);
     }
 
     @GetMapping("/{id}")

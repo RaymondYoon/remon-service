@@ -78,8 +78,11 @@ public class BookService {
         return mapToResponse(book);
     }
 
-    public List<BookResponse> getAllBooks() {
-        return bookRepository.findAll().stream()
+    public List<BookResponse> getAllBooks(String keyword) {
+        List<Book> books = (keyword != null && !keyword.isBlank())
+                ? bookRepository.searchByKeyword(keyword)
+                : bookRepository.findAll();
+        return books.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
