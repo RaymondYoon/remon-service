@@ -51,6 +51,7 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [fadeIn, setFadeIn] = useState(true);
 
   const saveTimer = useRef(null);
   const loggedIn = isLoggedIn();
@@ -112,13 +113,21 @@ const ReadPage = () => {
     };
   }, [currentPage, pages.length, id, loggedIn]);
 
+  const changePage = useCallback((updater) => {
+    setFadeIn(false);
+    setTimeout(() => {
+      setCurrentPage(updater);
+      setFadeIn(true);
+    }, 250);
+  }, []);
+
   const goNext = useCallback(() => {
-    setCurrentPage((p) => Math.min(p + 1, pages.length - 1));
-  }, [pages.length]);
+    changePage((p) => Math.min(p + 1, pages.length - 1));
+  }, [changePage, pages.length]);
 
   const goPrev = useCallback(() => {
-    setCurrentPage((p) => Math.max(p - 1, 0));
-  }, []);
+    changePage((p) => Math.max(p - 1, 0));
+  }, [changePage]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -169,13 +178,19 @@ const ReadPage = () => {
           className="read-back-btn"
           onClick={() => navigate(`/book/${id}`, { replace: true, state: { from } })}
         >
-          ← 책 정보로
+          ← 돌아가기
         </button>
         <span className="read-title">{book.title}</span>
       </div>
+      <div className="read-progress-bar">
+        <div
+          className="read-progress-fill"
+          style={{ width: `${((currentPage + 1) / pages.length) * 100}%` }}
+        />
+      </div>
 
       <div className="read-book">
-        <div className="read-page">
+        <div className={`read-page${fadeIn ? " read-page--visible" : ""}`}>
           {pageParagraphs.map((para, i) => (
             <p key={i} className="read-para">
               {para}
@@ -189,7 +204,7 @@ const ReadPage = () => {
             onClick={goPrev}
             disabled={currentPage === 0}
           >
-            ← 이전
+            이전 페이지
           </button>
 
           <span className="read-page-num">
@@ -201,7 +216,7 @@ const ReadPage = () => {
             onClick={goNext}
             disabled={currentPage === pages.length - 1}
           >
-            다음 →
+            다음 페이지
           </button>
         </div>
       </div>
