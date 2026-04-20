@@ -67,13 +67,6 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# Spring properties
-application.properties
-application.yml
-application-local.properties
-application-local.yml
-application-secret.properties
-application-secret.yml
 
 # JAR/WAR/EAR
 *.jar
