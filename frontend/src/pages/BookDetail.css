@@ -7,7 +7,7 @@
 .detail-back-btn {
   background: none;
   border: none;
-  color: #5b7e5a;
+  color: var(--color-primary);
   font-size: 15px;
   cursor: pointer;
   padding: 0;
@@ -22,22 +22,24 @@
 .detail-card {
   display: flex;
   gap: 48px;
-  background: #fff;
+  background: var(--color-card);
   border-radius: 16px;
   padding: 36px;
-  border: 1px solid #ebebeb;
+  border: 1px solid var(--color-border);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .detail-cover {
   flex-shrink: 0;
   width: 200px;
   height: 280px;
-  background: #f0f0ec;
+  background: var(--color-bg-subtle);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: background-color 0.3s;
 }
 
 .detail-cover img {
@@ -62,39 +64,39 @@
 .detail-title {
   font-size: 26px;
   font-weight: 800;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0;
   line-height: 1.3;
 }
 
 .detail-author {
   font-size: 16px;
-  color: #6b6b6b;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
 .detail-meta {
   font-size: 14px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
 .detail-desc {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0ec;
+  border-top: 1px solid var(--color-bg-subtle);
 }
 
 .detail-desc h3 {
   font-size: 15px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 
 .detail-desc p {
   font-size: 15px;
-  color: #555;
+  color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
 }
@@ -109,9 +111,9 @@
 
 .read-book-btn {
   padding: 12px 28px;
-  background: #fff;
-  color: #5b7e5a;
-  border: 2px solid #5b7e5a;
+  background: var(--color-card);
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   border-radius: 30px;
   font-size: 15px;
   font-weight: 700;
@@ -120,12 +122,12 @@
 }
 
 .read-book-btn:hover {
-  background: #f0f7ef;
+  background: var(--color-primary-bg);
 }
 
 .add-library-btn {
   padding: 12px 28px;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 30px;
@@ -136,7 +138,7 @@
 }
 
 .add-library-btn:hover:not(:disabled) {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 .add-library-btn:disabled {
@@ -146,13 +148,13 @@
 
 .detail-add-msg {
   font-size: 14px;
-  color: #5b7e5a;
+  color: var(--color-primary);
   margin: 8px 0 0;
   font-weight: 500;
 }
 
 .detail-add-msg--error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 /* 로딩/에러 상태 */
@@ -161,19 +163,19 @@
   flex-direction: column;
   align-items: center;
   padding: 80px 20px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   gap: 16px;
 }
 
 .detail-error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 .detail-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e4e4df;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -184,13 +186,13 @@
 
 /* AI 생성 직후 배너 */
 .detail-generated-banner {
-  background: #f0f7ef;
-  border: 1px solid #c8e0c6;
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-md, 12px);
   padding: 14px 20px;
   font-size: 15px;
   font-weight: 600;
-  color: #3d6b3c;
+  color: var(--color-primary);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -199,37 +201,38 @@
 .detail-ai-badge {
   display: inline-block;
   padding: 3px 10px;
-  background: #f0f7ef;
-  border: 1px solid #c8e0c6;
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-border);
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
-  color: #4a6a49;
+  color: var(--color-primary);
   margin-bottom: 6px;
 }
 
 /* 본문 읽기 영역 */
 .detail-content-section {
   margin-top: 32px;
-  background: #fff;
+  background: var(--color-card);
   border-radius: 16px;
   padding: 40px;
-  border: 1px solid #ebebeb;
+  border: 1px solid var(--color-border);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .detail-content-title {
   font-size: 18px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0ec;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .detail-content-body {
   font-size: 16px;
   line-height: 2;
-  color: #3a3a3a;
+  color: var(--color-text);
   word-break: keep-all;
 }
 

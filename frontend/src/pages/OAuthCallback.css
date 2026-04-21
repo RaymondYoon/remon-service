@@ -5,18 +5,18 @@
   justify-content: center;
   min-height: 60vh;
   gap: 20px;
-  color: #6b6b6b;
+  color: var(--color-text-secondary);
   font-size: 15px;
 }
 
 .oauth-error {
-  color: #c0392b;
+  color: var(--color-error);
   font-size: 15px;
 }
 
 .oauth-retry-btn {
   padding: 10px 24px;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -26,14 +26,14 @@
 }
 
 .oauth-retry-btn:hover {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 .oauth-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e4e4df;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

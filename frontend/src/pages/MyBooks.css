@@ -11,13 +11,13 @@
 .mybooks-title {
   font-size: 26px;
   font-weight: 800;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 6px;
 }
 
 .mybooks-sub {
   font-size: 15px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -28,19 +28,19 @@
   align-items: center;
   gap: 16px;
   padding: 80px 0;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   font-size: 15px;
 }
 
 .mybooks-error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 .mybooks-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e8e8e8;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -51,12 +51,12 @@
 
 .mybooks-empty-msg {
   font-size: 16px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
 .mybooks-generate-btn {
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -68,7 +68,7 @@
 }
 
 .mybooks-generate-btn:hover {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 /* ─── 그리드 ─── */
@@ -79,17 +79,17 @@
 }
 
 .mybooks-card {
-  background: #fff;
-  border: 1px solid #ebebeb;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, background-color 0.3s, border-color 0.3s;
 }
 
 .mybooks-card:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
@@ -97,10 +97,11 @@
 .mybooks-cover {
   position: relative;
   height: 180px;
-  background: #f0ebe3 center / cover no-repeat;
+  background: var(--color-bg-subtle) center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s;
 }
 
 .mybooks-cover-placeholder {
@@ -129,7 +130,7 @@
 .mybooks-book-title {
   font-size: 15px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -139,13 +140,13 @@
 
 .mybooks-book-author {
   font-size: 13px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0 0 8px;
 }
 
 .mybooks-book-desc {
   font-size: 12px;
-  color: #aaa;
+  color: var(--color-text-muted);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -162,7 +163,7 @@
 
 .mybooks-detail-btn {
   flex: 1;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   text-align: center;
   text-decoration: none;
@@ -174,12 +175,12 @@
 }
 
 .mybooks-detail-btn:hover {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 .mybooks-delete-btn {
-  background: #fff;
-  color: #c0392b;
+  background: var(--color-card);
+  color: var(--color-error);
   border: 1px solid #e8c8c8;
   border-radius: 8px;
   padding: 9px 14px;
@@ -191,5 +192,5 @@
 
 .mybooks-delete-btn:hover {
   background: #fdf0f0;
-  border-color: #c0392b;
+  border-color: var(--color-error);
 }

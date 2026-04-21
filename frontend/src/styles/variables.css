@@ -2,12 +2,16 @@
   --color-primary: #5b7e5a;
   --color-primary-dark: #4a6a49;
   --color-primary-light: #7fa87e;
+  --color-primary-bg: #f0f7ef;
+  --color-primary-border: #c8e0c6;
 
   --color-accent: #f5c842;
 
   --color-bg: #fafaf7;
   --color-card: #ffffff;
   --color-card-hover: #f4f4f0;
+  --color-input-bg: #fafaf7;
+  --color-bg-subtle: #f0f0ec;
 
   --color-text: #2c2c2c;
   --color-text-secondary: #6b6b6b;
@@ -15,12 +19,24 @@
 
   --color-border: #ebebeb;
   --color-border-input: #d9d9d4;
+  --color-divider: #e4e4df;
 
   --color-error: #c0392b;
 
   --color-header-bg: #ffffff;
   --color-drawer-bg: #ffffff;
   --color-overlay: rgba(0, 0, 0, 0.35);
+
+  --color-spinner-track: #e4e4df;
+
+  /* 독서 페이지 전용 */
+  --color-read-bg: #f0ece4;
+  --color-read-page: #fffef8;
+  --color-read-text: #3a3228;
+  --color-read-title: #4a4237;
+  --color-read-border-left: #d6cfc4;
+  --color-read-progress-track: #e4dfd8;
+  --color-read-page-num: #7a6e63;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -29,18 +45,35 @@
 }
 
 [data-theme="dark"] {
-  --color-bg: #1a1a1a;
-  --color-card: #2a2a2a;
-  --color-card-hover: #333333;
+  --color-primary-bg: #1e2e1e;
+  --color-primary-border: #2e4e2e;
+
+  --color-bg: #121212;
+  --color-card: #1e1e1e;
+  --color-card-hover: #2a2a2a;
+  --color-input-bg: #2a2a2a;
+  --color-bg-subtle: #2d2d2d;
 
   --color-text: #e8e8e8;
   --color-text-secondary: #aaaaaa;
   --color-text-muted: #777777;
 
-  --color-border: #3a3a3a;
-  --color-border-input: #4a4a4a;
+  --color-border: #333333;
+  --color-border-input: #444444;
+  --color-divider: #333333;
 
-  --color-header-bg: #222222;
-  --color-drawer-bg: #222222;
-  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-header-bg: #1a1a1a;
+  --color-drawer-bg: #1a1a1a;
+  --color-overlay: rgba(0, 0, 0, 0.65);
+
+  --color-spinner-track: #3a3a3a;
+
+  /* 독서 페이지 전용 */
+  --color-read-bg: #181818;
+  --color-read-page: #242424;
+  --color-read-text: #d0c8be;
+  --color-read-title: #c8c0b8;
+  --color-read-border-left: #3a3632;
+  --color-read-progress-track: #333333;
+  --color-read-page-num: #8a8070;
 }

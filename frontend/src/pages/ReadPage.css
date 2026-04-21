@@ -1,11 +1,12 @@
 /* ─── 읽기 페이지 전체 배경 ─── */
 .read-container {
   min-height: calc(100vh - 60px);
-  background: #f0ece4;
+  background: var(--color-read-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 32px 24px 60px;
+  transition: background-color 0.3s;
 }
 
 /* ─── 상단 헤더 (뒤로가기 + 제목) ─── */
@@ -21,7 +22,7 @@
 .read-back-btn {
   background: none;
   border: none;
-  color: #5b7e5a;
+  color: var(--color-primary);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -36,7 +37,7 @@
 .read-title {
   font-size: 16px;
   font-weight: 700;
-  color: #4a4237;
+  color: var(--color-read-title);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -57,15 +58,16 @@
   width: 100%;
   max-width: 720px;
   height: 4px;
-  background: #e4dfd8;
+  background: var(--color-read-progress-track);
   border-radius: 2px;
   margin-bottom: 20px;
   overflow: hidden;
+  transition: background-color 0.3s;
 }
 
 .read-progress-fill {
   height: 100%;
-  background: #5b7e5a;
+  background: var(--color-primary);
   border-radius: 2px;
   transition: width 0.25s ease;
 }
@@ -76,15 +78,16 @@
   transition: opacity 0.25s ease;
   width: 100%;
   min-height: 480px;
-  background: #fffef8;
+  background: var(--color-read-page);
   border-radius: 4px 12px 12px 4px;
   padding: 52px 60px;
   box-shadow:
-    -4px 0 8px rgba(0, 0, 0, 0.06),
-    4px 4px 16px rgba(0, 0, 0, 0.10),
-    0 2px 4px rgba(0, 0, 0, 0.04);
-  border-left: 4px solid #d6cfc4;
+    -4px 0 8px rgba(0, 0, 0, 0.08),
+    4px 4px 16px rgba(0, 0, 0, 0.14),
+    0 2px 4px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid var(--color-read-border-left);
   position: relative;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .read-page--visible {
@@ -105,7 +108,7 @@
 .read-para {
   font-size: 17px;
   line-height: 2.1;
-  color: #3a3228;
+  color: var(--color-read-text);
   margin: 0 0 1.4em;
   word-break: keep-all;
   text-indent: 1em;
@@ -124,9 +127,9 @@
 
 .read-nav-btn {
   padding: 10px 26px;
-  background: #fff;
-  color: #5b7e5a;
-  border: 1.5px solid #5b7e5a;
+  background: var(--color-card);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
   border-radius: 30px;
   font-size: 14px;
   font-weight: 700;
@@ -135,7 +138,7 @@
 }
 
 .read-nav-btn:hover:not(:disabled) {
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -146,7 +149,7 @@
 
 .read-page-num {
   font-size: 14px;
-  color: #7a6e63;
+  color: var(--color-read-page-num);
   font-weight: 500;
   min-width: 72px;
   text-align: center;
@@ -158,19 +161,19 @@
   flex-direction: column;
   align-items: center;
   padding: 80px 20px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   gap: 16px;
 }
 
 .read-error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 .read-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e4e4df;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: read-spin 0.7s linear infinite;
 }

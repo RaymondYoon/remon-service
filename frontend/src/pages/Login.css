@@ -3,15 +3,17 @@
   margin: 80px auto;
   padding: 36px 32px;
   border-radius: 16px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-  background: #fff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .login-container h2 {
   text-align: center;
   margin-bottom: 28px;
   font-size: 22px;
-  color: #2c2c2c;
+  color: var(--color-text);
   font-weight: 700;
 }
 
@@ -23,18 +25,22 @@
 
 .login-form input {
   padding: 12px 14px;
-  border: 1px solid #d9d9d4;
+  border: 1px solid var(--color-border-input);
   border-radius: 10px;
   font-size: 15px;
-  color: #2c2c2c;
-  background: #fafaf7;
-  transition: border-color 0.2s;
+  color: var(--color-text);
+  background: var(--color-input-bg);
+  transition: border-color 0.2s, background-color 0.3s;
   outline: none;
 }
 
+.login-form input::placeholder {
+  color: var(--color-text-muted);
+}
+
 .login-form input:focus {
-  border-color: #5b7e5a;
-  background: #fff;
+  border-color: var(--color-primary);
+  background: var(--color-card);
 }
 
 .login-form input:disabled {
@@ -45,7 +51,7 @@
 .login-btn {
   margin-top: 6px;
   padding: 12px;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: white;
   border: none;
   border-radius: 10px;
@@ -56,7 +62,7 @@
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 .login-btn:disabled {
@@ -65,7 +71,7 @@
 }
 
 .login-error {
-  color: #c0392b;
+  color: var(--color-error);
   font-size: 13px;
   margin: 0;
 }
@@ -75,7 +81,7 @@
   align-items: center;
   gap: 12px;
   margin: 20px 0 16px;
-  color: #aaa;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
@@ -84,7 +90,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #e4e4df;
+  background: var(--color-divider);
 }
 
 .kakao-btn {
@@ -116,11 +122,11 @@
   text-align: center;
   margin-top: 20px;
   font-size: 14px;
-  color: #6b6b6b;
+  color: var(--color-text-secondary);
 }
 
 .signup-link {
-  color: #5b7e5a;
+  color: var(--color-primary);
   font-weight: 600;
   margin-left: 4px;
 }

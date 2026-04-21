@@ -11,13 +11,13 @@
 .library-title {
   font-size: 26px;
   font-weight: 800;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 6px;
 }
 
 .library-sub {
   font-size: 15px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -29,14 +29,15 @@
 
 .stat-card {
   flex: 1;
-  background: #fff;
-  border: 1px solid #ebebeb;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .stat-coming {
@@ -46,12 +47,12 @@
 .stat-num {
   font-size: 28px;
   font-weight: 800;
-  color: #5b7e5a;
+  color: var(--color-primary);
 }
 
 .stat-label {
   font-size: 13px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
 }
 
 /* ─── 탭 필터 ─── */
@@ -67,24 +68,24 @@
   align-items: center;
   gap: 6px;
   padding: 8px 18px;
-  background: #fff;
-  border: 1.5px solid #ebebeb;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
   border-radius: 30px;
   font-size: 14px;
   font-weight: 600;
-  color: #6b6b6b;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 
 .library-tab:hover {
-  border-color: #5b7e5a;
-  color: #5b7e5a;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .library-tab--active {
-  background: #5b7e5a;
-  border-color: #5b7e5a;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 
@@ -106,8 +107,8 @@
 }
 
 .library-tab:not(.library-tab--active) .library-tab-count {
-  background: #f0f0ec;
-  color: #5b7e5a;
+  background: var(--color-bg-subtle);
+  color: var(--color-primary);
 }
 
 /* ─── 섹션 ─── */
@@ -121,19 +122,19 @@
   flex-direction: column;
   align-items: center;
   padding: 60px 20px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   gap: 16px;
 }
 
 .library-error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 .library-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e4e4df;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: lib-spin 0.7s linear infinite;
 }
@@ -155,7 +156,7 @@
 
 .library-browse-btn {
   padding: 12px 32px;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 30px;
@@ -166,7 +167,7 @@
 }
 
 .library-browse-btn:hover {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 /* ─── 서재 책 그리드 ─── */
@@ -177,31 +178,32 @@
 }
 
 .lib-card {
-  background: #fff;
-  border: 1px solid #ebebeb;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
 }
 
 .lib-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .lib-cover {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  background: #f0f0ec;
+  background: var(--color-bg-subtle);
   border-radius: 8px;
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s;
 }
 
 .lib-cover-placeholder {
@@ -242,7 +244,7 @@
 .lib-title {
   font-size: 14px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
@@ -253,7 +255,7 @@
 
 .lib-author {
   font-size: 13px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -265,23 +267,23 @@
 .status-select {
   width: 100%;
   padding: 7px 10px;
-  border: 1.5px solid #d9d9d4;
+  border: 1.5px solid var(--color-border-input);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #5b7e5a;
-  background: #f0f7ef;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235b7e5a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 28px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.3s;
 }
 
 .status-select:hover:not(:disabled) {
-  border-color: #5b7e5a;
+  border-color: var(--color-primary);
 }
 
 .status-select:disabled {
@@ -294,9 +296,9 @@
   display: block;
   text-align: center;
   padding: 8px 0;
-  background: #fff;
-  color: #5b7e5a;
-  border: 1.5px solid #5b7e5a;
+  background: var(--color-card);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
@@ -305,7 +307,7 @@
 }
 
 .lib-detail-btn:hover {
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
 }
 

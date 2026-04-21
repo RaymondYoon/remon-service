@@ -9,7 +9,7 @@
   flex-direction: column;
   align-items: center;
   padding: 60px 20px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
 }
 
 .booklist-state p {
@@ -19,18 +19,18 @@
 
 .booklist-empty {
   font-size: 15px;
-  color: #aaa;
+  color: var(--color-text-muted);
 }
 
 .booklist-error {
-  color: #c0392b;
+  color: var(--color-error);
 }
 
 .booklist-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid #e4e4df;
-  border-top-color: #5b7e5a;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

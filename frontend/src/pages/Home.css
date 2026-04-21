@@ -12,7 +12,7 @@
 .home-hero-title {
   font-size: 32px;
   font-weight: 800;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 12px;
   line-height: 1.4;
   letter-spacing: -0.5px;
@@ -20,7 +20,7 @@
 
 .home-hero-sub {
   font-size: 16px;
-  color: #8a8a8a;
+  color: var(--color-text-muted);
   margin: 0 0 32px;
 }
 
@@ -34,22 +34,27 @@
 .home-search-input {
   flex: 1;
   padding: 12px 18px;
-  border: 1.5px solid #d9d9d4;
+  border: 1.5px solid var(--color-border-input);
   border-radius: 30px;
   font-size: 15px;
   outline: none;
-  background: #fafaf7;
-  transition: border-color 0.2s;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  transition: border-color 0.2s, background-color 0.3s;
 }
 
 .home-search-input:focus {
-  border-color: #5b7e5a;
-  background: #fff;
+  border-color: var(--color-primary);
+  background: var(--color-card);
+}
+
+.home-search-input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .home-search-btn {
   padding: 12px 24px;
-  background: #5b7e5a;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 30px;
@@ -61,7 +66,7 @@
 }
 
 .home-search-btn:hover {
-  background: #4a6a49;
+  background: var(--color-primary-dark);
 }
 
 .home-section {
@@ -71,6 +76,6 @@
 .home-section-title {
   font-size: 20px;
   font-weight: 700;
-  color: #2c2c2c;
+  color: var(--color-text);
   margin: 0 0 24px;
 }
