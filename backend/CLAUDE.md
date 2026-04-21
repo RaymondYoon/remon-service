@@ -15,10 +15,18 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ## 기술 스택
 - Java 17, Spring Boot 3.5.5
 - Spring Security — JWT 기반 Stateless 인증
-- MariaDB (운영) / H2 in-memory (테스트)
+- MySQL (Railway 운영) / H2 in-memory (테스트)
 - Lombok, Spring Data JPA / Hibernate
 - springdoc-openapi 2.8.3 (Swagger UI)
 - jjwt 0.12.6
+
+---
+
+## 배포 현황
+- **플랫폼**: Railway
+- **운영 URL**: `https://remon-service-production.up.railway.app`
+- **DB**: MySQL (Railway 내부 연결)
+- `application.properties`는 git 추적 포함 (운영 시크릿은 Railway 환경변수로 주입)
 
 ---
 
@@ -26,13 +34,12 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ```
 com.remon
 ├── user        — 회원가입, 로그인(JWT), 카카오 OAuth
-├── book        — 책 CRUD, 검색
+├── book        — 책 CRUD, 검색, AI 생성
+├── library     — 내 서재 (사용자-책 관계)
 ├── config      — SecurityConfig, SwaggerConfig, JpaAuditingConfig
 ├── security    — JwtTokenProvider, JwtAuthenticationFilter
 └── exception   — GlobalExceptionHandler
 ```
-
-현재 Book은 수동 등록 기반이며, AI 생성 연동은 아직 구현되지 않았다.
 
 ---
 
@@ -40,21 +47,14 @@ com.remon
 - **일반 로그인**: `POST /api/users/login` → JWT 발급 (응답 body의 `token` 필드)
 - **카카오 로그인**: `GET /api/auth/kakao` → 카카오 인증 →
   `GET /api/auth/kakao/callback?code=...` → JWT 발급 →
-  프론트 `http://localhost:3000/oauth-callback?token=...` redirect
+  프론트 `https://remon-service.vercel.app/oauth-callback?token=...` redirect
 - **보호 엔드포인트**: `Authorization: Bearer <token>` 헤더 필수
 - 세션 정책: STATELESS
+- JWT secret: Base64 인코딩 적용
 
 ---
 
-## MVP 확장 방향 (Book 중심)
-현재 Book 엔티티에 AI 생성 흐름을 붙이는 것이 가장 빠른 MVP 경로다.
-
-### Book 엔티티에 추가할 필드
-- `content` (TEXT) — AI가 생성한 본문
-- `isAiGenerated` (boolean) — AI 생성 여부
-- `genre`, `tone` — 생성 시 사용한 파라미터
-
-### AI 생성 API 방향
+## AI 책 생성 API
 ```
 POST /api/books/generate
 Authorization: Bearer <token>
@@ -67,16 +67,36 @@ Authorization: Bearer <token>
 → AI API 호출 → Book 저장 → 생성된 bookId 반환
 ```
 
+### Book 엔티티 주요 필드
+- `content` (TEXT) — AI가 생성한 본문
+- `isAiGenerated` (boolean) — AI 생성 여부
+- `genre`, `tone` — 생성 시 사용한 파라미터
+
 ### 고려 사항
-- AI API 호출은 응답 지연이 있으므로 동기/비동기 방식을 결정한 뒤 구현한다
+- AI API 호출은 응답 지연이 있으므로 **비동기 처리 예정** (현재 동기)
 - AI API 키는 `application.properties`에 추가하고 하드코딩하지 않는다
 - 생성 실패 시 Book을 저장하지 않고 에러 응답을 반환한다
 
-### 추후 분리 가능한 구조
-현재 MVP에서는 Book에 직접 붙이되,
-요청량이 늘거나 생성 상태 관리가 필요해지면
-`generation` 도메인과 `library` 도메인으로 분리할 수 있다.
-지금 당장 분리 설계할 필요는 없다.
+---
+
+## 앞으로 할 작업
+- [ ] Docker + docker-compose 로컬 개발환경 구성
+- [ ] GitHub Actions CI/CD 파이프라인
+- [ ] AI 책 생성 비동기 처리 (WebFlux 또는 @Async)
+- [ ] 다른 사람 책 둘러보기 API
+- [ ] 별점/리뷰 기능
+
+---
+
+## 환경 변수 (민감 정보 관리)
+| 키 | 용도 | 주입 방법 |
+|---|---|---|
+| `jwt.secret` | JWT 서명 키 (Base64) | Railway 환경변수 `JWT_SECRET` |
+| `kakao.client-id` | 카카오 REST API 키 | Railway 환경변수 `KAKAO_CLIENT_ID` |
+| `kakao.client-secret` | 카카오 클라이언트 시크릿 | Railway 환경변수 `KAKAO_CLIENT_SECRET` |
+| `kakao.redirect-uri` | 운영: `https://remon-service-production.up.railway.app/api/auth/kakao/callback` | `application.properties` 직접 기입 |
+| `ai.api-key` | AI API 키 (추가 예정) | Railway 환경변수 `AI_API_KEY` |
+| `spring.datasource.*` | MySQL 연결 정보 | Railway 환경변수 자동 주입 |
 
 ---
 
@@ -96,20 +116,6 @@ Authorization: Bearer <token>
 
 ---
 
-## 환경 변수 (민감 정보 관리)
-| 키 | 용도 | 운영 환경 교체 |
-|---|---|---|
-| `jwt.secret` | JWT 서명 키 | 환경변수 `JWT_SECRET` |
-| `kakao.client-id` | 카카오 REST API 키 | 환경변수 `KAKAO_CLIENT_ID` |
-| `kakao.client-secret` | 카카오 클라이언트 시크릿 | 환경변수 `KAKAO_CLIENT_SECRET` |
-| `ai.api-key` | AI API 키 (추가 예정) | 환경변수 `AI_API_KEY` |
-
-- `application.properties`의 시크릿 값은 절대 커밋하지 않는다.
-- 현재 `jwt.secret`는 개발 전용 값이며 운영 배포 전 교체 필수.
-
----
-
 ## Git / 커밋 규칙
 - 사용자가 명시적으로 요청할 때만 커밋한다.
-- 커밋 메시지: `feat:` / `fix:` / `refactor:` / `test:`
-- `application.properties`에 실제 시크릿이 있으면 커밋 전 반드시 경고한다.
+- 커밋 메시지: `feat:` / `fix:` / `refactor:` / `test:` / `docs:`
