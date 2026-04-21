@@ -12,12 +12,12 @@ import "./OAuthCallback.css";
  *  3. → 카카오 로그인 완료
  *  4. → https://remon-service-production.up.railway.app/api/auth/kakao/callback?code=...  (백엔드 처리)
  *  5. → 백엔드가 JWT 발급 후 이 페이지로 redirect
- *       예) https://remon-service-production.up.railway.app/oauth-callback?token=eyJ...&nickname=홍길동&email=test@kakao.com
+ *       예) https://remon-service.vercel.app/oauth-callback?token=eyJ...&nickname=홍길동&email=test@kakao.com
  *  6. → 이 페이지가 token/nickname/email 파싱·저장 후 홈으로 이동
  *
  * 백엔드 확인 사항:
  *   - /api/auth/kakao/callback 처리 후 프론트 redirect URL이
- *     https://remon-service-production.up.railway.app/oauth-callback 으로 설정되어 있어야 함
+ *     https://remon-service.vercel.app/oauth-callback 으로 설정되어 있어야 함
  *   - 쿼리 파라미터로 token(또는 accessToken), nickname, email 을 전달해야 함
  */
 const OAuthCallback = () => {
