@@ -6,7 +6,7 @@ import "./Login.css";
 
 // 백엔드 수동 카카오 OAuth 진입점
 // 백엔드가 카카오 인증 URL로 redirect → 카카오 → /api/auth/kakao/callback → 프론트 /oauth-callback
-const KAKAO_LOGIN_URL = "http://localhost:8080/api/auth/kakao";
+const KAKAO_LOGIN_URL = `${process.env.REACT_APP_API_URL}/api/auth/kakao`;
 
 function Login() {
   const navigate = useNavigate();
