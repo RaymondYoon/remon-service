@@ -7,6 +7,7 @@
 
   --color-bg: #fafaf7;
   --color-card: #ffffff;
+  --color-card-hover: #f4f4f0;
 
   --color-text: #2c2c2c;
   --color-text-secondary: #6b6b6b;
@@ -17,8 +18,29 @@
 
   --color-error: #c0392b;
 
+  --color-header-bg: #ffffff;
+  --color-drawer-bg: #ffffff;
+  --color-overlay: rgba(0, 0, 0, 0.35);
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 30px;
+}
+
+[data-theme="dark"] {
+  --color-bg: #1a1a1a;
+  --color-card: #2a2a2a;
+  --color-card-hover: #333333;
+
+  --color-text: #e8e8e8;
+  --color-text-secondary: #aaaaaa;
+  --color-text-muted: #777777;
+
+  --color-border: #3a3a3a;
+  --color-border-input: #4a4a4a;
+
+  --color-header-bg: #222222;
+  --color-drawer-bg: #222222;
+  --color-overlay: rgba(0, 0, 0, 0.6);
 }

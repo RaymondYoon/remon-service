@@ -4,7 +4,7 @@ import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
 import { deleteAccount } from "../api/bookApi";
 import "./Header.css";
 
-const Header = () => {
+const Header = ({ theme, toggleTheme }) => {
   const navigate = useNavigate();
   const user = getUser();
   const loggedIn = isLoggedIn();
@@ -37,13 +37,22 @@ const Header = () => {
           🍋 Remon
         </Link>
 
-        <button
-          className="hamburger-btn"
-          onClick={() => setMenuOpen((prev) => !prev)}
-          aria-label="메뉴 열기"
-        >
-          ☰
-        </button>
+        <div className="header-actions">
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            aria-label="테마 전환"
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
+          <button
+            className="hamburger-btn"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="메뉴 열기"
+          >
+            ☰
+          </button>
+        </div>
       </header>
 
       {/* 오버레이 */}

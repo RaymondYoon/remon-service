@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+/* 테마 전환 부드럽게 */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -14,6 +19,7 @@ body {
   color: var(--color-text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {

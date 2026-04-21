@@ -11,15 +11,18 @@ import OAuthCallback from "./pages/OAuthCallback";
 import GeneratePage from "./pages/GeneratePage";
 import ReadPage from "./pages/ReadPage";
 import { migrateOrClearLegacyAuth } from "./utils/auth";
+import { useTheme } from "./hooks/useTheme";
 import "./styles/global.css";
 
 // 앱 최초 로드 시 구 형식 localStorage 정리 (재로그인 유도)
 migrateOrClearLegacyAuth();
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <Router>
-      <Header />
+      <Header theme={theme} toggleTheme={toggleTheme} />
 
       <main>
         <Routes>
