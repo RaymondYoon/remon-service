@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
 import { deleteAccount } from "../api/bookApi";
@@ -8,9 +8,13 @@ const Header = () => {
   const navigate = useNavigate();
   const user = getUser();
   const loggedIn = isLoggedIn();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
 
   const handleLogout = () => {
     clearAuth();
+    closeMenu();
     navigate("/login");
   };
 
@@ -19,6 +23,7 @@ const Header = () => {
     try {
       await deleteAccount();
       clearAuth();
+      closeMenu();
       navigate("/login");
     } catch {
       alert("탈퇴에 실패했습니다. 다시 시도해주세요.");
@@ -26,37 +31,55 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
-      <Link to="/" className="logo">
-        🍋 Remon
-      </Link>
+    <>
+      <header className="header">
+        <Link to="/" className="logo" onClick={closeMenu}>
+          🍋 Remon
+        </Link>
 
-      <nav className="nav">
-        <Link to="/" className="nav-link">홈</Link>
+        <button
+          className="hamburger-btn"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label="메뉴 열기"
+        >
+          ☰
+        </button>
+      </header>
 
-        {loggedIn ? (
-          <>
-            <Link to="/generate" className="nav-link nav-link--generate">✨ 책 만들기</Link>
-            <Link to="/library" className="nav-link">내 서재</Link>
-            <Link to="/my-books" className="nav-link">내 책</Link>
-            <div className="user-box">
-              <span className="nickname">{user?.nickname}님</span>
-              <button className="logout-btn" onClick={handleLogout}>
-                로그아웃
-              </button>
-              <button className="withdraw-btn" onClick={handleDeleteAccount}>
-                계정 탈퇴
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <Link to="/login" className="nav-link">로그인</Link>
-            <Link to="/signup" className="nav-link nav-link--signup">회원가입</Link>
-          </>
-        )}
+      {/* 오버레이 */}
+      {menuOpen && (
+        <div className="drawer-overlay" onClick={closeMenu} />
+      )}
+
+      {/* 슬라이드 드로어 */}
+      <nav className={`drawer ${menuOpen ? "drawer--open" : ""}`}>
+        <button className="drawer-close-btn" onClick={closeMenu} aria-label="메뉴 닫기">
+          ✕
+        </button>
+
+        <div className="drawer-links">
+          <Link to="/" className="drawer-link" onClick={closeMenu}>홈</Link>
+
+          {loggedIn ? (
+            <>
+              <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
+              <Link to="/library" className="drawer-link" onClick={closeMenu}>내 서재</Link>
+              <Link to="/my-books" className="drawer-link" onClick={closeMenu}>내 책</Link>
+              <div className="drawer-user-box">
+                <span className="drawer-nickname">{user?.nickname}님</span>
+                <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
+                <button className="withdraw-btn" onClick={handleDeleteAccount}>계정 탈퇴</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="drawer-link" onClick={closeMenu}>로그인</Link>
+              <Link to="/signup" className="drawer-link drawer-link--signup" onClick={closeMenu}>회원가입</Link>
+            </>
+          )}
+        </div>
       </nav>
-    </header>
+    </>
   );
 };
 
