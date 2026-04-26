@@ -1,8 +1,10 @@
 package com.remon.user.controller;
 
 import com.remon.security.JwtTokenProvider;
+import com.remon.user.entity.RefreshToken;
 import com.remon.user.entity.User;
 import com.remon.user.service.KakaoAuthService;
+import com.remon.user.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,13 +22,16 @@ public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${frontend.oauth-callback-url}")
     private String frontendOAuthCallbackUrl;
 
-    public KakaoAuthController(KakaoAuthService kakaoAuthService, JwtTokenProvider jwtTokenProvider) {
+    public KakaoAuthController(KakaoAuthService kakaoAuthService, JwtTokenProvider jwtTokenProvider,
+                               RefreshTokenService refreshTokenService) {
         this.kakaoAuthService = kakaoAuthService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.refreshTokenService = refreshTokenService;
     }
 
     /**
@@ -51,7 +56,8 @@ public class KakaoAuthController {
             HttpServletResponse response
     ) throws IOException {
         User user = kakaoAuthService.processKakaoLogin(code);
-        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
+        String accessToken = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
         String nickname = URLEncoder.encode(
                 user.getNickname() != null ? user.getNickname() : "", StandardCharsets.UTF_8);
@@ -59,7 +65,8 @@ public class KakaoAuthController {
                 user.getEmail() != null ? user.getEmail() : "", StandardCharsets.UTF_8);
 
         String redirectUrl = frontendOAuthCallbackUrl
-                + "?token=" + token
+                + "?token=" + accessToken
+                + "&refreshToken=" + refreshToken.getToken()
                 + "&nickname=" + nickname
                 + "&email=" + email;
 
