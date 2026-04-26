@@ -26,6 +26,7 @@ public class RefreshTokenService {
 
     public RefreshToken createRefreshToken(String email) {
         refreshTokenRepository.deleteByEmail(email);
+        refreshTokenRepository.flush();
         RefreshToken refreshToken = RefreshToken.builder()
                 .email(email)
                 .token(UUID.randomUUID().toString())
