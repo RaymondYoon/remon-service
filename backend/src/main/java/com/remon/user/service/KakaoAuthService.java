@@ -1,10 +1,13 @@
 package com.remon.user.service;
 
+import com.remon.logging.MaskingUtil;
 import com.remon.user.dto.KakaoTokenResponse;
 import com.remon.user.dto.KakaoUserInfoResponse;
 import com.remon.user.entity.Role;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,8 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @Transactional
 public class KakaoAuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(KakaoAuthService.class);
 
     private final UserRepository userRepository;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -48,9 +53,13 @@ public class KakaoAuthService {
      * 인가 코드 → 액세스 토큰 → 사용자 정보 → DB 저장/조회 → User 반환
      */
     public User processKakaoLogin(String code) {
+        log.info("카카오 로그인 처리 시작 (code: {}***)", code.length() > 6 ? code.substring(0, 6) : "***");
         String accessToken = getKakaoAccessToken(code);
+        log.debug("카카오 액세스 토큰 발급 완료: {}", MaskingUtil.maskToken(accessToken));
         KakaoUserInfoResponse userInfo = getKakaoUserInfo(accessToken);
-        return findOrCreateUser(userInfo);
+        User user = findOrCreateUser(userInfo);
+        log.info("카카오 로그인 완료: {}", MaskingUtil.maskEmail(user.getEmail()));
+        return user;
     }
 
     private String getKakaoAccessToken(String code) {

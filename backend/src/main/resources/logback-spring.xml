@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 민감 정보 마스킹 커스텀 컨버터 등록 -->
+    <conversionRule conversionWord="maskedMsg"
+                    converterClass="com.remon.logging.MaskingMessageConverter"/>
+
+    <!-- 마스킹이 적용된 로그 패턴 -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %maskedMsg%n"/>
+
+    <!-- 콘솔 출력 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 운영 프로파일: INFO 이상만 출력, SQL 관련 로거 OFF -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="org.hibernate.SQL"                  level="OFF"/>
+        <logger name="org.hibernate.type.descriptor.sql"  level="OFF"/>
+        <logger name="org.hibernate.orm.jdbc.bind"        level="OFF"/>
+        <logger name="org.springframework.web"            level="WARN"/>
+    </springProfile>
+
+    <!-- 개발 프로파일: DEBUG 허용, SQL은 OFF 유지 -->
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <logger name="com.remon"                          level="DEBUG"/>
+        <logger name="org.hibernate.SQL"                  level="OFF"/>
+        <logger name="org.hibernate.type.descriptor.sql"  level="OFF"/>
+        <logger name="org.hibernate.orm.jdbc.bind"        level="OFF"/>
+    </springProfile>
+
+</configuration>
