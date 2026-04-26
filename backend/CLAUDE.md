@@ -44,13 +44,15 @@ com.remon
 ---
 
 ## 현재 인증 방식
-- **일반 로그인**: `POST /api/users/login` → JWT 발급 (응답 body의 `token` 필드)
+- **일반 로그인**: `POST /api/users/login` → accessToken(15분) + refreshToken(7일) 발급
 - **카카오 로그인**: `GET /api/auth/kakao` → 카카오 인증 →
   `GET /api/auth/kakao/callback?code=...` → JWT 발급 →
-  프론트 `https://remon-service.vercel.app/oauth-callback?token=...` redirect
-- **보호 엔드포인트**: `Authorization: Bearer <token>` 헤더 필수
+  프론트 `https://remon-service.vercel.app/oauth-callback?accessToken=...&refreshToken=...` redirect
+- **토큰 재발급**: `POST /api/auth/refresh` → refreshToken으로 새 accessToken 발급
+- **보호 엔드포인트**: `Authorization: Bearer <accessToken>` 헤더 필수
 - 세션 정책: STATELESS
 - JWT secret: Base64 인코딩 적용
+- RefreshToken은 DB(MySQL) 저장, 발급 시 기존 토큰 deleteByEmail + flush 후 새로 save
 
 ---
 
@@ -79,11 +81,18 @@ Authorization: Bearer <token>
 
 ---
 
+## 완료된 작업 (2026-04-26)
+- [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일)
+- [x] RefreshToken DB 저장 및 자동 재발급 로직 (`POST /api/auth/refresh`)
+- [x] 카카오 OAuth redirect에 accessToken + refreshToken 파라미터 연동
+- [x] `createRefreshToken`에서 `deleteByEmail` 후 `flush()` 추가 — duplicate key 버그 수정
+- [x] 카카오 로그인 정상 동작 확인
+
 ## 앞으로 할 작업
 - [ ] Docker + docker-compose 로컬 개발환경 구성
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] AI 책 생성 비동기 처리 (WebFlux 또는 @Async)
-- [ ] 다른 사람 책 둘러보기 API
+- [ ] AI 책 생성 비동기 처리 (WebFlux 또는 @Async, 현재 60초 블로킹)
+- [ ] 다른 사람 책 둘러보기 API (공개/비공개)
 - [ ] 별점/리뷰 기능
 
 ---

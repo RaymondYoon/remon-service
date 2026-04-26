@@ -66,12 +66,19 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 
 ---
 
+## 완료된 작업 (2026-04-26)
+- [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일)
+- [x] localStorage 키를 `token` → `accessToken`으로 변경, `refreshToken`도 저장
+- [x] axiosInstance 401 자동 재발급 로직 추가 (큐 처리 포함)
+- [x] OAuthCallback.jsx에서 accessToken + refreshToken 파라미터 파싱
+- [x] 카카오 로그인 정상 동작 확인
+
 ## 앞으로 할 작업
 - [ ] Docker + docker-compose 로컬 개발환경 구성
 - [ ] GitHub Actions CI/CD
-- [ ] AI 책 생성 비동기 처리 연동
+- [ ] AI 책 생성 비동기 처리 연동 (현재 60초 블로킹)
 - [ ] 책 생성 로딩 애니메이션 개선
-- [ ] 다른 사람 책 둘러보기 페이지
+- [ ] 다른 사람 책 둘러보기 페이지 (공개/비공개)
 - [ ] 별점/리뷰 기능
 - [ ] 다크모드 전체 완성도 개선
 
@@ -89,10 +96,18 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ---
 
 ## 인증 유틸리티 (`src/utils/auth.js`)
-- `saveAuth(data)` — token + user 분리 저장
+- `saveAuth(data)` — accessToken + refreshToken + user 분리 저장
+  - localStorage 키: `accessToken`, `refreshToken`, `user`
+- `getToken()` — `accessToken` 키로 읽음
 - `isLoggedIn()` — 토큰 존재 + JWT 만료 여부 동시 확인
-- `clearAuth()` — 로그아웃 시 localStorage 전체 제거
+- `clearAuth()` — accessToken, refreshToken, user 전체 제거
 - 인증이 필요한 페이지는 반드시 `ProtectedRoute`로 감싼다
+
+## axiosInstance 동작 (`src/api/axiosInstance.js`)
+- 요청 인터셉터: `accessToken`을 `Authorization: Bearer` 헤더에 자동 첨부
+- 401 응답 시: `POST /api/auth/refresh`로 refreshToken 전송 → 새 accessToken 저장 후 원래 요청 재시도
+- 동시 다발 401 요청은 큐(failedQueue)로 처리
+- 갱신 실패 시 clearAuth + `/login` 리다이렉트
 
 ---
 
