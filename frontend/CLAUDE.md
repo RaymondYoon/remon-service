@@ -72,9 +72,11 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 - [x] axiosInstance 401 자동 재발급 로직 추가 (큐 처리 포함)
 - [x] OAuthCallback.jsx에서 accessToken + refreshToken 파라미터 파싱
 - [x] 카카오 로그인 정상 동작 확인
+- [x] Docker + docker-compose 로컬 개발환경 구축
+  - `.env` 파일로 환경변수 관리
+  - `application-local.properties`로 로컬 DB 설정 분리
 
 ## 앞으로 할 작업
-- [ ] Docker + docker-compose 로컬 개발환경 구성
 - [ ] GitHub Actions CI/CD
 - [ ] AI 책 생성 비동기 처리 연동 (현재 60초 블로킹)
 - [ ] 책 생성 로딩 애니메이션 개선

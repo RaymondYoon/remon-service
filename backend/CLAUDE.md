@@ -82,14 +82,18 @@ Authorization: Bearer <token>
 ---
 
 ## 완료된 작업 (2026-04-26)
-- [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일)
+- [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일, DB 저장)
 - [x] RefreshToken DB 저장 및 자동 재발급 로직 (`POST /api/auth/refresh`)
 - [x] 카카오 OAuth redirect에 accessToken + refreshToken 파라미터 연동
 - [x] `createRefreshToken`에서 `deleteByEmail` 후 `flush()` 추가 — duplicate key 버그 수정
 - [x] 카카오 로그인 정상 동작 확인
+- [x] Docker + docker-compose 로컬 개발환경 구축
+  - MySQL 8 컨테이너 + Spring Boot 컨테이너 (공유 네트워크)
+  - `.env` 파일로 환경변수 관리 (`.env.example` 템플릿 제공)
+  - `application-local.properties`로 로컬 DB 설정 분리
+  - JAR 사전 빌드 방식 Dockerfile (`eclipse-temurin:17-jre-alpine`)
 
 ## 앞으로 할 작업
-- [ ] Docker + docker-compose 로컬 개발환경 구성
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] AI 책 생성 비동기 처리 (WebFlux 또는 @Async, 현재 60초 블로킹)
 - [ ] 다른 사람 책 둘러보기 API (공개/비공개)
