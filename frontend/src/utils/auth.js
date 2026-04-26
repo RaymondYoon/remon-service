@@ -1,8 +1,12 @@
 // ── 저장 ──────────────────────────────────────────────────────────────────
 export const saveAuth = (data) => {
-  const token = data.token || data.accessToken;
-  if (token) {
-    localStorage.setItem("token", token);
+  const accessToken = data.accessToken || data.token;
+  if (accessToken) {
+    localStorage.setItem("accessToken", accessToken);
+  }
+  const refreshToken = data.refreshToken;
+  if (refreshToken) {
+    localStorage.setItem("refreshToken", refreshToken);
   }
   const user = {
     nickname: data.nickname || data.username || "",
@@ -12,7 +16,7 @@ export const saveAuth = (data) => {
 };
 
 // ── 조회 ──────────────────────────────────────────────────────────────────
-export const getToken = () => localStorage.getItem("token");
+export const getToken = () => localStorage.getItem("accessToken");
 
 export const getUser = () => {
   try {
@@ -49,7 +53,8 @@ export const isLoggedIn = () => {
 
 // ── 삭제 ──────────────────────────────────────────────────────────────────
 export const clearAuth = () => {
-  localStorage.removeItem("token");
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
   localStorage.removeItem("user");
 };
 
@@ -62,7 +67,7 @@ export const clearAuth = () => {
  *   마이그레이션하거나 제거해 재로그인 유도.
  */
 export const migrateOrClearLegacyAuth = () => {
-  const hasNewToken = !!localStorage.getItem("token");
+  const hasNewToken = !!localStorage.getItem("accessToken");
   if (hasNewToken) return; // 이미 새 형식 → 처리 불필요
 
   try {

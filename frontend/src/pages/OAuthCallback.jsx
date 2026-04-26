@@ -26,12 +26,13 @@ const OAuthCallback = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = searchParams.get("token") || searchParams.get("accessToken");
+    const accessToken = searchParams.get("accessToken") || searchParams.get("token");
+    const refreshToken = searchParams.get("refreshToken");
     const nickname = searchParams.get("nickname");
     const email = searchParams.get("email");
 
-    if (token) {
-      saveAuth({ token, nickname, email });
+    if (accessToken) {
+      saveAuth({ accessToken, refreshToken, nickname, email });
       navigate("/", { replace: true });
     } else {
       setError("카카오 로그인에 실패했습니다. 다시 시도해주세요.");
