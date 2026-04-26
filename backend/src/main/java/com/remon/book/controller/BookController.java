@@ -4,6 +4,7 @@ import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +22,7 @@ public class BookController {
     }
 
     @PostMapping
-    public BookResponse createBook(@RequestBody BookRequest request){
+    public BookResponse createBook(@Valid @RequestBody BookRequest request){
         return bookService.createBook(request);
     }
 
@@ -42,7 +43,7 @@ public class BookController {
     }
 
     @PostMapping("/generate")
-    public BookResponse generateBook(@RequestBody GenerateBookRequest request) {
+    public BookResponse generateBook(@Valid @RequestBody GenerateBookRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return bookService.generateBook(request, email);
     }

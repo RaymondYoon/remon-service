@@ -7,6 +7,7 @@ import com.remon.user.dto.UserRequest;
 import com.remon.user.dto.UserResponse;
 import com.remon.user.entity.User;
 import com.remon.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public UserResponse register(@RequestBody UserRequest request) {
+    public UserResponse register(@Valid @RequestBody UserRequest request) {
         User user = userService.registerUser(
                 request.getEmail(),
                 request.getPassword(),
@@ -45,7 +46,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         User user = userService.login(request.getEmail(), request.getPassword());
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
         return LoginResponse.builder()
