@@ -1,5 +1,6 @@
 package com.remon.config;
 
+import com.remon.ratelimit.RateLimitFilter;
 import com.remon.security.JwtAuthenticationFilter;
 import com.remon.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -21,9 +22,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, RateLimitFilter rateLimitFilter) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -47,6 +50,7 @@ public class SecurityConfig {
                         // 그 외 모든 요청은 JWT 인증 필요
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
 
