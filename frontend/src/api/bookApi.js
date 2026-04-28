@@ -35,9 +35,14 @@ export const deleteFromLibrary = async (bookId) => {
   return await axiosInstance.delete(`/api/library/${bookId}`);
 };
 
-// AI 책 생성 (인증 필요) — OpenAI 응답 대기로 60초 타임아웃 적용
+// AI 책 생성 (인증 필요) — 202 즉시 반환, 백그라운드에서 생성 진행
 export const generateBook = async (data) => {
-  return await axiosInstance.post("/api/books/generate", data, { timeout: 60000 });
+  return await axiosInstance.post("/api/books/generate", data);
+};
+
+// AI 책 생성 상태 조회 (폴링용) — PENDING | GENERATING | DONE | FAILED
+export const getBookGenerationStatus = async (id) => {
+  return await axiosInstance.get(`/api/books/${id}/status`);
 };
 
 // 현재 읽은 페이지 저장 (인증 필요)

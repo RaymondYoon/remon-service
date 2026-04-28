@@ -36,4 +36,8 @@ public class Book {
 
     private String genre;           // 생성 시 사용한 장르 (예: SF, 판타지)
     private String tone;            // 생성 시 사용한 톤 (예: WARM, DARK)
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private BookStatus status = BookStatus.DONE;
 }

@@ -1,9 +1,12 @@
 package com.remon.book.repository;
 
 import com.remon.book.entity.Book;
+import com.remon.book.entity.BookStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,4 +22,15 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b WHERE b.publishedBy = :userId AND b.isAiGenerated = true ORDER BY b.publishedDate DESC")
     List<Book> findMyGeneratedBooks(@Param("userId") Long userId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Book b SET b.status = :status WHERE b.id = :id")
+    void updateStatus(@Param("id") Long id, @Param("status") BookStatus status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Book b SET b.title = :title, b.content = :content, b.status = :status WHERE b.id = :id")
+    void updateGenerationResult(@Param("id") Long id, @Param("title") String title,
+                                @Param("content") String content, @Param("status") BookStatus status);
 }

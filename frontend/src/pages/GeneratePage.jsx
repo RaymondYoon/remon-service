@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { generateBook } from "../api/bookApi";
+import { generateBook, getBookGenerationStatus } from "../api/bookApi";
 import "./GeneratePage.css";
 
 const GENRES  = ["SF", "판타지", "로맨스", "일상", "공포"];
@@ -25,8 +25,34 @@ const GeneratePage = () => {
   const [tone, setTone]                 = useState("WARM");
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
+  const [generatingBookId, setGeneratingBookId] = useState(null);
+  const [displayKeywords, setDisplayKeywords]   = useState([]);
+  const intervalRef = useRef(null);
 
-  // 키워드 추가 (Enter 또는 쉼표 입력 시)
+  useEffect(() => {
+    if (!generatingBookId) return;
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await getBookGenerationStatus(generatingBookId);
+        const status = res.data.status;
+        if (status === "DONE") {
+          clearInterval(intervalRef.current);
+          navigate(`/book/${generatingBookId}`, { state: { fromGenerate: true } });
+        } else if (status === "FAILED") {
+          clearInterval(intervalRef.current);
+          setError("책 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+          setLoading(false);
+          setGeneratingBookId(null);
+        }
+      } catch (err) {
+        // 폴링 중 네트워크 오류는 무시하고 계속 시도
+      }
+    }, 3000);
+
+    return () => clearInterval(intervalRef.current);
+  }, [generatingBookId, navigate]);
+
   const handleKeywordKeyDown = (e) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
@@ -69,20 +95,16 @@ const GeneratePage = () => {
       return;
     }
 
+    setDisplayKeywords(allKeywords);
     setLoading(true);
+
     try {
-      const response = await generateBook({
-        keywords: allKeywords,
-        genre,
-        length,
-        tone,
-      });
+      const response = await generateBook({ keywords: allKeywords, genre, length, tone });
       const bookId = response.data.id;
-      navigate(`/book/${bookId}`, { state: { fromGenerate: true } });
+      setGeneratingBookId(bookId);
     } catch (err) {
-      const msg = err.response?.data?.error || "책 생성에 실패했습니다. 잠시 후 다시 시도해주세요.";
+      const msg = err.response?.data?.error || "책 생성 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
       setError(msg);
-    } finally {
       setLoading(false);
     }
   };
@@ -90,13 +112,20 @@ const GeneratePage = () => {
   if (loading) {
     return (
       <div className="generate-loading">
-        <div className="generate-loading-icon">✨</div>
+        <div className="generate-book-animation">
+          <div className="book-cover" />
+          <div className="book-page page-1" />
+          <div className="book-page page-2" />
+          <div className="book-page page-3" />
+        </div>
         <h2 className="generate-loading-title">Remon이 이야기를 쓰고 있어요</h2>
         <p className="generate-loading-sub">
-          키워드: {[...keywords, keywordInput.trim()].filter(Boolean).join(", ")}
+          키워드: {displayKeywords.join(", ")}
         </p>
-        <div className="generate-spinner" />
-        <p className="generate-loading-hint">잠시만 기다려주세요. 보통 10~30초 정도 걸려요.</p>
+        <div className="generate-dots">
+          <span /><span /><span />
+        </div>
+        <p className="generate-loading-hint">보통 10~60초 정도 걸려요. 페이지를 닫지 마세요.</p>
       </div>
     );
   }

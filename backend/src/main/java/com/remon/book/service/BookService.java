@@ -4,6 +4,7 @@ import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
+import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.user.entity.User;
@@ -23,13 +24,16 @@ public class BookService {
     private final OpenAiService openAiService;
     private final UserRepository userRepository;
     private final UserBookRepository userBookRepository;
+    private final BookGenerationTask bookGenerationTask;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
-                       UserRepository userRepository, UserBookRepository userBookRepository) {
+                       UserRepository userRepository, UserBookRepository userBookRepository,
+                       BookGenerationTask bookGenerationTask) {
         this.bookRepository     = bookRepository;
         this.openAiService      = openAiService;
         this.userRepository     = userRepository;
         this.userBookRepository = userBookRepository;
+        this.bookGenerationTask = bookGenerationTask;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -57,26 +61,30 @@ public class BookService {
         String author = (user.getNickname() != null && !user.getNickname().isBlank())
                 ? user.getNickname() : "Remon AI";
 
-        String[] result  = openAiService.generate(
-                request.getKeywords(), request.getGenre(),
-                request.getLength(),   request.getTone());
-        String title   = result[0];
-        String content = result[1];
-
         Book book = Book.builder()
-                .title(title)
+                .title("생성 중...")
                 .author(author)
                 .description("키워드: " + String.join(", ", request.getKeywords()))
-                .content(content)
                 .isAiGenerated(true)
                 .genre(request.getGenre())
                 .tone(request.getTone())
                 .publishedDate(LocalDate.now())
                 .price(0.0)
                 .publishedBy(user.getId())
+                .status(BookStatus.PENDING)
                 .build();
 
-        return mapToResponse(bookRepository.save(book));
+        Book savedBook = bookRepository.save(book);
+        bookGenerationTask.run(savedBook.getId(), request.getKeywords(),
+                request.getGenre(), request.getLength(), request.getTone());
+        return mapToResponse(savedBook);
+    }
+
+    @Transactional(readOnly = true)
+    public String getBookStatus(Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
+        return book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name();
     }
 
     @Transactional(readOnly = true)
@@ -129,6 +137,7 @@ public class BookService {
                 .isAiGenerated(book.isAiGenerated())
                 .genre(book.getGenre())
                 .tone(book.getTone())
+                .status(book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name())
                 .build();
     }
 }

@@ -21,4 +21,5 @@ public class BookResponse {
     private boolean isAiGenerated;
     private String genre;
     private String tone;
+    private String status;
 }
