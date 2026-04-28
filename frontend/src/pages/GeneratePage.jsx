@@ -113,10 +113,10 @@ const GeneratePage = () => {
     return (
       <div className="generate-loading">
         <div className="generate-book-animation">
-          <div className="book-cover" />
-          <div className="book-page page-1" />
-          <div className="book-page page-2" />
-          <div className="book-page page-3" />
+          <div className="generate-book-cover" />
+          <div className="generate-book-page generate-page-1" />
+          <div className="generate-book-page generate-page-2" />
+          <div className="generate-book-page generate-page-3" />
         </div>
         <h2 className="generate-loading-title">Remon이 이야기를 쓰고 있어요</h2>
         <p className="generate-loading-sub">

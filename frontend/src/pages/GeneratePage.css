@@ -188,7 +188,7 @@
   margin-bottom: 8px;
 }
 
-.book-cover {
+.generate-book-cover {
   position: absolute;
   inset: 0;
   background: var(--color-primary);
@@ -196,7 +196,7 @@
   box-shadow: -3px 3px 8px rgba(0, 0, 0, 0.2);
 }
 
-.book-page {
+.generate-book-page {
   position: absolute;
   top: 6px;
   right: -2px;
@@ -208,9 +208,9 @@
   border: 1px solid var(--color-border);
 }
 
-.page-1 { animation: flip 2.4s ease-in-out infinite 0s; }
-.page-2 { animation: flip 2.4s ease-in-out infinite 0.4s; }
-.page-3 { animation: flip 2.4s ease-in-out infinite 0.8s; }
+.generate-page-1 { animation: flip 2.4s ease-in-out infinite 0s; }
+.generate-page-2 { animation: flip 2.4s ease-in-out infinite 0.4s; }
+.generate-page-3 { animation: flip 2.4s ease-in-out infinite 0.8s; }
 
 @keyframes flip {
   0%   { transform: rotateY(0deg);    opacity: 1; }
