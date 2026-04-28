@@ -76,3 +76,14 @@
 .login-text:hover {
   text-decoration: underline;
 }
+
+.password-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: -4px;
+  margin-left: 2px;
+}
+
+.password-hint--error {
+  color: var(--color-error);
+}

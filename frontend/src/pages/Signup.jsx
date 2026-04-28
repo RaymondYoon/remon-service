@@ -20,6 +20,10 @@ function Signup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (form.password.length < 8) {
+            return;
+        }
+
         if (form.password !== form.confirmPassword) {
             alert("비밀번호가 일치하지 않습니다.");
             return;
@@ -79,6 +83,9 @@ function Signup() {
             onChange={handleChange}
             required
             />
+            <p className={`password-hint${form.password.length > 0 && form.password.length < 8 ? " password-hint--error" : ""}`}>
+                비밀번호는 최소 8자 이상이어야 합니다
+            </p>
 
             <input
             type="password"
