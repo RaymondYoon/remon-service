@@ -82,8 +82,8 @@ const BookDetail = () => {
         ← 뒤로
       </button>
 
-      {/* AI 생성 직후 진입 시 축하 배너 */}
-      {fromGenerate && (
+      {/* AI 생성 직후 진입 시 축하 배너 — DONE 상태일 때만 표시 */}
+      {fromGenerate && book.status === "DONE" && (
         <div className="detail-generated-banner">
           ✨ 이야기가 완성됐어요! 지금 바로 읽어보세요.
         </div>
