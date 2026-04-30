@@ -8,12 +8,14 @@ import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import com.remon.follow.repository.FollowRepository;
 import com.remon.library.repository.UserBookRepository;
+import com.remon.review.repository.ReviewRepository;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -28,16 +30,19 @@ public class BookService {
     private final UserBookRepository userBookRepository;
     private final BookGenerationTask bookGenerationTask;
     private final FollowRepository followRepository;
+    private final ReviewRepository reviewRepository;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
                        UserRepository userRepository, UserBookRepository userBookRepository,
-                       BookGenerationTask bookGenerationTask, FollowRepository followRepository) {
+                       BookGenerationTask bookGenerationTask, FollowRepository followRepository,
+                       ReviewRepository reviewRepository) {
         this.bookRepository     = bookRepository;
         this.openAiService      = openAiService;
         this.userRepository     = userRepository;
         this.userBookRepository = userBookRepository;
         this.bookGenerationTask = bookGenerationTask;
         this.followRepository   = followRepository;
+        this.reviewRepository   = reviewRepository;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -52,7 +57,7 @@ public class BookService {
                 // content, genre, tone 은 수동 등록 시 null
                 .build();
         Book savedBook = bookRepository.save(book);
-        return mapToResponse(savedBook);
+        return buildResponse(savedBook, null, null);
     }
 
     public BookResponse generateBook(GenerateBookRequest request, String email) {
@@ -81,7 +86,7 @@ public class BookService {
         Book savedBook = bookRepository.save(book);
         bookGenerationTask.run(savedBook.getId(), request.getKeywords(),
                 request.getGenre(), request.getLength(), request.getTone());
-        return mapToResponse(savedBook);
+        return buildResponse(savedBook, null, null);
     }
 
     @Transactional(readOnly = true)
@@ -95,8 +100,10 @@ public class BookService {
     public List<BookResponse> getMyBooks(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
-        return bookRepository.findMyGeneratedBooks(user.getId()).stream()
-                .map(this::mapToResponse)
+        List<Book> books = bookRepository.findMyGeneratedBooks(user.getId());
+        Map<Long, Double> ratingCache = buildRatingCache(books);
+        return books.stream()
+                .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -115,15 +122,17 @@ public class BookService {
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
-        return mapToResponse(book);
+        Double avgRating = reviewRepository.findAverageRatingByBookId(id);
+        return buildResponse(book, null, avgRating);
     }
 
     public List<BookResponse> getAllBooks(String keyword) {
         List<Book> books = (keyword != null && !keyword.isBlank())
                 ? bookRepository.searchByKeyword(keyword)
                 : bookRepository.findAll();
+        Map<Long, Double> ratingCache = buildRatingCache(books);
         return books.stream()
-                .map(this::mapToResponse)
+                .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -131,8 +140,9 @@ public class BookService {
     public List<BookResponse> getPublicBooks() {
         List<Book> books = bookRepository.findPublicBooks();
         Map<Long, String> nicknameCache = buildNicknameCache(books);
+        Map<Long, Double> ratingCache = buildRatingCache(books);
         return books.stream()
-                .map(b -> mapToResponseWithNickname(b, nicknameCache.get(b.getPublishedBy())))
+                .map(b -> buildResponse(b, nicknameCache.get(b.getPublishedBy()), ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -144,8 +154,9 @@ public class BookService {
         if (followingIds.isEmpty()) return List.of();
         List<Book> books = bookRepository.findFeedBooks(followingIds);
         Map<Long, String> nicknameCache = buildNicknameCache(books);
+        Map<Long, Double> ratingCache = buildRatingCache(books);
         return books.stream()
-                .map(b -> mapToResponseWithNickname(b, nicknameCache.get(b.getPublishedBy())))
+                .map(b -> buildResponse(b, nicknameCache.get(b.getPublishedBy()), ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -159,7 +170,15 @@ public class BookService {
                 .collect(Collectors.toMap(User::getId, u -> u.getNickname() != null ? u.getNickname() : ""));
     }
 
-    private BookResponse mapToResponseWithNickname(Book book, String nickname) {
+    private Map<Long, Double> buildRatingCache(List<Book> books) {
+        List<Long> bookIds = books.stream().map(Book::getId).collect(Collectors.toList());
+        Map<Long, Double> map = new HashMap<>();
+        reviewRepository.findAverageRatingsByBookIds(bookIds)
+                .forEach(row -> map.put((Long) row[0], (Double) row[1]));
+        return map;
+    }
+
+    private BookResponse buildResponse(Book book, String nickname, Double avgRating) {
         return BookResponse.builder()
                 .id(book.getId())
                 .title(book.getTitle())
@@ -177,26 +196,7 @@ public class BookService {
                 .isPublic(book.isPublic())
                 .publishedBy(book.getPublishedBy())
                 .authorNickname(nickname)
-                .build();
-    }
-
-    private BookResponse mapToResponse(Book book) {
-        return BookResponse.builder()
-                .id(book.getId())
-                .title(book.getTitle())
-                .author(book.getAuthor())   // 버그 수정: getTitle() → getAuthor()
-                .isbn(book.getIsbn())
-                .publishedDate(book.getPublishedDate() != null
-                        ? book.getPublishedDate().toString() : null)
-                .price(book.getPrice())
-                .description(book.getDescription())
-                .content(book.getContent())
-                .isAiGenerated(book.isAiGenerated())
-                .genre(book.getGenre())
-                .tone(book.getTone())
-                .status(book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name())
-                .isPublic(book.isPublic())
-                .publishedBy(book.getPublishedBy())
+                .averageRating(avgRating)
                 .build();
     }
 }

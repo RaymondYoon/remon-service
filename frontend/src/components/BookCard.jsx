@@ -19,6 +19,9 @@ const BookCard = ({ book }) => {
       <div className="book-info">
         <h3 className="book-title">{book.title}</h3>
         <p className="book-author">{book.author}</p>
+        {book.averageRating != null && (
+          <p className="book-rating">⭐ {book.averageRating.toFixed(1)}</p>
+        )}
       </div>
 
       <Link

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getBookById, addToLibrary } from "../api/bookApi";
-import { isLoggedIn } from "../utils/auth";
+import { getReviews, createReview, deleteReview } from "../api/reviewApi";
+import { isLoggedIn, getUser } from "../utils/auth";
 import "./BookDetail.css";
 
 const BookDetail = () => {
@@ -18,6 +19,16 @@ const BookDetail = () => {
   const [addMessage, setAddMessage] = useState("");
   const [addSuccess, setAddSuccess] = useState(false);
 
+  const [reviews, setReviews] = useState([]);
+  const [myRating, setMyRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewContent, setReviewContent] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+
+  const loggedIn = isLoggedIn();
+  const me = getUser();
+
   useEffect(() => {
     const fetchBook = async () => {
       setLoading(true);
@@ -31,9 +42,42 @@ const BookDetail = () => {
         setLoading(false);
       }
     };
-
     fetchBook();
   }, [id]);
+
+  useEffect(() => {
+    getReviews(id)
+      .then((res) => setReviews(res.data))
+      .catch(() => {});
+  }, [id]);
+
+  const alreadyReviewed = me && reviews.some((r) => r.userId === me.id);
+
+  const handleSubmitReview = async () => {
+    if (myRating === 0) { setReviewError("별점을 선택해주세요."); return; }
+    setReviewSubmitting(true);
+    setReviewError("");
+    try {
+      const res = await createReview(id, { rating: myRating, content: reviewContent });
+      setReviews((prev) => [res.data, ...prev]);
+      setMyRating(0);
+      setReviewContent("");
+    } catch (err) {
+      setReviewError(err.response?.data?.message || "리뷰 작성에 실패했습니다.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("리뷰를 삭제하시겠습니까?")) return;
+    try {
+      await deleteReview(id, reviewId);
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    } catch {
+      alert("리뷰 삭제에 실패했습니다.");
+    }
+  };
 
   const handleAddToLibrary = async () => {
     if (!isLoggedIn()) {
@@ -148,6 +192,81 @@ const BookDetail = () => {
             </p>
           )}
         </div>
+      </div>
+
+      {/* 별점·리뷰 섹션 */}
+      <div className="review-section">
+        <h2 className="review-section-title">
+          리뷰
+          {book.averageRating != null && (
+            <span className="review-avg">
+              ⭐ {book.averageRating.toFixed(1)}
+              <span className="review-count">({reviews.length})</span>
+            </span>
+          )}
+        </h2>
+
+        {/* 리뷰 작성 폼 */}
+        {loggedIn && !alreadyReviewed && (
+          <div className="review-form">
+            <div className="review-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  className={`review-star-btn ${star <= (hoverRating || myRating) ? "active" : ""}`}
+                  onClick={() => setMyRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  aria-label={`${star}점`}
+                >
+                  ★
+                </button>
+              ))}
+              {myRating > 0 && <span className="review-star-label">{myRating}점</span>}
+            </div>
+            <textarea
+              className="review-textarea"
+              placeholder="이 책에 대한 감상을 남겨보세요 (선택)"
+              value={reviewContent}
+              onChange={(e) => setReviewContent(e.target.value)}
+              rows={3}
+            />
+            {reviewError && <p className="review-error">{reviewError}</p>}
+            <button
+              className="review-submit-btn"
+              onClick={handleSubmitReview}
+              disabled={reviewSubmitting}
+            >
+              {reviewSubmitting ? "작성 중..." : "리뷰 작성"}
+            </button>
+          </div>
+        )}
+
+        {/* 리뷰 목록 */}
+        {reviews.length === 0 ? (
+          <p className="review-empty">아직 리뷰가 없습니다. 첫 리뷰를 남겨보세요!</p>
+        ) : (
+          <ul className="review-list">
+            {reviews.map((review) => (
+              <li key={review.id} className="review-item">
+                <div className="review-item-header">
+                  <span className="review-item-nickname">{review.nickname}</span>
+                  <span className="review-item-stars">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                  <span className="review-item-date">{review.createdAt}</span>
+                  {me && review.userId === me.id && (
+                    <button
+                      className="review-delete-btn"
+                      onClick={() => handleDeleteReview(review.id)}
+                    >
+                      삭제
+                    </button>
+                  )}
+                </div>
+                {review.content && <p className="review-item-content">{review.content}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
     </div>

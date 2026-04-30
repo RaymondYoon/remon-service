@@ -55,7 +55,14 @@
 .book-author {
   font-size: 12px;
   color: var(--color-text-muted);
+  margin: 0 0 2px;
+}
+
+.book-rating {
+  font-size: 12px;
+  color: var(--color-text-secondary);
   margin: 0;
+  font-weight: 600;
 }
 
 .detail-btn {
