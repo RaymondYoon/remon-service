@@ -10,6 +10,9 @@ import MyBooks from "./pages/MyBooks";
 import OAuthCallback from "./pages/OAuthCallback";
 import GeneratePage from "./pages/GeneratePage";
 import ReadPage from "./pages/ReadPage";
+import ExplorePage from "./pages/ExplorePage";
+import FeedPage from "./pages/FeedPage";
+import UserProfilePage from "./pages/UserProfilePage";
 import { migrateOrClearLegacyAuth } from "./utils/auth";
 import { useTheme } from "./hooks/useTheme";
 import "./styles/global.css";
@@ -28,6 +31,8 @@ function App() {
         <Routes>
           {/* 공개 라우트 */}
           <Route path="/" element={<Home />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/users/:userId" element={<UserProfilePage />} />
           <Route path="/book/:id" element={<BookDetail />} />
           <Route path="/book/:id/read" element={<ReadPage />} />
           <Route path="/login" element={<Login />} />
@@ -56,6 +61,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyBooks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtectedRoute>
+                <FeedPage />
               </ProtectedRoute>
             }
           />

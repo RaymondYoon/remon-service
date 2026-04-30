@@ -6,6 +6,7 @@ import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
+import com.remon.follow.repository.FollowRepository;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -25,15 +27,17 @@ public class BookService {
     private final UserRepository userRepository;
     private final UserBookRepository userBookRepository;
     private final BookGenerationTask bookGenerationTask;
+    private final FollowRepository followRepository;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
                        UserRepository userRepository, UserBookRepository userBookRepository,
-                       BookGenerationTask bookGenerationTask) {
+                       BookGenerationTask bookGenerationTask, FollowRepository followRepository) {
         this.bookRepository     = bookRepository;
         this.openAiService      = openAiService;
         this.userRepository     = userRepository;
         this.userBookRepository = userBookRepository;
         this.bookGenerationTask = bookGenerationTask;
+        this.followRepository   = followRepository;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -123,6 +127,59 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<BookResponse> getPublicBooks() {
+        List<Book> books = bookRepository.findPublicBooks();
+        Map<Long, String> nicknameCache = buildNicknameCache(books);
+        return books.stream()
+                .map(b -> mapToResponseWithNickname(b, nicknameCache.get(b.getPublishedBy())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookResponse> getFeedBooks(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        List<Long> followingIds = followRepository.findFollowingIds(user.getId());
+        if (followingIds.isEmpty()) return List.of();
+        List<Book> books = bookRepository.findFeedBooks(followingIds);
+        Map<Long, String> nicknameCache = buildNicknameCache(books);
+        return books.stream()
+                .map(b -> mapToResponseWithNickname(b, nicknameCache.get(b.getPublishedBy())))
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, String> buildNicknameCache(List<Book> books) {
+        List<Long> userIds = books.stream()
+                .map(Book::getPublishedBy)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u.getNickname() != null ? u.getNickname() : ""));
+    }
+
+    private BookResponse mapToResponseWithNickname(Book book, String nickname) {
+        return BookResponse.builder()
+                .id(book.getId())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .isbn(book.getIsbn())
+                .publishedDate(book.getPublishedDate() != null
+                        ? book.getPublishedDate().toString() : null)
+                .price(book.getPrice())
+                .description(book.getDescription())
+                .content(book.getContent())
+                .isAiGenerated(book.isAiGenerated())
+                .genre(book.getGenre())
+                .tone(book.getTone())
+                .status(book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name())
+                .isPublic(book.isPublic())
+                .publishedBy(book.getPublishedBy())
+                .authorNickname(nickname)
+                .build();
+    }
+
     private BookResponse mapToResponse(Book book) {
         return BookResponse.builder()
                 .id(book.getId())
@@ -138,6 +195,8 @@ public class BookService {
                 .genre(book.getGenre())
                 .tone(book.getTone())
                 .status(book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name())
+                .isPublic(book.isPublic())
+                .publishedBy(book.getPublishedBy())
                 .build();
     }
 }

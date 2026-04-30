@@ -40,4 +40,7 @@ public class Book {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private BookStatus status = BookStatus.DONE;
+
+    @Builder.Default
+    private boolean isPublic = true;
 }

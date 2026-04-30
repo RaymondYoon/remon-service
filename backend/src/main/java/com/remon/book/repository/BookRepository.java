@@ -33,4 +33,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("UPDATE Book b SET b.title = :title, b.content = :content, b.status = :status WHERE b.id = :id")
     void updateGenerationResult(@Param("id") Long id, @Param("title") String title,
                                 @Param("content") String content, @Param("status") BookStatus status);
+
+    @Query("SELECT b FROM Book b WHERE b.isPublic = true AND (b.isAiGenerated = false OR b.status = 'DONE') ORDER BY b.publishedDate DESC")
+    List<Book> findPublicBooks();
+
+    @Query("SELECT b FROM Book b WHERE b.isPublic = true AND (b.isAiGenerated = false OR b.status = 'DONE') AND b.publishedBy IN :userIds ORDER BY b.publishedDate DESC")
+    List<Book> findFeedBooks(@Param("userIds") List<Long> userIds);
 }

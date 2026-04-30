@@ -40,8 +40,6 @@ public class SecurityConfig {
                         // 인증 없이 접근 허용
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
                         // 카카오 OAuth 진입점 + 콜백
-                        // "/api/auth/kakao"   → Ant 패턴 /** 로는 매칭 안 되므로 명시적으로 추가
-                        // "/api/auth/kakao/**" → /kakao/callback 등 하위 경로 허용
                         .requestMatchers("/api/auth/kakao", "/api/auth/kakao/**").permitAll()
                         // Refresh Token으로 Access Token 재발급 (인증 불필요)
                         .requestMatchers("/api/auth/refresh").permitAll()
@@ -49,6 +47,12 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // 공개 책 둘러보기 (비로그인 허용)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/public").permitAll()
+                        // 유저 프로필·팔로워·팔로잉 조회 (비로그인 허용)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/profile").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/followers").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/following").permitAll()
                         // 그 외 모든 요청은 JWT 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -22,4 +22,8 @@ public class BookResponse {
     private String genre;
     private String tone;
     private String status;
+
+    private boolean isPublic;
+    private Long publishedBy;
+    private String authorNickname;
 }

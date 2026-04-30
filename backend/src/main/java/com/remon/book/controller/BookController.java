@@ -60,4 +60,14 @@ public class BookController {
     public void deleteMyBook(@PathVariable Long id, Authentication authentication) {
         bookService.deleteMyBook(authentication.getName(), id);
     }
+
+    @GetMapping("/public")
+    public List<BookResponse> getPublicBooks() {
+        return bookService.getPublicBooks();
+    }
+
+    @GetMapping("/feed")
+    public List<BookResponse> getFeedBooks(Authentication authentication) {
+        return bookService.getFeedBooks(authentication.getName());
+    }
 }
