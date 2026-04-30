@@ -33,9 +33,11 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ## 현재 구현된 구조
 ```
 com.remon
-├── user        — 회원가입, 로그인(JWT), 카카오 OAuth
-├── book        — 책 CRUD, 검색, AI 생성
+├── user        — 회원가입, 로그인(JWT), 카카오 OAuth, 유저 프로필
+├── book        — 책 CRUD, 검색, AI 생성, 공개 책 둘러보기, 피드
 ├── library     — 내 서재 (사용자-책 관계)
+├── follow      — 팔로우/언팔로우, 팔로워·팔로잉 목록
+├── review      — 별점·리뷰 CRUD, 평균 평점
 ├── config      — SecurityConfig, SwaggerConfig, JpaAuditingConfig
 ├── security    — JwtTokenProvider, JwtAuthenticationFilter
 └── exception   — GlobalExceptionHandler
@@ -75,13 +77,15 @@ Authorization: Bearer <token>
 - `genre`, `tone` — 생성 시 사용한 파라미터
 
 ### 고려 사항
-- AI API 호출은 응답 지연이 있으므로 **비동기 처리 예정** (현재 동기)
+- AI API 호출은 비동기 처리 완료 — Book을 PENDING 상태로 즉시 저장 후 @Async로 생성, 완료 시 DONE으로 업데이트
 - AI API 키는 `application.properties`에 추가하고 하드코딩하지 않는다
-- 생성 실패 시 Book을 저장하지 않고 에러 응답을 반환한다
+- 생성 실패 시 Book 상태를 FAILED로 업데이트하고 에러 응답을 반환한다
 
 ---
 
-## 완료된 작업 (2026-04-26)
+## 완료된 작업
+
+### 2026-04-26
 - [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일, DB 저장)
 - [x] RefreshToken DB 저장 및 자동 재발급 로직 (`POST /api/auth/refresh`)
 - [x] 카카오 OAuth redirect에 accessToken + refreshToken 파라미터 연동
@@ -89,15 +93,28 @@ Authorization: Bearer <token>
 - [x] 카카오 로그인 정상 동작 확인
 - [x] Docker + docker-compose 로컬 개발환경 구축
   - MySQL 8 컨테이너 + Spring Boot 컨테이너 (공유 네트워크)
-  - `.env` 파일로 환경변수 관리 (`.env.example` 템플릿 제공)
+  - `.env` 파일로 환경변수 관리
   - `application-local.properties`로 로컬 DB 설정 분리
-  - JAR 사전 빌드 방식 Dockerfile (`eclipse-temurin:17-jre-alpine`)
+  - JAR 사전 빌드 방식 (`eclipse-temurin:17-jre-alpine`)
+
+### 2026-04-30
+- [x] 팔로우/언팔로우 기능 (`POST/DELETE /api/follow/{userId}`, 팔로워·팔로잉 목록)
+- [x] 유저 프로필 API (`GET /api/users/{userId}/profile`)
+- [x] 공개 책 둘러보기 API (`GET /api/books/explore`)
+- [x] 피드 API (`GET /api/books/feed` — 팔로잉 유저 책 목록)
+- [x] 별점·리뷰 CRUD (`GET/POST/DELETE /api/books/{bookId}/reviews`)
+  - 중복 리뷰 방지 (유니크 제약)
+  - N+1 방지: `findAverageRatingsByBookIds` 배치 쿼리로 평균 평점 일괄 조회
+  - BookResponse에 `averageRating` 포함
+- [x] AI 책 생성 비동기 처리 — @Async + Book status(PENDING→DONE/FAILED), 60초 블로킹 제거
+- [x] nixpacks.toml 추가 — Railway JAVA_HOME 빌드 문제 해결
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] AI 책 생성 비동기 처리 (WebFlux 또는 @Async, 현재 60초 블로킹)
-- [ ] 다른 사람 책 둘러보기 API (공개/비공개)
-- [ ] 별점/리뷰 기능
+- [ ] 책 생성 횟수 제한 (유저당 하루 3회)
+- [ ] 페이지네이션 / 무한 스크롤
+- [ ] Lighthouse 성능 측정 및 최적화
+- [ ] 테스트 코드 작성
 
 ---
 

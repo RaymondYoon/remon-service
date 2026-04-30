@@ -30,15 +30,18 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 
 ## 현재 구현된 라우팅 구조
 ```
-/               → Home.jsx          책 목록 + 검색 (실 API 연동)
-/book/:id       → BookDetail.jsx    책 상세 + 서재 담기 + AI 생성 배너
-/book/:id/read  → ReadPage.jsx      책 본문 페이지 뷰어
-/login          → Login.jsx         이메일 로그인 + 카카오 로그인 버튼
-/signup         → Signup.jsx        회원가입
-/library        → MyLibrary.jsx     내 서재 (ProtectedRoute — 로그인 필수)
-/my-books       → MyBooks.jsx       내가 만든 책 목록 (ProtectedRoute)
-/generate       → GeneratePage.jsx  AI 책 생성 입력 폼 (ProtectedRoute)
-/oauth-callback → OAuthCallback.jsx 카카오 로그인 처리
+/               → Home.jsx           책 목록 + 검색 + 장르 필터 (debounce 300ms)
+/book/:id       → BookDetail.jsx     책 상세 + 서재 담기 + AI 생성 배너 + 별점/리뷰
+/book/:id/read  → ReadPage.jsx       책 본문 페이지 뷰어
+/login          → Login.jsx          이메일 로그인 + 카카오 로그인 버튼
+/signup         → Signup.jsx         회원가입
+/library        → MyLibrary.jsx      내 서재 (ProtectedRoute)
+/my-books       → MyBooks.jsx        내가 만든 책 목록 (ProtectedRoute)
+/generate       → GeneratePage.jsx   AI 책 생성 입력 폼 (ProtectedRoute)
+/explore        → ExplorePage.jsx    공개 책 둘러보기 + 작가 팔로우
+/feed           → FeedPage.jsx       팔로잉 피드 (ProtectedRoute)
+/profile/:userId → UserProfilePage.jsx 유저 프로필 + 팔로우 토글
+/oauth-callback → OAuthCallback.jsx  카카오 로그인 처리
 ```
 
 ---
@@ -66,23 +69,34 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 
 ---
 
-## 완료된 작업 (2026-04-26)
+## 완료된 작업
+
+### 2026-04-26
 - [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일)
 - [x] localStorage 키를 `token` → `accessToken`으로 변경, `refreshToken`도 저장
 - [x] axiosInstance 401 자동 재발급 로직 추가 (큐 처리 포함)
 - [x] OAuthCallback.jsx에서 accessToken + refreshToken 파라미터 파싱
 - [x] 카카오 로그인 정상 동작 확인
 - [x] Docker + docker-compose 로컬 개발환경 구축
-  - `.env` 파일로 환경변수 관리
-  - `application-local.properties`로 로컬 DB 설정 분리
+
+### 2026-04-30
+- [x] 팔로우/언팔로우 기능 (followApi.js — POST/DELETE /api/follow/{userId})
+- [x] 공개 책 둘러보기 페이지 `/explore` (작가별 팔로우 버튼 포함)
+- [x] 팔로잉 피드 페이지 `/feed` (ProtectedRoute)
+- [x] 유저 프로필 페이지 `/profile/:userId` (팔로우 토글, 공개 책 목록)
+- [x] 별점·리뷰 기능 — BookDetail.jsx에 별점 선택 폼 + 리뷰 목록 + 삭제
+- [x] BookCard에 평균 별점 표시 (`averageRating`)
+- [x] 별점 UI 개선 — 크기 2rem, 선택 색상 #FFD700, hover fill 효과
+- [x] 다크모드 완성도 개선 — CSS variables 통일 (`--color-error-bg`, `--color-error-border`)
+- [x] 검색 기능 개선 — 장르 드롭다운(전체/SF/판타지/로맨스/일상/공포), debounce 300ms, 빈 결과 메시지
+- [x] AI 책 생성 비동기 처리 연동 (60초 블로킹 → 1초 이내 응답, 폴링 방식)
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD
-- [ ] AI 책 생성 비동기 처리 연동 (현재 60초 블로킹)
-- [ ] 책 생성 로딩 애니메이션 개선
-- [ ] 다른 사람 책 둘러보기 페이지 (공개/비공개)
-- [ ] 별점/리뷰 기능
-- [ ] 다크모드 전체 완성도 개선
+- [ ] 책 생성 횟수 제한 (유저당 하루 3회)
+- [ ] 페이지네이션 / 무한 스크롤
+- [ ] Lighthouse 성능 측정 및 최적화
+- [ ] 테스트 코드 작성
 
 ---
 
