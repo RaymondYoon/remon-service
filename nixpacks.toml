@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["jdk17_headless"]
+
+[phases.build]
+cmds = ["cd backend && ./gradlew bootJar -x test"]
+
+[start]
+cmd = "cd backend && java -jar build/libs/remon-backend.jar"
