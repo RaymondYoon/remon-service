@@ -181,7 +181,7 @@
 .mybooks-delete-btn {
   background: var(--color-card);
   color: var(--color-error);
-  border: 1px solid #e8c8c8;
+  border: 1px solid var(--color-error-border);
   border-radius: 8px;
   padding: 9px 14px;
   font-size: 13px;
@@ -191,6 +191,6 @@
 }
 
 .mybooks-delete-btn:hover {
-  background: #fdf0f0;
+  background: var(--color-error-bg);
   border-color: var(--color-error);
 }

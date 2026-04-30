@@ -22,6 +22,8 @@
   --color-divider: #e4e4df;
 
   --color-error: #c0392b;
+  --color-error-bg: #fdf0f0;
+  --color-error-border: #e8c8c8;
 
   --color-header-bg: #ffffff;
   --color-drawer-bg: #ffffff;
@@ -47,6 +49,9 @@
 [data-theme="dark"] {
   --color-primary-bg: #1e2e1e;
   --color-primary-border: #2e4e2e;
+
+  --color-error-bg: #2d1a1a;
+  --color-error-border: #5a3030;
 
   --color-bg: #121212;
   --color-card: #1e1e1e;

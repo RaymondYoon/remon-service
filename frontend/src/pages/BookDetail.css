@@ -292,7 +292,7 @@
 .review-star-btn {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 2rem;
   cursor: pointer;
   color: var(--color-border);
   transition: color 0.15s, transform 0.1s;
@@ -301,7 +301,7 @@
 }
 
 .review-star-btn.active {
-  color: var(--color-accent);
+  color: #FFD700;
 }
 
 .review-star-btn:hover {
