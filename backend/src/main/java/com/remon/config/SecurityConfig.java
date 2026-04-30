@@ -48,11 +48,12 @@ public class SecurityConfig {
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // 공개 책 둘러보기 (비로그인 허용)
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/public").permitAll()
-                        // 유저 프로필·팔로워·팔로잉 조회 (비로그인 허용)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/explore").permitAll()
+                        // 유저 프로필 조회 (비로그인 허용)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/profile").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/followers").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/following").permitAll()
+                        // 팔로워·팔로잉 목록 조회 (비로그인 허용)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/follow/*/followers").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/follow/*/following").permitAll()
                         // 그 외 모든 요청은 JWT 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -61,8 +61,8 @@ public class BookController {
         bookService.deleteMyBook(authentication.getName(), id);
     }
 
-    @GetMapping("/public")
-    public List<BookResponse> getPublicBooks() {
+    @GetMapping("/explore")
+    public List<BookResponse> getExploreBooks() {
         return bookService.getPublicBooks();
     }
 

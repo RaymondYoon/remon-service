@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/follow")
 public class FollowController {
 
     private final FollowService followService;
@@ -26,13 +26,13 @@ public class FollowController {
         this.followRepository = followRepository;
     }
 
-    @PostMapping("/{userId}/follow")
+    @PostMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void follow(@PathVariable Long userId, Authentication authentication) {
         followService.follow(authentication.getName(), userId);
     }
 
-    @DeleteMapping("/{userId}/follow")
+    @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unfollow(@PathVariable Long userId, Authentication authentication) {
         followService.unfollow(authentication.getName(), userId);

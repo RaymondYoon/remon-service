@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getPublicBooks } from "../api/bookApi";
+import { getExploreBooks } from "../api/bookApi";
 import { followUser, unfollowUser } from "../api/followApi";
 import { isLoggedIn, getUser } from "../utils/auth";
 import "./ExplorePage.css";
@@ -13,7 +13,7 @@ const ExplorePage = () => {
   const me = getUser();
 
   useEffect(() => {
-    getPublicBooks()
+    getExploreBooks()
       .then((res) => setBooks(res.data))
       .catch(() => setBooks([]))
       .finally(() => setLoading(false));
@@ -65,7 +65,7 @@ const ExplorePage = () => {
                 </Link>
                 <div className="explore-card-footer">
                   <Link
-                    to={`/users/${book.publishedBy}`}
+                    to={`/profile/${book.publishedBy}`}
                     className="explore-card-author"
                   >
                     {book.authorNickname || book.author || "알 수 없음"}

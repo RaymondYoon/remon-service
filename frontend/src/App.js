@@ -32,7 +32,7 @@ function App() {
           {/* 공개 라우트 */}
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/users/:userId" element={<UserProfilePage />} />
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
           <Route path="/book/:id" element={<BookDetail />} />
           <Route path="/book/:id/read" element={<ReadPage />} />
           <Route path="/login" element={<Login />} />

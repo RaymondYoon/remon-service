@@ -43,7 +43,7 @@ const FeedPage = () => {
             <Link to={`/book/${book.id}`} key={book.id} className="feed-item">
               <div className="feed-item-meta">
                 <Link
-                  to={`/users/${book.publishedBy}`}
+                  to={`/profile/${book.publishedBy}`}
                   className="feed-item-author"
                   onClick={(e) => e.stopPropagation()}
                 >

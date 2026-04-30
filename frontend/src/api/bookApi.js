@@ -70,9 +70,9 @@ export const deleteAccount = async () => {
   return await axiosInstance.delete("/api/users/me");
 };
 
-// 모든 공개 책 목록 (비로그인 가능)
-export const getPublicBooks = async () => {
-  return await axiosInstance.get("/api/books/public");
+// 모든 공개 책 목록 — 둘러보기 (비로그인 가능)
+export const getExploreBooks = async () => {
+  return await axiosInstance.get("/api/books/explore");
 };
 
 // 팔로우한 사람들의 책 피드 (인증 필요)
