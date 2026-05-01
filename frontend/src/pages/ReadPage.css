@@ -12,7 +12,7 @@
 /* ─── 상단 헤더 (뒤로가기 + 제목) ─── */
 .read-header {
   width: 100%;
-  max-width: 720px;
+  max-width: 800px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -43,26 +43,10 @@
   text-overflow: ellipsis;
 }
 
-/* ─── 책 영역 (종이 카드 + 네비게이션) ─── */
-.read-book {
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-}
-
-/* ─── 페이지 뷰포트 (perspective 고정) ─── */
-.read-page-viewport {
-  width: 100%;
-  perspective: 1200px;
-}
-
 /* ─── 독서 진행률 바 ─── */
 .read-progress-bar {
   width: 100%;
-  max-width: 720px;
+  max-width: 800px;
   height: 4px;
   background: var(--color-read-progress-track);
   border-radius: 2px;
@@ -78,65 +62,77 @@
   transition: width 0.25s ease;
 }
 
-/* ─── 종이 페이지 카드 ─── */
-.read-page {
+/* ─── 책 영역 ─── */
+.read-book {
   width: 100%;
-  min-height: 480px;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* ─── HTMLFlipBook 컨테이너 ─── */
+.html-flipbook {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+/* ─── 플립 페이지 (BookPage 컴포넌트) ─── */
+.flip-page {
   background: var(--color-read-page);
-  border-radius: 4px 12px 12px 4px;
-  padding: 52px 60px;
-  box-shadow:
-    -4px 0 8px rgba(0, 0, 0, 0.08),
-    4px 4px 16px rgba(0, 0, 0, 0.14),
-    0 2px 4px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid var(--color-read-border-left);
+  overflow: hidden;
+}
+
+.flip-page-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 44px 36px;
+  box-sizing: border-box;
   position: relative;
-  transform-origin: left center;
-  backface-visibility: hidden;
-  transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* ── 다음 페이지: 현재 → 왼쪽으로 넘어감 ── */
-@keyframes flip-out-next {
-  0%   { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
-  100% { transform: perspective(1200px) rotateY(-28deg) scale(0.96); opacity: 0; }
-}
-@keyframes flip-in-next {
-  0%   { transform: perspective(1200px) rotateY(22deg) scale(0.96); opacity: 0; }
-  100% { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
+/* 홀수 페이지(왼쪽): 오른쪽 경계선 */
+.flip-page:nth-child(odd) .flip-page-inner {
+  border-right: 1px solid var(--color-read-border-left);
 }
 
-/* ── 이전 페이지: 현재 → 오른쪽으로 넘어감 ── */
-@keyframes flip-out-prev {
-  0%   { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
-  100% { transform: perspective(1200px) rotateY(28deg) scale(0.96); opacity: 0; }
-}
-@keyframes flip-in-prev {
-  0%   { transform: perspective(1200px) rotateY(-22deg) scale(0.96); opacity: 0; }
-  100% { transform: perspective(1200px) rotateY(0deg) scale(1);     opacity: 1; }
+/* 짝수 페이지(오른쪽): 왼쪽 경계선 */
+.flip-page:nth-child(even) .flip-page-inner {
+  border-left: 1px solid var(--color-read-border-left);
 }
 
-.page-exit-next  { animation: flip-out-next 0.27s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
-.page-enter-next { animation: flip-in-next  0.30s cubic-bezier(0.2, 0, 0.4, 1) forwards; }
-.page-exit-prev  { animation: flip-out-prev 0.27s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
-.page-enter-prev { animation: flip-in-prev  0.30s cubic-bezier(0.2, 0, 0.4, 1) forwards; }
-
-/* 종이 질감 미세 노이즈 효과 */
-.read-page::before {
+/* 종이 질감 */
+.flip-page-inner::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   pointer-events: none;
 }
 
+.flip-page-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.flip-page-num {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-read-page-num);
+  margin-top: 20px;
+  letter-spacing: 0.03em;
+}
+
 /* ─── 본문 단락 ─── */
 .read-para {
-  font-size: 17px;
-  line-height: 2.1;
+  font-size: 16px;
+  line-height: 2.0;
   color: var(--color-read-text);
-  margin: 0 0 1.4em;
+  margin: 0 0 1.2em;
   word-break: keep-all;
   text-indent: 1em;
 }
@@ -211,13 +207,13 @@
 
 /* ─── 반응형 ─── */
 @media (max-width: 640px) {
-  .read-page {
-    padding: 36px 28px;
-    min-height: 400px;
+  .flip-page-inner {
+    padding: 32px 24px 28px;
   }
 
   .read-para {
-    font-size: 16px;
+    font-size: 15px;
+    line-height: 1.9;
   }
 
   .read-nav-btn {

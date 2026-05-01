@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import HTMLFlipBook from "react-pageflip";
 import { getBookById, startReading, savePage, markAsDone } from "../api/bookApi";
 import { isLoggedIn } from "../utils/auth";
 import "./ReadPage.css";
@@ -9,19 +10,17 @@ const SAVE_DEBOUNCE_MS = 1500;
 
 function cleanContent(text) {
   return text
-    .replace(/\*\*(.+?)\*\*/g, "$1")         // **bold** → 일반 텍스트
-    .replace(/\*(.+?)\*/g, "$1")              // *italic* → 일반 텍스트
-    .replace(/^[ \t]*[*-]{3,}[ \t]*$/gm, "") // --- / *** 구분선 제거
-    .replace(/^[ \t]*\.\.\.[ \t]*$/gm, "…")  // 단독 줄 ... → …
-    .replace(/\n{3,}/g, "\n\n")               // 연속 빈 줄 정리
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/^[ \t]*[*-]{3,}[ \t]*$/gm, "")
+    .replace(/^[ \t]*\.\.\.[ \t]*$/gm, "…")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
 function buildPages(content) {
   if (!content) return [];
-
   const cleaned = cleanContent(content);
-
   const paragraphs = cleaned
     .split(/\n{2,}/)
     .map((p) => p.trim())
@@ -41,15 +40,35 @@ function buildPages(content) {
       charCount += para.length;
     }
   }
-
-  if (current.length > 0) {
-    pages.push(current);
-  }
-
+  if (current.length > 0) pages.push(current);
   return pages;
 }
 
 const LS_KEY = (id) => `remon_page_${id}`;
+
+// HTMLFlipBook은 자식이 반드시 forwardRef 컴포넌트여야 함
+const BookPage = React.forwardRef(({ paragraphs, pageNum, totalPages }, ref) => (
+  <div className="flip-page" ref={ref}>
+    <div className="flip-page-inner">
+      <div className="flip-page-content">
+        {paragraphs.map((para, i) => (
+          <p key={i} className="read-para">{para}</p>
+        ))}
+      </div>
+      <span className="flip-page-num">{pageNum} / {totalPages}</span>
+    </div>
+  </div>
+));
+BookPage.displayName = "BookPage";
+
+function getPageDimensions() {
+  const vw = window.innerWidth;
+  if (vw < 640) {
+    const w = Math.min(vw - 32, 340);
+    return { width: w, height: Math.round(w * 1.52), isMobile: true };
+  }
+  return { width: 370, height: 560, isMobile: false };
+}
 
 const ReadPage = () => {
   const { id } = useParams();
@@ -63,10 +82,12 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [animClass, setAnimClass] = useState("page-enter-next"); // 초기 진입
+  const [startPage, setStartPage] = useState(0);
+  const [dim] = useState(getPageDimensions);
 
+  const bookRef = useRef(null);
   const saveTimer = useRef(null);
-  const animTimer = useRef(null);
+  const totalPagesRef = useRef(0);
   const loggedIn = isLoggedIn();
 
   useEffect(() => {
@@ -79,18 +100,19 @@ const ReadPage = () => {
         setBook(data);
         const built = buildPages(data.content);
         setPages(built);
+        totalPagesRef.current = built.length;
 
         const lsPage = parseInt(localStorage.getItem(LS_KEY(id)) ?? "", 10);
-        const startPage = initialPage != null
-          ? Math.min(initialPage, Math.max(built.length - 1, 0))
-          : !isNaN(lsPage)
+        const sp =
+          initialPage != null
+            ? Math.min(initialPage, Math.max(built.length - 1, 0))
+            : !isNaN(lsPage)
             ? Math.min(lsPage, Math.max(built.length - 1, 0))
             : 0;
-        setCurrentPage(startPage);
+        setStartPage(sp);
+        setCurrentPage(sp);
 
-        if (loggedIn) {
-          startReading(id).catch(() => {});
-        }
+        if (loggedIn) startReading(id).catch(() => {});
       } catch {
         setError("책 정보를 불러오지 못했습니다.");
       } finally {
@@ -101,46 +123,26 @@ const ReadPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  useEffect(() => {
-    if (pages.length === 0) return;
+  const onFlip = useCallback(
+    (e) => {
+      const page = e.data;
+      setCurrentPage(page);
+      localStorage.setItem(LS_KEY(id), String(page));
 
-    localStorage.setItem(LS_KEY(id), String(currentPage));
-
-    if (loggedIn) {
-      if (currentPage === pages.length - 1) {
-        markAsDone(id).catch(() => {});
+      if (loggedIn) {
+        if (page === totalPagesRef.current - 1) markAsDone(id).catch(() => {});
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(
+          () => savePage(id, page).catch(() => {}),
+          SAVE_DEBOUNCE_MS
+        );
       }
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        savePage(id, currentPage).catch(() => {});
-      }, SAVE_DEBOUNCE_MS);
-    }
+    },
+    [id, loggedIn]
+  );
 
-    return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-    };
-  }, [currentPage, pages.length, id, loggedIn]);
-
-  const changePage = useCallback((updater, direction) => {
-    const outClass = direction === "next" ? "page-exit-next" : "page-exit-prev";
-    const inClass  = direction === "next" ? "page-enter-next" : "page-enter-prev";
-
-    setAnimClass(outClass);
-
-    if (animTimer.current) clearTimeout(animTimer.current);
-    animTimer.current = setTimeout(() => {
-      setCurrentPage(updater);
-      setAnimClass(inClass);
-    }, 280);
-  }, []);
-
-  const goNext = useCallback(() => {
-    changePage((p) => Math.min(p + 1, pages.length - 1), "next");
-  }, [changePage, pages.length]);
-
-  const goPrev = useCallback(() => {
-    changePage((p) => Math.max(p - 1, 0), "prev");
-  }, [changePage]);
+  const goNext = useCallback(() => bookRef.current?.pageFlip().flipNext(), []);
+  const goPrev = useCallback(() => bookRef.current?.pageFlip().flipPrev(), []);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -175,26 +177,32 @@ const ReadPage = () => {
     return (
       <div className="read-state">
         <p>본문이 없습니다.</p>
-        <button className="read-back-btn" onClick={() => navigate(`/book/${id}`, { replace: true, state: { from } })}>
+        <button
+          className="read-back-btn"
+          onClick={() =>
+            navigate(`/book/${id}`, { replace: true, state: { from } })
+          }
+        >
           ← 책 정보로
         </button>
       </div>
     );
   }
 
-  const pageParagraphs = pages[currentPage];
-
   return (
     <div className="read-container">
       <div className="read-header">
         <button
           className="read-back-btn"
-          onClick={() => navigate(`/book/${id}`, { replace: true, state: { from } })}
+          onClick={() =>
+            navigate(`/book/${id}`, { replace: true, state: { from } })
+          }
         >
           ← 돌아가기
         </button>
         <span className="read-title">{book.title}</span>
       </div>
+
       <div className="read-progress-bar">
         <div
           className="read-progress-fill"
@@ -203,15 +211,30 @@ const ReadPage = () => {
       </div>
 
       <div className="read-book">
-        <div className="read-page-viewport">
-          <div className={`read-page ${animClass}`}>
-            {pageParagraphs.map((para, i) => (
-              <p key={i} className="read-para">
-                {para}
-              </p>
-            ))}
-          </div>
-        </div>
+        <HTMLFlipBook
+          ref={bookRef}
+          width={dim.width}
+          height={dim.height}
+          size="fixed"
+          usePortrait={dim.isMobile}
+          flippingTime={700}
+          drawShadow={true}
+          showCover={false}
+          mobileScrollSupport={false}
+          onFlip={onFlip}
+          startPage={startPage}
+          maxShadowOpacity={0.35}
+          className="html-flipbook"
+        >
+          {pages.map((paragraphs, i) => (
+            <BookPage
+              key={i}
+              paragraphs={paragraphs}
+              pageNum={i + 1}
+              totalPages={pages.length}
+            />
+          ))}
+        </HTMLFlipBook>
 
         <div className="read-nav">
           <button
@@ -221,11 +244,9 @@ const ReadPage = () => {
           >
             이전 페이지
           </button>
-
           <span className="read-page-num">
             {currentPage + 1} / {pages.length}
           </span>
-
           <button
             className="read-nav-btn"
             onClick={goNext}
