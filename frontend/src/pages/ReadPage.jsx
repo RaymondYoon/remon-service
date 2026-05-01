@@ -11,7 +11,7 @@ function cleanContent(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, "$1")         // **bold** → 일반 텍스트
     .replace(/\*(.+?)\*/g, "$1")              // *italic* → 일반 텍스트
-    .replace(/^[ \t]*[*\-]{3,}[ \t]*$/gm, "") // --- / *** 구분선 제거
+    .replace(/^[ \t]*[*-]{3,}[ \t]*$/gm, "") // --- / *** 구분선 제거
     .replace(/^[ \t]*\.\.\.[ \t]*$/gm, "…")  // 단독 줄 ... → …
     .replace(/\n{3,}/g, "\n\n")               // 연속 빈 줄 정리
     .trim();
