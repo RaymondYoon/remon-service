@@ -16,13 +16,13 @@ public class OpenAiService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${openai.api-key}")
+    @Value("${groq.api-key}")
     private String apiKey;
 
-    @Value("${openai.model}")
+    @Value("${groq.model}")
     private String model;
 
-    @Value("${openai.url}")
+    @Value("${groq.url}")
     private String apiUrl;
 
     public OpenAiService() {
