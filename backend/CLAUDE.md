@@ -109,12 +109,21 @@ Authorization: Bearer <token>
 - [x] AI 책 생성 비동기 처리 — @Async + Book status(PENDING→DONE/FAILED), 60초 블로킹 제거
 - [x] nixpacks.toml 추가 — Railway JAVA_HOME 빌드 문제 해결
 
+### 2026-05-01
+- [x] 알림 기능 구현 — 리뷰/팔로우 이벤트 발생 시 알림 생성 API
+- [x] 레몬 시스템 구현 — 하루 1개 자동 충전, 책 생성 시 소모, 하루 3회 제한
+- [x] OpenAI → Groq → Gemini API 마이그레이션 (gemini-2.5-flash)
+- [x] Railway 메모리 부족 해결 — JVM 옵션 `-Xms128m -Xmx400m` 적용 (nixpacks.toml, railway.json)
+- [x] nixpacks.toml Railway 빌드 플랜 명시
+
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] 책 생성 횟수 제한 (유저당 하루 3회)
 - [ ] 페이지네이션 / 무한 스크롤
+- [ ] 광고 보고 레몬 추가 획득 API
 - [ ] Lighthouse 성능 측정 및 최적화
 - [ ] 테스트 코드 작성
+- [ ] React Native 앱 개발 검토
+- [ ] Oracle Cloud로 이전 검토 (메모리 여유)
 
 ---
 
