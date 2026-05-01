@@ -53,6 +53,12 @@
   gap: 28px;
 }
 
+/* ─── 페이지 뷰포트 (perspective 고정) ─── */
+.read-page-viewport {
+  width: 100%;
+  perspective: 1200px;
+}
+
 /* ─── 독서 진행률 바 ─── */
 .read-progress-bar {
   width: 100%;
@@ -74,8 +80,6 @@
 
 /* ─── 종이 페이지 카드 ─── */
 .read-page {
-  opacity: 0;
-  transition: opacity 0.25s ease;
   width: 100%;
   min-height: 480px;
   background: var(--color-read-page);
@@ -87,12 +91,35 @@
     0 2px 4px rgba(0, 0, 0, 0.06);
   border-left: 4px solid var(--color-read-border-left);
   position: relative;
+  transform-origin: left center;
+  backface-visibility: hidden;
   transition: background-color 0.3s, border-color 0.3s;
 }
 
-.read-page--visible {
-  opacity: 1;
+/* ── 다음 페이지: 현재 → 왼쪽으로 넘어감 ── */
+@keyframes flip-out-next {
+  0%   { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
+  100% { transform: perspective(1200px) rotateY(-28deg) scale(0.96); opacity: 0; }
 }
+@keyframes flip-in-next {
+  0%   { transform: perspective(1200px) rotateY(22deg) scale(0.96); opacity: 0; }
+  100% { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
+}
+
+/* ── 이전 페이지: 현재 → 오른쪽으로 넘어감 ── */
+@keyframes flip-out-prev {
+  0%   { transform: perspective(1200px) rotateY(0deg) scale(1);    opacity: 1; }
+  100% { transform: perspective(1200px) rotateY(28deg) scale(0.96); opacity: 0; }
+}
+@keyframes flip-in-prev {
+  0%   { transform: perspective(1200px) rotateY(-22deg) scale(0.96); opacity: 0; }
+  100% { transform: perspective(1200px) rotateY(0deg) scale(1);     opacity: 1; }
+}
+
+.page-exit-next  { animation: flip-out-next 0.27s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+.page-enter-next { animation: flip-in-next  0.30s cubic-bezier(0.2, 0, 0.4, 1) forwards; }
+.page-exit-prev  { animation: flip-out-prev 0.27s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+.page-enter-prev { animation: flip-in-prev  0.30s cubic-bezier(0.2, 0, 0.4, 1) forwards; }
 
 /* 종이 질감 미세 노이즈 효과 */
 .read-page::before {

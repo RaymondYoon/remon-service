@@ -7,10 +7,22 @@ import "./ReadPage.css";
 const CHARS_PER_PAGE = 500;
 const SAVE_DEBOUNCE_MS = 1500;
 
+function cleanContent(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")         // **bold** → 일반 텍스트
+    .replace(/\*(.+?)\*/g, "$1")              // *italic* → 일반 텍스트
+    .replace(/^[ \t]*[*\-]{3,}[ \t]*$/gm, "") // --- / *** 구분선 제거
+    .replace(/^[ \t]*\.\.\.[ \t]*$/gm, "…")  // 단독 줄 ... → …
+    .replace(/\n{3,}/g, "\n\n")               // 연속 빈 줄 정리
+    .trim();
+}
+
 function buildPages(content) {
   if (!content) return [];
 
-  const paragraphs = content
+  const cleaned = cleanContent(content);
+
+  const paragraphs = cleaned
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
@@ -51,9 +63,10 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [fadeIn, setFadeIn] = useState(true);
+  const [animClass, setAnimClass] = useState("page-enter-next"); // 초기 진입
 
   const saveTimer = useRef(null);
+  const animTimer = useRef(null);
   const loggedIn = isLoggedIn();
 
   useEffect(() => {
@@ -67,7 +80,6 @@ const ReadPage = () => {
         const built = buildPages(data.content);
         setPages(built);
 
-        // 이어서 보기: state > localStorage > 0
         const lsPage = parseInt(localStorage.getItem(LS_KEY(id)) ?? "", 10);
         const startPage = initialPage != null
           ? Math.min(initialPage, Math.max(built.length - 1, 0))
@@ -89,19 +101,15 @@ const ReadPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // 페이지 바뀔 때마다 localStorage + 백엔드 저장
   useEffect(() => {
     if (pages.length === 0) return;
 
     localStorage.setItem(LS_KEY(id), String(currentPage));
 
     if (loggedIn) {
-      // 완독 처리
       if (currentPage === pages.length - 1) {
         markAsDone(id).catch(() => {});
       }
-
-      // 페이지 저장 디바운스
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         savePage(id, currentPage).catch(() => {});
@@ -113,20 +121,25 @@ const ReadPage = () => {
     };
   }, [currentPage, pages.length, id, loggedIn]);
 
-  const changePage = useCallback((updater) => {
-    setFadeIn(false);
-    setTimeout(() => {
+  const changePage = useCallback((updater, direction) => {
+    const outClass = direction === "next" ? "page-exit-next" : "page-exit-prev";
+    const inClass  = direction === "next" ? "page-enter-next" : "page-enter-prev";
+
+    setAnimClass(outClass);
+
+    if (animTimer.current) clearTimeout(animTimer.current);
+    animTimer.current = setTimeout(() => {
       setCurrentPage(updater);
-      setFadeIn(true);
-    }, 250);
+      setAnimClass(inClass);
+    }, 280);
   }, []);
 
   const goNext = useCallback(() => {
-    changePage((p) => Math.min(p + 1, pages.length - 1));
+    changePage((p) => Math.min(p + 1, pages.length - 1), "next");
   }, [changePage, pages.length]);
 
   const goPrev = useCallback(() => {
-    changePage((p) => Math.max(p - 1, 0));
+    changePage((p) => Math.max(p - 1, 0), "prev");
   }, [changePage]);
 
   useEffect(() => {
@@ -190,12 +203,14 @@ const ReadPage = () => {
       </div>
 
       <div className="read-book">
-        <div className={`read-page${fadeIn ? " read-page--visible" : ""}`}>
-          {pageParagraphs.map((para, i) => (
-            <p key={i} className="read-para">
-              {para}
-            </p>
-          ))}
+        <div className="read-page-viewport">
+          <div className={`read-page ${animClass}`}>
+            {pageParagraphs.map((para, i) => (
+              <p key={i} className="read-para">
+                {para}
+              </p>
+            ))}
+          </div>
         </div>
 
         <div className="read-nav">
