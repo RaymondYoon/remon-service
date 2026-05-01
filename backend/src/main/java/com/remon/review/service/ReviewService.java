@@ -2,6 +2,8 @@ package com.remon.review.service;
 
 import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
+import com.remon.notification.entity.NotificationType;
+import com.remon.notification.service.NotificationService;
 import com.remon.review.dto.ReviewRequest;
 import com.remon.review.dto.ReviewResponse;
 import com.remon.review.entity.Review;
@@ -22,12 +24,14 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository, NotificationService notificationService) {
         this.reviewRepository = reviewRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public ReviewResponse createReview(String email, Long bookId, ReviewRequest request) {
@@ -44,7 +48,12 @@ public class ReviewService {
                 .rating(request.getRating())
                 .content(request.getContent())
                 .build();
-        return toResponse(reviewRepository.save(review));
+        ReviewResponse response = toResponse(reviewRepository.save(review));
+        if (book.getPublishedBy() != null) {
+            String message = user.getNickname() + "님이 '" + book.getTitle() + "'에 리뷰를 남겼습니다.";
+            notificationService.createNotification(book.getPublishedBy(), user.getId(), NotificationType.REVIEW, message);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)

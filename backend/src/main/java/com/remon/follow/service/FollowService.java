@@ -3,6 +3,8 @@ package com.remon.follow.service;
 import com.remon.follow.dto.FollowUserResponse;
 import com.remon.follow.entity.Follow;
 import com.remon.follow.repository.FollowRepository;
+import com.remon.notification.entity.NotificationType;
+import com.remon.notification.service.NotificationService;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,13 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public FollowService(FollowRepository followRepository, UserRepository userRepository) {
+    public FollowService(FollowRepository followRepository, UserRepository userRepository,
+                         NotificationService notificationService) {
         this.followRepository = followRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public void follow(String followerEmail, Long targetUserId) {
@@ -36,6 +41,8 @@ public class FollowService {
             throw new IllegalStateException("이미 팔로우 중입니다.");
         }
         followRepository.save(Follow.builder().follower(follower).following(following).build());
+        String message = follower.getNickname() + "님이 팔로우했습니다.";
+        notificationService.createNotification(targetUserId, follower.getId(), NotificationType.FOLLOW, message);
     }
 
     public void unfollow(String followerEmail, Long targetUserId) {
