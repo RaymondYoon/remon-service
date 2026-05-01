@@ -4,6 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
+    "startCommand": "cd backend && java -Xms128m -Xmx400m -jar build/libs/remon-backend.jar",
     "healthcheckPath": "/actuator/health",
     "restartPolicyType": "ON_FAILURE"
   }
