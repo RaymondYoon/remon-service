@@ -16,13 +16,10 @@ public class OpenAiService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    @Value("${groq.api-key}")
+    @Value("${gemini.api-key}")
     private String apiKey;
 
-    @Value("${groq.model}")
-    private String model;
-
-    @Value("${groq.url}")
+    @Value("${gemini.url}")
     private String apiUrl;
 
     public OpenAiService() {
@@ -31,47 +28,35 @@ public class OpenAiService {
     }
 
     /**
-     * OpenAI Chat Completions API 호출.
+     * Gemini generateContent API 호출.
      * 프롬프트에서 {"title": "...", "content": "..."} JSON 형태로 응답받는다.
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
     public String[] generate(List<String> keywords, String genre, String length, String tone) {
-        String systemPrompt = buildSystemPrompt();
-        String userPrompt   = buildUserPrompt(keywords, genre, length, tone);
+        String prompt = buildPrompt(keywords, genre, length, tone);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
 
         Map<String, Object> body = Map.of(
-                "model", model,
-                "messages", List.of(
-                        Map.of("role", "system", "content", systemPrompt),
-                        Map.of("role", "user",   "content", userPrompt)
+                "contents", List.of(
+                        Map.of("parts", List.of(Map.of("text", prompt)))
                 ),
-                "response_format", Map.of("type", "json_object"),
-                "max_completion_tokens", 4096
+                "generationConfig", Map.of("maxOutputTokens", 8192)
         );
 
+        String url = apiUrl + "?key=" + apiKey;
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
         return parseResponse(response.getBody());
     }
 
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
-    private String buildSystemPrompt() {
-        return """
-                너는 한국어 단편 소설 작가다.
-                반드시 아래 JSON 형식으로만 응답해라. 다른 텍스트는 포함하지 마라.
-                {"title": "소설 제목", "content": "소설 본문 전체"}
-                """;
-    }
-
-    private String buildUserPrompt(List<String> keywords, String genre, String length, String tone) {
+    private String buildPrompt(List<String> keywords, String genre, String length, String tone) {
         String lengthDesc = switch (length != null ? length.toUpperCase() : "SHORT") {
             case "MEDIUM" -> "8000자 내외";
             case "LONG"   -> "15000자 내외";
@@ -86,6 +71,10 @@ public class OpenAiService {
 
         return String.format(
                 """
+                너는 한국어 단편 소설 작가다.
+                반드시 아래 JSON 형식으로만 응답해라. 다른 텍스트는 포함하지 마라.
+                {"title": "소설 제목", "content": "소설 본문 전체"}
+
                 아래 조건으로 한국어 단편 소설을 작성해줘.
                 장르: %s
                 톤: %s
@@ -103,13 +92,14 @@ public class OpenAiService {
 
     private String[] parseResponse(String responseBody) {
         try {
-            JsonNode root    = objectMapper.readTree(responseBody);
-            JsonNode choices = root.path("choices");
-            if (choices.isEmpty()) {
-                throw new RuntimeException("OpenAI 응답에 choices가 없습니다. 응답: " + responseBody);
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode candidates = root.path("candidates");
+            if (candidates.isEmpty()) {
+                throw new RuntimeException("Gemini 응답에 candidates가 없습니다. 응답: " + responseBody);
             }
 
-            String rawJson = choices.get(0).path("message").path("content").asText().strip();
+            String rawJson = candidates.get(0)
+                    .path("content").path("parts").get(0).path("text").asText().strip();
 
             // 마크다운 코드블록(```json ... ```) 래핑 제거
             if (rawJson.startsWith("```")) {
