@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateBook, getBookGenerationStatus } from "../api/bookApi";
+import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
 
 const GENRES  = ["SF", "판타지", "로맨스", "일상", "공포"];
@@ -27,6 +28,7 @@ const GeneratePage = () => {
   const [error, setError]               = useState("");
   const [generatingBookId, setGeneratingBookId] = useState(null);
   const [displayKeywords, setDisplayKeywords]   = useState([]);
+  const [lemonTrigger, setLemonTrigger] = useState(0);
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -96,6 +98,7 @@ const GeneratePage = () => {
     }
 
     setDisplayKeywords(allKeywords);
+    setLemonTrigger((prev) => prev + 1);
     setLoading(true);
 
     try {
@@ -132,6 +135,7 @@ const GeneratePage = () => {
 
   return (
     <div className="generate-container">
+      <LemonFall trigger={lemonTrigger} />
       <div className="generate-header">
         <h1 className="generate-title">나만의 이야기 만들기</h1>
         <p className="generate-sub">키워드를 입력하면 Remon AI가 짧은 소설을 써드려요</p>

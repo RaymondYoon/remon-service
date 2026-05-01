@@ -1,0 +1,23 @@
+@keyframes lemon-drop {
+  0% {
+    transform: translateY(-60px) rotate(0deg);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.lemon-fall {
+  position: fixed;
+  top: 0;
+  font-size: 2rem;
+  pointer-events: none;
+  z-index: 9999;
+  animation: lemon-drop 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  user-select: none;
+}
