@@ -120,6 +120,7 @@ public class BookService {
         if (!user.getId().equals(book.getPublishedBy())) {
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
+        reviewRepository.deleteByBookId(bookId);
         userBookRepository.deleteByBookId(bookId);
         bookRepository.delete(book);
     }
