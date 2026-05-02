@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
+import { clearAuth, isLoggedIn } from "../utils/auth";
 import { getLemonInfo } from "../api/userApi";
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from "../api/notificationApi";
 import "./Header.css";
 
 const Header = ({ theme, toggleTheme }) => {
   const navigate = useNavigate();
-  const user = getUser();
   const loggedIn = isLoggedIn();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
