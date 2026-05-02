@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
-import { deleteAccount } from "../api/bookApi";
 import { getLemonInfo } from "../api/userApi";
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from "../api/notificationApi";
 import "./Header.css";
@@ -99,18 +98,6 @@ const Header = ({ theme, toggleTheme }) => {
     navigate("/login");
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm("정말 탈퇴하시겠어요? 모든 서재 데이터가 삭제되며 되돌릴 수 없습니다.")) return;
-    try {
-      await deleteAccount();
-      clearAuth();
-      closeMenu();
-      navigate("/login");
-    } catch {
-      alert("탈퇴에 실패했습니다. 다시 시도해주세요.");
-    }
-  };
-
   return (
     <>
       <header className="header">
@@ -206,25 +193,21 @@ const Header = ({ theme, toggleTheme }) => {
 
         <div className="drawer-links">
           <Link to="/" className="drawer-link" onClick={closeMenu}>홈</Link>
-          <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
 
           {loggedIn ? (
             <>
-              <Link to="/feed" className="drawer-link" onClick={closeMenu}>피드</Link>
               <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
-              <Link to="/library" className="drawer-link" onClick={closeMenu}>내 서재</Link>
+              <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
+              <Link to="/feed" className="drawer-link" onClick={closeMenu}>피드</Link>
               <Link to="/my-books" className="drawer-link" onClick={closeMenu}>내 책</Link>
+              <Link to="/library" className="drawer-link" onClick={closeMenu}>내 서재</Link>
               <Link to="/mypage" className="drawer-link" onClick={closeMenu}>🍋 마이페이지</Link>
-              <div className="drawer-user-box">
-                <span className="drawer-nickname">{user?.nickname}님</span>
-                <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
-                <button className="withdraw-btn" onClick={handleDeleteAccount}>계정 탈퇴</button>
-              </div>
+              <button className="logout-btn" onClick={handleLogout}>로그아웃</button>
             </>
           ) : (
             <>
+              <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
               <Link to="/login" className="drawer-link" onClick={closeMenu}>로그인</Link>
-              <Link to="/signup" className="drawer-link drawer-link--signup" onClick={closeMenu}>회원가입</Link>
             </>
           )}
         </div>

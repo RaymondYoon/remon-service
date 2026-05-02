@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { getUser } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
+import { getUser, clearAuth } from "../utils/auth";
 import { getLemonInfo } from "../api/userApi";
+import { deleteAccount } from "../api/bookApi";
 import LemonTree from "../components/LemonTree";
 import "./MyPage.css";
 
 const MyPage = () => {
+  const navigate = useNavigate();
   const user = getUser();
   const [lemonInfo, setLemonInfo] = useState({ lemonCount: 0, maxDaily: 3, usedToday: 0 });
   const [loading, setLoading] = useState(true);
@@ -17,9 +19,20 @@ const MyPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("정말 탈퇴하시겠어요? 모든 데이터가 삭제되며 되돌릴 수 없습니다.")) return;
+    try {
+      await deleteAccount();
+      clearAuth();
+      navigate("/login");
+    } catch {
+      alert("탈퇴에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
   return (
     <div className="mypage-container">
-      {/* 프로필 헤더 */}
+      {/* 프로필 */}
       <div className="mypage-profile">
         <div className="mypage-avatar">
           {user?.nickname ? user.nickname.charAt(0).toUpperCase() : "?"}
@@ -68,17 +81,12 @@ const MyPage = () => {
         )}
       </div>
 
-      {/* 바로가기 */}
-      <div className="mypage-shortcuts">
-        <Link to="/generate" className="mypage-shortcut-btn mypage-shortcut-btn--primary">
-          ✨ 책 만들러 가기
-        </Link>
-        <Link to="/library" className="mypage-shortcut-btn">
-          📚 내 서재
-        </Link>
-        <Link to="/my-books" className="mypage-shortcut-btn">
-          📖 내 책 목록
-        </Link>
+      {/* 계정 설정 */}
+      <div className="mypage-account-section">
+        <h3 className="mypage-account-title">계정 설정</h3>
+        <button className="mypage-withdraw-btn" onClick={handleDeleteAccount}>
+          회원 탈퇴
+        </button>
       </div>
     </div>
   );
