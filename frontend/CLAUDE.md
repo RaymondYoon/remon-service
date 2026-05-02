@@ -118,8 +118,12 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
   - 레몬 4개 이상: 풍성한 나무 + 레몬 최대 8개
   - 레몬 소모 시 열매 떨어지는 CSS 애니메이션
   - `src/utils/lemonStorage.js` — localStorage 기반 일일 레몬 추적 (하루 3개, 자정 초기화)
-  - MyLibrary.jsx 상단에 레몬트리 섹션 추가
-  - GeneratePage에서 생성 성공 시 consumeLemon() 호출
+- [x] 레몬트리 UI 위치 재배치 (추천 조합)
+  - Header.jsx: 알림 벨 옆 🍋 N개 실시간 표시 (GET /api/users/me/lemon, 60초 폴링)
+  - GeneratePage.jsx 상단: LemonTree + "보유 레몬 N개 · 오늘 N/3회 사용" 표시, 레몬 0개 시 버튼 비활성화
+  - MyPage.jsx (신규 /mypage): 프로필 + LemonTree + 통계 (남은/사용/한도), 바로가기 버튼
+  - MyLibrary.jsx에서 레몬트리 섹션 제거
+  - Backend: UserLemon 엔티티 + LemonService + GET /api/users/me/lemon API 추가, 책 생성 시 서버측 레몬 소모
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD

@@ -23,6 +23,7 @@ const ReadPage = lazy(() => import("./pages/ReadPage"));
 const ExplorePage = lazy(() => import("./pages/ExplorePage"));
 const FeedPage = lazy(() => import("./pages/FeedPage"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
+const MyPage = lazy(() => import("./pages/MyPage"));
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -74,6 +75,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <FeedPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mypage"
+              element={
+                <ProtectedRoute>
+                  <MyPage />
                 </ProtectedRoute>
               }
             />

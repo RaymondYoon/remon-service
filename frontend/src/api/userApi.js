@@ -7,3 +7,7 @@ export const registerUser = async (data) => {
 export const loginUser = async (data) => {
   return await axiosInstance.post("/api/users/login", data);
 };
+
+export const getLemonInfo = async () => {
+  return await axiosInstance.get("/api/users/me/lemon");
+};

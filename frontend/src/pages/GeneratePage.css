@@ -4,6 +4,59 @@
   padding: 48px 24px 80px;
 }
 
+/* ─── 레몬트리 패널 ─── */
+.generate-lemon-panel {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 20px 28px;
+  margin-bottom: 36px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.generate-lemon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.generate-lemon-count {
+  font-size: 15px;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.generate-lemon-count strong {
+  color: var(--color-primary);
+}
+
+.generate-lemon-used {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.generate-lemon-empty {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-error);
+  margin: 0;
+}
+
+.generate-lemon-empty-sub {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.generate-submit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .generate-header {
   text-align: center;
   margin-bottom: 40px;

@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getMyLibrary, updateBookStatus, deleteFromLibrary } from "../api/bookApi";
 import { getUser } from "../utils/auth";
-import { getLemonCount } from "../utils/lemonStorage";
-import LemonTree from "../components/LemonTree";
 import "./MyLibrary.css";
 
 const TABS = [
@@ -29,7 +27,6 @@ const MyLibrary = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("ALL");
   const [statusUpdating, setStatusUpdating] = useState(new Set());
-  const [lemonCount, setLemonCount] = useState(() => getLemonCount());
 
   useEffect(() => {
     const fetchLibrary = async () => {
@@ -87,13 +84,6 @@ const MyLibrary = () => {
     }
   };
 
-  // 페이지 포커스 시 레몬 수 갱신 (GeneratePage에서 소모 후 돌아올 때)
-  useEffect(() => {
-    const onFocus = () => setLemonCount(getLemonCount());
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, []);
-
   const filteredBooks = useMemo(
     () => activeTab === "ALL" ? books : books.filter((b) => b.status === activeTab),
     [books, activeTab]
@@ -106,12 +96,6 @@ const MyLibrary = () => {
           {user?.nickname ? `${user.nickname}님의 서재` : "내 서재"}
         </h2>
         <p className="library-sub">담아둔 책들을 모아 볼 수 있어요</p>
-      </div>
-
-      <div className="lemon-tree-section">
-        <h3 className="lemon-tree-section-title">🍋 나의 레몬트리</h3>
-        <p className="lemon-tree-section-desc">오늘 남은 레몬 {lemonCount}개</p>
-        <LemonTree lemonCount={lemonCount} />
       </div>
 
       <div className="library-stats">

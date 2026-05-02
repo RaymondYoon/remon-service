@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateBook, getBookGenerationStatus } from "../api/bookApi";
-import { consumeLemon } from "../utils/lemonStorage";
+import { getLemonInfo } from "../api/userApi";
+import LemonTree from "../components/LemonTree";
 import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
 
@@ -30,7 +31,14 @@ const GeneratePage = () => {
   const [generatingBookId, setGeneratingBookId] = useState(null);
   const [displayKeywords, setDisplayKeywords]   = useState([]);
   const [lemonTrigger, setLemonTrigger] = useState(0);
+  const [lemonInfo, setLemonInfo] = useState({ lemonCount: 3, maxDaily: 3, usedToday: 0 });
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    getLemonInfo()
+      .then((res) => setLemonInfo(res.data))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!generatingBookId) return;
@@ -104,7 +112,10 @@ const GeneratePage = () => {
 
     try {
       const response = await generateBook({ keywords: allKeywords, genre, length, tone });
-      consumeLemon();
+      // 생성 성공 시 레몬 정보 갱신
+      getLemonInfo()
+        .then((res) => setLemonInfo(res.data))
+        .catch(() => {});
       const bookId = response.data.id;
       setGeneratingBookId(bookId);
     } catch (err) {
@@ -138,6 +149,29 @@ const GeneratePage = () => {
   return (
     <div className="generate-container">
       <LemonFall trigger={lemonTrigger} />
+
+      {/* 레몬트리 패널 */}
+      <div className="generate-lemon-panel">
+        <LemonTree lemonCount={lemonInfo.lemonCount} />
+        <div className="generate-lemon-info">
+          {lemonInfo.lemonCount > 0 ? (
+            <>
+              <p className="generate-lemon-count">
+                보유 레몬 🍋 <strong>{lemonInfo.lemonCount}개</strong>
+              </p>
+              <p className="generate-lemon-used">
+                오늘 {lemonInfo.usedToday}/{lemonInfo.maxDaily}회 사용
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="generate-lemon-empty">오늘 레몬이 없어요!</p>
+              <p className="generate-lemon-empty-sub">내일 자정에 다시 충전됩니다 🌙</p>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="generate-header">
         <h1 className="generate-title">나만의 이야기 만들기</h1>
         <p className="generate-sub">키워드를 입력하면 Remon AI가 짧은 소설을 써드려요</p>
@@ -224,7 +258,11 @@ const GeneratePage = () => {
 
         {error && <p className="generate-error">{error}</p>}
 
-        <button type="submit" className="generate-submit-btn">
+        <button
+          type="submit"
+          className="generate-submit-btn"
+          disabled={lemonInfo.lemonCount <= 0}
+        >
           이야기 만들기 ✨
         </button>
       </form>

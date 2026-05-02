@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getUser, clearAuth, isLoggedIn } from "../utils/auth";
 import { deleteAccount } from "../api/bookApi";
+import { getLemonInfo } from "../api/userApi";
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from "../api/notificationApi";
 import "./Header.css";
 
@@ -13,6 +14,7 @@ const Header = ({ theme, toggleTheme }) => {
   const [notiOpen, setNotiOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [lemonCount, setLemonCount] = useState(null);
   const notiRef = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
@@ -24,6 +26,18 @@ const Header = ({ theme, toggleTheme }) => {
     };
     fetchUnread();
     const interval = setInterval(fetchUnread, 5000);
+    return () => clearInterval(interval);
+  }, [loggedIn]);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+    const fetchLemon = () => {
+      getLemonInfo()
+        .then((res) => setLemonCount(res.data.lemonCount))
+        .catch(() => {});
+    };
+    fetchLemon();
+    const interval = setInterval(fetchLemon, 60000);
     return () => clearInterval(interval);
   }, [loggedIn]);
 
@@ -113,6 +127,12 @@ const Header = ({ theme, toggleTheme }) => {
             {theme === "light" ? "🌙" : "☀️"}
           </button>
 
+          {loggedIn && lemonCount !== null && (
+            <span className="header-lemon-badge" title="오늘 남은 레몬">
+              🍋 {lemonCount}
+            </span>
+          )}
+
           {loggedIn && (
             <div className="noti-wrapper" ref={notiRef}>
               <button
@@ -194,6 +214,7 @@ const Header = ({ theme, toggleTheme }) => {
               <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
               <Link to="/library" className="drawer-link" onClick={closeMenu}>내 서재</Link>
               <Link to="/my-books" className="drawer-link" onClick={closeMenu}>내 책</Link>
+              <Link to="/mypage" className="drawer-link" onClick={closeMenu}>🍋 마이페이지</Link>
               <div className="drawer-user-box">
                 <span className="drawer-nickname">{user?.nickname}님</span>
                 <button className="logout-btn" onClick={handleLogout}>로그아웃</button>

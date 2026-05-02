@@ -1,6 +1,8 @@
 package com.remon.user.controller;
 
 import com.remon.follow.repository.FollowRepository;
+import com.remon.lemon.dto.LemonResponse;
+import com.remon.lemon.service.LemonService;
 import com.remon.security.JwtTokenProvider;
 import com.remon.user.dto.LoginRequest;
 import com.remon.user.dto.LoginResponse;
@@ -28,13 +30,16 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final FollowRepository followRepository;
+    private final LemonService lemonService;
 
     public UserController(UserService userService, JwtTokenProvider jwtTokenProvider,
-                          RefreshTokenService refreshTokenService, FollowRepository followRepository) {
+                          RefreshTokenService refreshTokenService, FollowRepository followRepository,
+                          LemonService lemonService) {
         this.userService = userService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenService = refreshTokenService;
         this.followRepository = followRepository;
+        this.lemonService = lemonService;
     }
 
     @PostMapping("/register")
@@ -91,6 +96,11 @@ public class UserController {
         String email = authentication.getName();
         refreshTokenService.deleteByEmail(email);
         userService.deleteAccount(email);
+    }
+
+    @GetMapping("/me/lemon")
+    public LemonResponse getLemon(Authentication authentication) {
+        return lemonService.getLemonInfo(authentication.getName());
     }
 
     @GetMapping("/{userId}/profile")

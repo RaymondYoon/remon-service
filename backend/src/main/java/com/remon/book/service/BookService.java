@@ -7,6 +7,7 @@ import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import com.remon.follow.repository.FollowRepository;
+import com.remon.lemon.service.LemonService;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.review.repository.ReviewRepository;
 import com.remon.user.entity.User;
@@ -31,11 +32,12 @@ public class BookService {
     private final BookGenerationTask bookGenerationTask;
     private final FollowRepository followRepository;
     private final ReviewRepository reviewRepository;
+    private final LemonService lemonService;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
                        UserRepository userRepository, UserBookRepository userBookRepository,
                        BookGenerationTask bookGenerationTask, FollowRepository followRepository,
-                       ReviewRepository reviewRepository) {
+                       ReviewRepository reviewRepository, LemonService lemonService) {
         this.bookRepository     = bookRepository;
         this.openAiService      = openAiService;
         this.userRepository     = userRepository;
@@ -43,6 +45,7 @@ public class BookService {
         this.bookGenerationTask = bookGenerationTask;
         this.followRepository   = followRepository;
         this.reviewRepository   = reviewRepository;
+        this.lemonService       = lemonService;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -64,6 +67,8 @@ public class BookService {
         if (request.getKeywords() == null || request.getKeywords().isEmpty()) {
             throw new IllegalArgumentException("키워드를 1개 이상 입력해주세요.");
         }
+
+        lemonService.consumeLemon(email);
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
