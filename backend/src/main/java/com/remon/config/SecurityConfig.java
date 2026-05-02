@@ -47,7 +47,9 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        // 공개 책 둘러보기 (비로그인 허용)
+                        // 책 목록/상세 조회 (비로그인 허용)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/*").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/explore").permitAll()
                         // 리뷰 목록 조회 (비로그인 허용)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/*/reviews").permitAll()

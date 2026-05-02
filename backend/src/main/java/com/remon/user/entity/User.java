@@ -41,4 +41,8 @@ public class User {
 
     @Builder.Default
     private boolean emailVerified = false;
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 }

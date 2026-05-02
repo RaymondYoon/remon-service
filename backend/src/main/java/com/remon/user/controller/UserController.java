@@ -6,6 +6,7 @@ import com.remon.lemon.service.LemonService;
 import com.remon.security.JwtTokenProvider;
 import com.remon.user.dto.LoginRequest;
 import com.remon.user.dto.LoginResponse;
+import com.remon.user.dto.NicknameRequest;
 import com.remon.user.dto.UserProfileResponse;
 import com.remon.user.dto.UserRequest;
 import com.remon.user.dto.UserResponse;
@@ -101,6 +102,13 @@ public class UserController {
     @GetMapping("/me/lemon")
     public LemonResponse getLemon(Authentication authentication) {
         return lemonService.getLemonInfo(authentication.getName());
+    }
+
+    @PatchMapping("/me/nickname")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateNickname(@Valid @RequestBody NicknameRequest request,
+                               Authentication authentication) {
+        userService.updateNickname(authentication.getName(), request.getNickname());
     }
 
     @GetMapping("/{userId}/profile")

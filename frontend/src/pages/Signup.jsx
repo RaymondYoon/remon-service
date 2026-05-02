@@ -57,7 +57,7 @@ function Signup() {
             <input
             type="text"
             name="username"
-            placeholder="이름"
+            placeholder="닉네임"
             className="signup-input"
             value={form.username}
             onChange={handleChange}

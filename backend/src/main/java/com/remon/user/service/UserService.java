@@ -85,6 +85,12 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public void updateNickname(String email, String nickname) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        user.updateNickname(nickname);
+    }
+
     public void deleteAccount(String email) {
         log.info("회원 탈퇴 요청: {}", MaskingUtil.maskEmail(email));
         User user = userRepository.findByEmail(email)

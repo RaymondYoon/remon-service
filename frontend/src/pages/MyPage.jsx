@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUser, clearAuth } from "../utils/auth";
-import { getLemonInfo } from "../api/userApi";
+import { getUser, clearAuth, saveAuth } from "../utils/auth";
+import { getLemonInfo, updateNickname } from "../api/userApi";
 import { deleteAccount } from "../api/bookApi";
 import LemonTree from "../components/LemonTree";
 import "./MyPage.css";
@@ -11,6 +11,8 @@ const MyPage = () => {
   const user = getUser();
   const [lemonInfo, setLemonInfo] = useState({ lemonCount: 0, maxDaily: 3, usedToday: 0 });
   const [loading, setLoading] = useState(true);
+  const [nicknameInput, setNicknameInput] = useState(user?.nickname ?? "");
+  const [nicknameMsg, setNicknameMsg] = useState("");
 
   useEffect(() => {
     getLemonInfo()
@@ -18,6 +20,22 @@ const MyPage = () => {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const handleNicknameUpdate = async (e) => {
+    e.preventDefault();
+    const trimmed = nicknameInput.trim();
+    if (!trimmed) return;
+    try {
+      await updateNickname(trimmed);
+      // localStorage user 갱신
+      saveAuth({ ...user, nickname: trimmed });
+      setNicknameMsg("닉네임이 변경되었어요!");
+      setTimeout(() => setNicknameMsg(""), 2500);
+    } catch {
+      setNicknameMsg("변경에 실패했습니다. 다시 시도해주세요.");
+      setTimeout(() => setNicknameMsg(""), 2500);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("정말 탈퇴하시겠어요? 모든 데이터가 삭제되며 되돌릴 수 없습니다.")) return;
@@ -84,6 +102,23 @@ const MyPage = () => {
       {/* 계정 설정 */}
       <div className="mypage-account-section">
         <h3 className="mypage-account-title">계정 설정</h3>
+
+        <form className="mypage-nickname-form" onSubmit={handleNicknameUpdate}>
+          <label className="mypage-nickname-label">닉네임 변경</label>
+          <div className="mypage-nickname-row">
+            <input
+              className="mypage-nickname-input"
+              type="text"
+              value={nicknameInput}
+              onChange={(e) => setNicknameInput(e.target.value)}
+              maxLength={20}
+              placeholder="새 닉네임 입력"
+            />
+            <button type="submit" className="mypage-nickname-btn">변경</button>
+          </div>
+          {nicknameMsg && <p className="mypage-nickname-msg">{nicknameMsg}</p>}
+        </form>
+
         <button className="mypage-withdraw-btn" onClick={handleDeleteAccount}>
           회원 탈퇴
         </button>

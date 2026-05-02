@@ -157,6 +157,63 @@
   margin: 0;
 }
 
+.mypage-nickname-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-nickname-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.mypage-nickname-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mypage-nickname-input {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1.5px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s, background-color 0.3s;
+}
+
+.mypage-nickname-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-card);
+}
+
+.mypage-nickname-btn {
+  padding: 9px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.mypage-nickname-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+.mypage-nickname-msg {
+  font-size: 13px;
+  color: var(--color-primary);
+  margin: 0;
+}
+
 .mypage-withdraw-btn {
   align-self: flex-start;
   background: none;

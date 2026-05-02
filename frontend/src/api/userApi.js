@@ -11,3 +11,7 @@ export const loginUser = async (data) => {
 export const getLemonInfo = async () => {
   return await axiosInstance.get("/api/users/me/lemon");
 };
+
+export const updateNickname = async (nickname) => {
+  return await axiosInstance.patch("/api/users/me/nickname", { nickname });
+};
