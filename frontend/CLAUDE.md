@@ -103,12 +103,28 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
   - 키보드 방향키 지원
 - [x] ESLint 에러 수정 — Vercel 빌드 실패 해결 (cleanContent 정규식 이스케이프)
 
+### 2026-05-02
+- [x] Lighthouse 성능 최적화
+  - index.html 타이틀/메타 태그 업데이트 (og:title, og:description, twitter:card 등 SEO)
+  - Google Fonts Noto Sans KR preconnect + preload
+  - React.lazy + Suspense로 모든 페이지 컴포넌트 code splitting
+  - BookCard, BookList → React.memo로 불필요한 리렌더링 방지
+  - BookCard 커버 이미지 → `<img loading="lazy">` 변환 (background-image → img 태그)
+  - MyLibrary filteredBooks → useMemo 적용
+- [x] 레몬트리 UI
+  - `src/components/LemonTree.jsx` + `LemonTree.css` — CSS/SVG 직접 구현
+  - 레몬 0개: 앙상한 나무 (가지 끝 노출)
+  - 레몬 1~3개: 잎 조금 + 레몬 열매
+  - 레몬 4개 이상: 풍성한 나무 + 레몬 최대 8개
+  - 레몬 소모 시 열매 떨어지는 CSS 애니메이션
+  - `src/utils/lemonStorage.js` — localStorage 기반 일일 레몬 추적 (하루 3개, 자정 초기화)
+  - MyLibrary.jsx 상단에 레몬트리 섹션 추가
+  - GeneratePage에서 생성 성공 시 consumeLemon() 호출
+
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD
-- [ ] 레몬트리 UI (마이페이지에 열매 달린 나무 SVG)
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 페이지네이션 / 무한 스크롤
-- [ ] Lighthouse 성능 측정 및 최적화
 - [ ] 테스트 코드 작성
 - [ ] React Native 앱 개발 검토
 - [ ] Oracle Cloud로 이전 검토 (메모리 여유)

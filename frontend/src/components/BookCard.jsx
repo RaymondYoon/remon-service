@@ -2,16 +2,20 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./BookCard.css";
 
-const BookCard = ({ book }) => {
+const BookCard = React.memo(({ book }) => {
   const location = useLocation();
 
   return (
     <div className="book-card">
-      <div
-        className="book-cover"
-        style={book.coverImage ? { backgroundImage: `url(${book.coverImage})` } : {}}
-      >
-        {!book.coverImage && (
+      <div className="book-cover">
+        {book.coverImage ? (
+          <img
+            src={book.coverImage}
+            alt={book.title}
+            className="book-cover-img"
+            loading="lazy"
+          />
+        ) : (
           <span className="book-cover-placeholder">📖</span>
         )}
       </div>
@@ -33,6 +37,6 @@ const BookCard = ({ book }) => {
       </Link>
     </div>
   );
-};
+});
 
 export default BookCard;

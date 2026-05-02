@@ -2,7 +2,7 @@ import React from "react";
 import BookCard from "./BookCard";
 import "./BookList.css";
 
-const BookList = ({ books, loading, error, emptyMessage = "책이 없습니다." }) => {
+const BookList = React.memo(({ books, loading, error, emptyMessage = "책이 없습니다." }) => {
   if (loading) {
     return (
       <div className="booklist-state">
@@ -35,6 +35,6 @@ const BookList = ({ books, loading, error, emptyMessage = "책이 없습니다."
       ))}
     </div>
   );
-};
+});
 
 export default BookList;

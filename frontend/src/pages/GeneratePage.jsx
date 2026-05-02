@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateBook, getBookGenerationStatus } from "../api/bookApi";
+import { consumeLemon } from "../utils/lemonStorage";
 import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
 
@@ -103,6 +104,7 @@ const GeneratePage = () => {
 
     try {
       const response = await generateBook({ keywords: allKeywords, genre, length, tone });
+      consumeLemon();
       const bookId = response.data.id;
       setGeneratingBookId(bookId);
     } catch (err) {

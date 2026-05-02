@@ -2,6 +2,27 @@
   text-align: center;
 }
 
+/* Suspense 로딩 폴백 */
+.page-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 40vh;
+}
+
+.page-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-spinner-track);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: page-spin 0.7s linear infinite;
+}
+
+@keyframes page-spin {
+  to { transform: rotate(360deg); }
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
