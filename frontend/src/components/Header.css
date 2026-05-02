@@ -131,9 +131,11 @@
 
 /* ── 드로어 링크 목록 ── */
 .drawer-links {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 0 24px;
+  padding: 0 24px 24px;
   gap: 6px;
 }
 

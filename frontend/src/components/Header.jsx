@@ -119,6 +119,12 @@ const Header = ({ theme, toggleTheme }) => {
         </Link>
 
         <div className="header-actions">
+          {loggedIn && lemonCount !== null && (
+            <span className="header-lemon-badge" title="오늘 남은 레몬">
+              🍋 {lemonCount}
+            </span>
+          )}
+
           <button
             className="theme-toggle-btn"
             onClick={toggleTheme}
@@ -126,12 +132,6 @@ const Header = ({ theme, toggleTheme }) => {
           >
             {theme === "light" ? "🌙" : "☀️"}
           </button>
-
-          {loggedIn && lemonCount !== null && (
-            <span className="header-lemon-badge" title="오늘 남은 레몬">
-              🍋 {lemonCount}
-            </span>
-          )}
 
           {loggedIn && (
             <div className="noti-wrapper" ref={notiRef}>
