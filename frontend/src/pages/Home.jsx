@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import BookList from "../components/BookList";
-import useBooks from "../hooks/useBooks";
+import useInfiniteBooks from "../hooks/useInfiniteBooks";
 import "./Home.css";
 
 const GENRES = ["전체", "SF", "판타지", "로맨스", "일상", "공포"];
@@ -9,16 +9,36 @@ const Home = () => {
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("전체");
-  const { books, loading, error } = useBooks(searchTerm ? { keyword: searchTerm } : {});
+  const sentinelRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchTerm(query.trim());
-    }, 300);
+    const timer = setTimeout(() => setSearchTerm(query.trim()), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
-  const filteredBooks = genre === "전체" ? books : books.filter((b) => b.genre === genre);
+  const params = useMemo(
+    () => (searchTerm ? { keyword: searchTerm } : {}),
+    [searchTerm]
+  );
+
+  const { books, loading, error, hasMore, loadMore } = useInfiniteBooks(params);
+
+  const filteredBooks = useMemo(
+    () => (genre === "전체" ? books : books.filter((b) => b.genre === genre)),
+    [books, genre]
+  );
+
+  // Intersection Observer로 무한 스크롤
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   return (
     <div className="home-container">
@@ -53,10 +73,24 @@ const Home = () => {
 
         <BookList
           books={filteredBooks}
-          loading={loading}
+          loading={loading && books.length === 0}
           error={error}
           emptyMessage={searchTerm || genre !== "전체" ? "검색 결과가 없습니다." : "아직 등록된 책이 없습니다."}
         />
+
+        {/* 무한 스크롤 sentinel */}
+        <div ref={sentinelRef} className="home-sentinel" />
+
+        {/* 추가 로딩 스피너 */}
+        {loading && books.length > 0 && (
+          <div className="home-load-more">
+            <div className="home-load-spinner" />
+          </div>
+        )}
+
+        {!hasMore && books.length > 0 && (
+          <p className="home-end-msg">모든 책을 불러왔습니다 📚</p>
+        )}
       </section>
     </div>
   );

@@ -15,6 +15,10 @@ import com.remon.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -140,6 +144,18 @@ public class BookService {
         return books.stream()
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookResponse> getAllBooksPageable(String keyword, Pageable pageable) {
+        Page<Book> page = (keyword != null && !keyword.isBlank())
+                ? bookRepository.searchByKeywordPageable(keyword, pageable)
+                : bookRepository.findAll(pageable);
+        Map<Long, Double> ratingCache = buildRatingCache(page.getContent());
+        List<BookResponse> content = page.getContent().stream()
+                .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
+                .collect(Collectors.toList());
+        return new PageImpl<>(content, pageable, page.getTotalElements());
     }
 
     @Transactional(readOnly = true)

@@ -14,6 +14,8 @@ const BookCard = React.memo(({ book }) => {
             alt={book.title}
             className="book-cover-img"
             loading="lazy"
+            width="160"
+            height="190"
           />
         ) : (
           <span className="book-cover-placeholder">📖</span>

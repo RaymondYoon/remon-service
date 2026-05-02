@@ -5,6 +5,9 @@ import com.remon.book.dto.BookResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,8 +31,14 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookResponse> getAllBooks(
-            @RequestParam(required = false) String keyword) {
+    public Object getAllBooks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(defaultValue = "12") int size) {
+        if (page != null) {
+            PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+            return bookService.getAllBooksPageable(keyword, pageable);
+        }
         return bookService.getAllBooks(keyword);
     }
 

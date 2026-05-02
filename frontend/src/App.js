@@ -2,6 +2,8 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Toast from "./components/Toast";
+import { ToastContext, useToastState } from "./hooks/useToast";
 import { migrateOrClearLegacyAuth } from "./utils/auth";
 import { useTheme } from "./hooks/useTheme";
 import "./styles/global.css";
@@ -27,8 +29,10 @@ const MyPage = lazy(() => import("./pages/MyPage"));
 
 function App() {
   const { theme, toggleTheme } = useTheme();
+  const toastState = useToastState();
 
   return (
+    <ToastContext.Provider value={toastState}>
     <Router>
       <Header theme={theme} toggleTheme={toggleTheme} />
 
@@ -90,6 +94,8 @@ function App() {
         </Suspense>
       </main>
     </Router>
+    <Toast toasts={toastState.toasts} removeToast={toastState.removeToast} />
+    </ToastContext.Provider>
   );
 }
 

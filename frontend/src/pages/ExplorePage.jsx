@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getExploreBooks } from "../api/bookApi";
 import { followUser, unfollowUser } from "../api/followApi";
 import { isLoggedIn, getUser } from "../utils/auth";
+import { useToast } from "../hooks/useToast";
 import "./ExplorePage.css";
 
 const ExplorePage = () => {
@@ -11,6 +12,7 @@ const ExplorePage = () => {
   const [followingMap, setFollowingMap] = useState({});
   const loggedIn = isLoggedIn();
   const me = getUser();
+  const showToast = useToast();
 
   useEffect(() => {
     getExploreBooks()
@@ -32,7 +34,7 @@ const ExplorePage = () => {
         setFollowingMap((prev) => ({ ...prev, [authorId]: true }));
       }
     } catch {
-      alert("팔로우 처리에 실패했습니다.");
+      showToast("팔로우 처리에 실패했습니다.", "error");
     }
   };
 

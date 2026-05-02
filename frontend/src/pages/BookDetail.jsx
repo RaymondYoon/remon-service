@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getBookById, addToLibrary } from "../api/bookApi";
 import { getReviews, createReview, deleteReview } from "../api/reviewApi";
 import { isLoggedIn, getUser } from "../utils/auth";
+import { useToast } from "../hooks/useToast";
 import "./BookDetail.css";
 
 const BookDetail = () => {
@@ -28,6 +29,7 @@ const BookDetail = () => {
 
   const loggedIn = isLoggedIn();
   const me = getUser();
+  const showToast = useToast();
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -74,8 +76,9 @@ const BookDetail = () => {
     try {
       await deleteReview(id, reviewId);
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      showToast("리뷰가 삭제되었습니다.", "success");
     } catch {
-      alert("리뷰 삭제에 실패했습니다.");
+      showToast("리뷰 삭제에 실패했습니다.", "error");
     }
   };
 
@@ -90,10 +93,12 @@ const BookDetail = () => {
       await addToLibrary(Number(id));
       setAddMessage("내 서재에 추가되었습니다! 📚");
       setAddSuccess(true);
+      showToast("내 서재에 추가되었습니다!", "success");
     } catch (err) {
       const msg = err.response?.data?.error || "서재 추가에 실패했습니다.";
       setAddMessage(msg);
       setAddSuccess(false);
+      showToast(msg, "error");
     } finally {
       setAddLoading(false);
     }

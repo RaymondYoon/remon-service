@@ -208,11 +208,6 @@
   background: var(--color-primary-dark);
 }
 
-.mypage-nickname-msg {
-  font-size: 13px;
-  color: var(--color-primary);
-  margin: 0;
-}
 
 .mypage-withdraw-btn {
   align-self: flex-start;

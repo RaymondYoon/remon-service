@@ -2,6 +2,8 @@ package com.remon.book.repository;
 
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +21,16 @@ public interface BookRepository extends JpaRepository<Book, Long> {
                OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
             """)
     List<Book> searchByKeyword(@Param("keyword") String keyword);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            """)
+    Page<Book> searchByKeywordPageable(@Param("keyword") String keyword, Pageable pageable);
+
+    Page<Book> findAll(Pageable pageable);
 
     @Query("SELECT b FROM Book b WHERE b.publishedBy = :userId AND b.isAiGenerated = true ORDER BY b.publishedDate DESC")
     List<Book> findMyGeneratedBooks(@Param("userId") Long userId);
