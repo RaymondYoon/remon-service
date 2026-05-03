@@ -141,7 +141,7 @@ const ReadPage = () => {
         );
       }
     },
-    [id, loggedIn]
+    [id, loggedIn, userEmail]
   );
 
   const goNext = useCallback(() => bookRef.current?.pageFlip().flipNext(), []);
