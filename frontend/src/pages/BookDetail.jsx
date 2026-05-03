@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getBookById, addToLibrary } from "../api/bookApi";
+import { getBookById, addToLibrary, adminDeleteBook, adminDeleteReview } from "../api/bookApi";
 import { getReviews, createReview, deleteReview } from "../api/reviewApi";
-import { isLoggedIn, getUser } from "../utils/auth";
+import { isLoggedIn, getUser, isAdmin } from "../utils/auth";
 import { useToast } from "../hooks/useToast";
 import "./BookDetail.css";
 
@@ -29,6 +29,7 @@ const BookDetail = () => {
 
   const loggedIn = isLoggedIn();
   const me = getUser();
+  const admin = isAdmin();
   const showToast = useToast();
 
   useEffect(() => {
@@ -73,12 +74,29 @@ const BookDetail = () => {
 
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm("리뷰를 삭제하시겠습니까?")) return;
+    const review = reviews.find((r) => r.id === reviewId);
+    const isOwnReview = me && review?.userId === me.id;
     try {
-      await deleteReview(id, reviewId);
+      if (!isOwnReview && admin) {
+        await adminDeleteReview(reviewId);
+      } else {
+        await deleteReview(id, reviewId);
+      }
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
       showToast("리뷰가 삭제되었습니다.", "success");
     } catch {
       showToast("리뷰 삭제에 실패했습니다.", "error");
+    }
+  };
+
+  const handleAdminDeleteBook = async () => {
+    if (!window.confirm("이 책을 삭제하시겠습니까? 모든 리뷰와 서재 데이터도 삭제됩니다.")) return;
+    try {
+      await adminDeleteBook(id);
+      showToast("책이 삭제되었습니다.", "success");
+      navigate("/");
+    } catch {
+      showToast("책 삭제에 실패했습니다.", "error");
     }
   };
 
@@ -196,6 +214,12 @@ const BookDetail = () => {
               {addMessage}
             </p>
           )}
+
+          {admin && (
+            <button className="admin-delete-book-btn" onClick={handleAdminDeleteBook}>
+              [관리자] 책 삭제
+            </button>
+          )}
         </div>
       </div>
 
@@ -258,7 +282,7 @@ const BookDetail = () => {
                   <span className="review-item-nickname">{review.nickname}</span>
                   <span className="review-item-stars">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
                   <span className="review-item-date">{review.createdAt}</span>
-                  {me && review.userId === me.id && (
+                  {me && (review.userId === me.id || admin) && (
                     <button
                       className="review-delete-btn"
                       onClick={() => handleDeleteReview(review.id)}

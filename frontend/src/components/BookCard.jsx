@@ -2,7 +2,16 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./BookCard.css";
 
-const BookCard = React.memo(({ book }) => {
+const GENRE_GRADIENTS = {
+  "SF": "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+  "판타지": "linear-gradient(135deg, #10b981, #06b6d4)",
+  "로맨스": "linear-gradient(135deg, #f472b6, #ef4444)",
+  "일상": "linear-gradient(135deg, #fbbf24, #f97316)",
+  "공포": "linear-gradient(135deg, #1c1c1c, #dc2626)",
+};
+const DEFAULT_GRADIENT = "linear-gradient(135deg, #5b7e5a, #f5c842)";
+
+const BookCard = React.memo(({ book, isInLibrary }) => {
   const location = useLocation();
 
   return (
@@ -18,8 +27,14 @@ const BookCard = React.memo(({ book }) => {
             height="190"
           />
         ) : (
-          <span className="book-cover-placeholder">📖</span>
+          <div
+            className="book-cover-gradient"
+            style={{ background: GENRE_GRADIENTS[book.genre] || DEFAULT_GRADIENT }}
+          >
+            <span className="book-cover-genre-label">{book.genre || "Remon"}</span>
+          </div>
         )}
+        {isInLibrary && <span className="book-library-badge">✓</span>}
       </div>
 
       <div className="book-info">

@@ -34,6 +34,11 @@ public class LibraryController {
         return libraryService.getMyLibrary(authentication.getName());
     }
 
+    @GetMapping("/my-book-ids")
+    public List<Long> getMyBookIds(Authentication authentication) {
+        return libraryService.getMyBookIds(authentication.getName());
+    }
+
     @PatchMapping("/{bookId}/status")
     public LibraryResponse updateStatus(
             @PathVariable Long bookId,

@@ -452,3 +452,20 @@
     padding: 20px;
   }
 }
+
+.admin-delete-book-btn {
+  margin-top: 12px;
+  padding: 8px 18px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.admin-delete-book-btn:hover {
+  opacity: 0.85;
+}

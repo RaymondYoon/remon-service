@@ -105,6 +105,15 @@ public class LibraryService {
                 .ifPresent(ub -> ub.updateStatus(ReadingStatus.DONE));
     }
 
+    @Transactional(readOnly = true)
+    public List<Long> getMyBookIds(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        return userBookRepository.findByUserId(user.getId()).stream()
+                .map(ub -> ub.getBook().getId())
+                .toList();
+    }
+
     public void deleteFromLibrary(String email, Long bookId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));

@@ -51,6 +51,18 @@ export const isLoggedIn = () => {
   return true;
 };
 
+// ── 어드민 여부 (JWT payload의 role 클레임 직접 확인) ──────────────────────
+export const isAdmin = () => {
+  const token = getToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role === "ADMIN";
+  } catch {
+    return false;
+  }
+};
+
 // ── 삭제 ──────────────────────────────────────────────────────────────────
 export const clearAuth = () => {
   localStorage.removeItem("accessToken");

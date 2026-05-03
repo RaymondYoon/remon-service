@@ -79,3 +79,18 @@ export const getExploreBooks = async () => {
 export const getFeedBooks = async () => {
   return await axiosInstance.get("/api/books/feed");
 };
+
+// 내 서재 책 ID 목록 (인증 필요) — 홈 체크 배지용
+export const getMyBookIds = async () => {
+  return await axiosInstance.get("/api/library/my-book-ids");
+};
+
+// 어드민 전용 — 책 강제 삭제
+export const adminDeleteBook = async (bookId) => {
+  return await axiosInstance.delete(`/api/admin/books/${bookId}`);
+};
+
+// 어드민 전용 — 리뷰 강제 삭제
+export const adminDeleteReview = async (reviewId) => {
+  return await axiosInstance.delete(`/api/admin/reviews/${reviewId}`);
+};

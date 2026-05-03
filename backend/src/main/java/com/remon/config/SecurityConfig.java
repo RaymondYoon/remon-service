@@ -58,6 +58,8 @@ public class SecurityConfig {
                         // 팔로워·팔로잉 목록 조회 (비로그인 허용)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/follow/*/followers").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/follow/*/following").permitAll()
+                        // 어드민 전용 API
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // 그 외 모든 요청은 JWT 인증 필요
                         .anyRequest().authenticated()
                 )

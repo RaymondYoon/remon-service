@@ -197,11 +197,13 @@ const Header = ({ theme, toggleTheme }) => {
         </button>
 
         <div className="drawer-links">
+          {loggedIn && (
+            <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
+          )}
           <Link to="/" className="drawer-link" onClick={closeMenu}>홈</Link>
 
           {loggedIn ? (
             <>
-              <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
               <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
               <Link to="/feed" className="drawer-link" onClick={closeMenu}>피드</Link>
               <Link to="/my-books" className="drawer-link" onClick={closeMenu}>내 책</Link>

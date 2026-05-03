@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import BookList from "../components/BookList";
 import useInfiniteBooks from "../hooks/useInfiniteBooks";
+import { getMyBookIds } from "../api/bookApi";
+import { isLoggedIn } from "../utils/auth";
 import "./Home.css";
 
 const GENRES = ["전체", "SF", "판타지", "로맨스", "일상", "공포"];
@@ -11,7 +13,15 @@ const Home = () => {
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("전체");
+  const [libraryIds, setLibraryIds] = useState(new Set());
   const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    if (!isLoggedIn()) return;
+    getMyBookIds()
+      .then((res) => setLibraryIds(new Set(res.data)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearchTerm(query.trim()), 300);
@@ -93,6 +103,7 @@ const Home = () => {
               loading={loading && books.length === 0}
               error={null}
               emptyMessage={searchTerm || genre !== "전체" ? "검색 결과가 없습니다." : "아직 등록된 책이 없습니다."}
+              libraryIds={libraryIds}
             />
 
             {/* 무한 스크롤 sentinel */}
