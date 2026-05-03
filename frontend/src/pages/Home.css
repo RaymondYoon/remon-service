@@ -133,3 +133,34 @@
   padding: 24px 0 8px;
   margin: 0;
 }
+
+.home-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 60px 0;
+}
+
+.home-error-msg {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  margin: 0;
+  text-align: center;
+}
+
+.home-retry-btn {
+  padding: 10px 24px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.home-retry-btn:hover {
+  opacity: 0.85;
+}

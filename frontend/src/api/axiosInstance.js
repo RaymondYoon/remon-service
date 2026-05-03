@@ -4,7 +4,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 8000,
 });
 
 // 요청 인터셉터: 모든 요청에 accessToken 자동 첨부
@@ -38,6 +38,16 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // 네트워크 에러 또는 타임아웃: 재시도 없이 즉시 에러 반환 + 토스트 이벤트
+    if (!error.response) {
+      window.dispatchEvent(
+        new CustomEvent("api-network-error", {
+          detail: "서버 연결 실패. 잠시 후 다시 시도해주세요.",
+        })
+      );
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {

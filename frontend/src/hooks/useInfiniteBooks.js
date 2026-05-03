@@ -9,6 +9,7 @@ const useInfiniteBooks = (params = {}) => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const paramsRef = useRef(params);
 
   // params(검색어/장르)가 바뀌면 목록 리셋
@@ -35,20 +36,31 @@ const useInfiniteBooks = (params = {}) => {
         setBooks((prev) => page === 0 ? items : [...prev, ...items]);
         setHasMore(!last);
       } catch {
-        if (!cancelled) setError("책 목록을 불러오지 못했습니다.");
+        if (!cancelled) {
+          setError("서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
+          setHasMore(false);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
     fetchPage();
     return () => { cancelled = true; };
-  }, [page, hasMore, paramsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, hasMore, paramsKey, retryCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) setPage((p) => p + 1);
   }, [loading, hasMore]);
 
-  return { books, loading, error, hasMore, loadMore };
+  const retry = useCallback(() => {
+    setError(null);
+    setBooks([]);
+    setPage(0);
+    setHasMore(true);
+    setRetryCount((c) => c + 1);
+  }, []);
+
+  return { books, loading, error, hasMore, loadMore, retry };
 };
 
 export default useInfiniteBooks;

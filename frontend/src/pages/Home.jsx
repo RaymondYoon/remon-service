@@ -21,7 +21,7 @@ const Home = () => {
     [searchTerm]
   );
 
-  const { books, loading, error, hasMore, loadMore } = useInfiniteBooks(params);
+  const { books, loading, error, hasMore, loadMore, retry } = useInfiniteBooks(params);
 
   const filteredBooks = useMemo(
     () => (genre === "전체" ? books : books.filter((b) => b.genre === genre)),
@@ -71,25 +71,34 @@ const Home = () => {
           {searchTerm ? `"${searchTerm}" 검색 결과` : "추천 전자책"}
         </h2>
 
-        <BookList
-          books={filteredBooks}
-          loading={loading && books.length === 0}
-          error={error}
-          emptyMessage={searchTerm || genre !== "전체" ? "검색 결과가 없습니다." : "아직 등록된 책이 없습니다."}
-        />
-
-        {/* 무한 스크롤 sentinel */}
-        <div ref={sentinelRef} className="home-sentinel" />
-
-        {/* 추가 로딩 스피너 */}
-        {loading && books.length > 0 && (
-          <div className="home-load-more">
-            <div className="home-load-spinner" />
+        {error ? (
+          <div className="home-error">
+            <p className="home-error-msg">{error}</p>
+            <button className="home-retry-btn" onClick={retry}>다시 시도</button>
           </div>
-        )}
+        ) : (
+          <>
+            <BookList
+              books={filteredBooks}
+              loading={loading && books.length === 0}
+              error={null}
+              emptyMessage={searchTerm || genre !== "전체" ? "검색 결과가 없습니다." : "아직 등록된 책이 없습니다."}
+            />
 
-        {!hasMore && books.length > 0 && (
-          <p className="home-end-msg">모든 책을 불러왔습니다 📚</p>
+            {/* 무한 스크롤 sentinel */}
+            <div ref={sentinelRef} className="home-sentinel" />
+
+            {/* 추가 로딩 스피너 */}
+            {loading && books.length > 0 && (
+              <div className="home-load-more">
+                <div className="home-load-spinner" />
+              </div>
+            )}
+
+            {!hasMore && books.length > 0 && (
+              <p className="home-end-msg">모든 책을 불러왔습니다 📚</p>
+            )}
+          </>
         )}
       </section>
     </div>

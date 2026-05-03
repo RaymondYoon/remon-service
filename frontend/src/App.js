@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -30,6 +30,12 @@ const MyPage = lazy(() => import("./pages/MyPage"));
 function App() {
   const { theme, toggleTheme } = useTheme();
   const toastState = useToastState();
+
+  useEffect(() => {
+    const handler = (e) => toastState.showToast(e.detail, "error");
+    window.addEventListener("api-network-error", handler);
+    return () => window.removeEventListener("api-network-error", handler);
+  }, [toastState.showToast]);
 
   return (
     <ToastContext.Provider value={toastState}>
