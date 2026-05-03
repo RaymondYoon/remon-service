@@ -32,7 +32,7 @@ function Login() {
       const response = await loginUser({ email, password });
       // JWT 토큰 및 유저 정보 저장
       saveAuth(response.data);
-      navigate(from, { replace: true });
+      navigate(from, { replace: true, state: { justLoggedIn: true } });
     } catch (err) {
       const msg = err.response?.data?.message || "이메일 또는 비밀번호가 올바르지 않습니다.";
       setError(msg);

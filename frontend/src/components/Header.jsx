@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { clearAuth, isLoggedIn } from "../utils/auth";
 import { getLemonInfo } from "../api/userApi";
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from "../api/notificationApi";
@@ -7,7 +7,13 @@ import "./Header.css";
 
 const Header = ({ theme, toggleTheme }) => {
   const navigate = useNavigate();
-  const loggedIn = isLoggedIn();
+  const { pathname } = useLocation();
+  const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
+
+  // navigation마다 로그인 상태 재계산 (navigate 후 stale 방지)
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+  }, [pathname]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import BookList from "../components/BookList";
 import useInfiniteBooks from "../hooks/useInfiniteBooks";
 import "./Home.css";
@@ -6,6 +7,7 @@ import "./Home.css";
 const GENRES = ["전체", "SF", "판타지", "로맨스", "일상", "공포"];
 
 const Home = () => {
+  const location = useLocation();
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("전체");
@@ -27,6 +29,14 @@ const Home = () => {
     () => (genre === "전체" ? books : books.filter((b) => b.genre === genre)),
     [books, genre]
   );
+
+  // 로그인 직후 진입 시 책 목록 재조회
+  useEffect(() => {
+    if (location.state?.justLoggedIn) {
+      window.history.replaceState({}, document.title);
+      retry();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Intersection Observer로 무한 스크롤
   useEffect(() => {
