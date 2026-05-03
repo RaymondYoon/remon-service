@@ -12,7 +12,7 @@ import java.util.List;
 public class GenerateBookRequest {
 
     @NotEmpty
-    private List<String> keywords;  // 예: ["우주", "고양이"]  최대 3개
+    private List<String> keywords;  // 예: ["우주", "고양이"]  최대 4개
 
     @NotBlank
     private String genre;           // "SF" | "판타지" | "로맨스" | "일상" | "공포"

@@ -74,8 +74,8 @@ const GeneratePage = () => {
   const addKeyword = () => {
     const trimmed = keywordInput.trim().replace(/,$/, "");
     if (!trimmed) return;
-    if (keywords.length >= 3) {
-      setError("키워드는 최대 3개까지 입력할 수 있어요.");
+    if (keywords.length >= 4) {
+      setError("키워드는 최대 4개까지 입력할 수 있어요.");
       return;
     }
     if (keywords.includes(trimmed)) {
@@ -97,7 +97,7 @@ const GeneratePage = () => {
 
     const allKeywords = [...keywords];
     const trimmed = keywordInput.trim();
-    if (trimmed && !allKeywords.includes(trimmed) && allKeywords.length < 3) {
+    if (trimmed && !allKeywords.includes(trimmed) && allKeywords.length < 4) {
       allKeywords.push(trimmed);
     }
 
@@ -182,7 +182,7 @@ const GeneratePage = () => {
         {/* 키워드 */}
         <div className="generate-field">
           <label className="generate-label">
-            키워드 <span className="generate-label-hint">최대 3개 · Enter로 추가</span>
+            키워드 <span className="generate-label-hint">최대 4개 · Enter로 추가</span>
           </label>
           <div className="keyword-input-wrap">
             {keywords.map((kw) => (
@@ -191,7 +191,7 @@ const GeneratePage = () => {
                 <button type="button" className="keyword-tag-remove" onClick={() => removeKeyword(kw)}>×</button>
               </span>
             ))}
-            {keywords.length < 3 && (
+            {keywords.length < 4 && (
               <input
                 type="text"
                 className="keyword-input"

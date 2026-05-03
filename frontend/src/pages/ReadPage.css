@@ -88,7 +88,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 48px 44px 56px;
+  padding: 48px 44px 20px;
   box-sizing: border-box;
   position: relative;
 }
@@ -118,14 +118,12 @@
 }
 
 .flip-page-num {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
   text-align: center;
   font-size: 13px;
   color: var(--color-read-page-num);
   letter-spacing: 0.03em;
+  padding-top: 12px;
 }
 
 /* ─── 본문 단락 ─── */
@@ -209,7 +207,7 @@
 /* ─── 반응형 ─── */
 @media (max-width: 640px) {
   .flip-page-inner {
-    padding: 32px 24px 48px;
+    padding: 32px 24px 16px;
   }
 
   .read-para {

@@ -15,7 +15,11 @@ const BookCard = React.memo(({ book, isInLibrary }) => {
   const location = useLocation();
 
   return (
-    <div className="book-card">
+    <Link
+      to={`/book/${book.id}`}
+      state={{ from: location.pathname }}
+      className="book-card"
+    >
       <div className="book-cover">
         {book.coverImage ? (
           <img
@@ -44,15 +48,7 @@ const BookCard = React.memo(({ book, isInLibrary }) => {
           <p className="book-rating">⭐ {book.averageRating.toFixed(1)}</p>
         )}
       </div>
-
-      <Link
-        to={`/book/${book.id}`}
-        state={{ from: location.pathname }}
-        className="detail-btn"
-      >
-        자세히 보기
-      </Link>
-    </div>
+    </Link>
   );
 });
 
