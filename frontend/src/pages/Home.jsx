@@ -15,6 +15,7 @@ const Home = () => {
   const [genre, setGenre] = useState("전체");
   const [libraryIds, setLibraryIds] = useState(new Set());
   const sentinelRef = useRef(null);
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
     if (!isLoggedIn()) return;
@@ -40,13 +41,23 @@ const Home = () => {
     [books, genre]
   );
 
-  // 로그인 직후 진입 시 책 목록 재조회
+  // 로그인 직후 / 홈 링크 클릭 시 책 목록 재조회
   useEffect(() => {
-    if (location.state?.justLoggedIn) {
+    if (isFirstMount.current) {
+      // 최초 마운트: justLoggedIn일 때만 재조회
+      isFirstMount.current = false;
+      if (location.state?.justLoggedIn) {
+        window.history.replaceState({}, document.title);
+        retry();
+      }
+      return;
+    }
+    // 이후 내비게이션: refresh 또는 justLoggedIn 상태면 재조회
+    if (location.state?.refresh || location.state?.justLoggedIn) {
       window.history.replaceState({}, document.title);
       retry();
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Intersection Observer로 무한 스크롤
   useEffect(() => {

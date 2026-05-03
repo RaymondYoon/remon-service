@@ -200,7 +200,7 @@ const Header = ({ theme, toggleTheme }) => {
           {loggedIn && (
             <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
           )}
-          <Link to="/" className="drawer-link" onClick={closeMenu}>홈</Link>
+          <Link to="/" className="drawer-link" state={{ refresh: true }} onClick={closeMenu}>홈</Link>
 
           {loggedIn ? (
             <>

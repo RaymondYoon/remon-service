@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import HTMLFlipBook from "react-pageflip";
 import { getBookById, startReading, savePage, markAsDone } from "../api/bookApi";
-import { isLoggedIn } from "../utils/auth";
+import { isLoggedIn, getUser } from "../utils/auth";
 import "./ReadPage.css";
 
 const CHARS_PER_PAGE = 500;
@@ -44,7 +44,9 @@ function buildPages(content) {
   return pages;
 }
 
-const LS_KEY = (id) => `remon_page_${id}`;
+// 계정마다 다른 페이지 저장: 이메일을 userId로 사용
+const LS_KEY = (email, bookId) =>
+  email ? `remon_page_${email}_${bookId}` : `remon_page_${bookId}`;
 
 // HTMLFlipBook은 자식이 반드시 forwardRef 컴포넌트여야 함
 const BookPage = React.forwardRef(({ paragraphs, pageNum, totalPages }, ref) => (
@@ -89,6 +91,7 @@ const ReadPage = () => {
   const saveTimer = useRef(null);
   const totalPagesRef = useRef(0);
   const loggedIn = isLoggedIn();
+  const userEmail = getUser()?.email ?? null;
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -102,7 +105,7 @@ const ReadPage = () => {
         setPages(built);
         totalPagesRef.current = built.length;
 
-        const lsPage = parseInt(localStorage.getItem(LS_KEY(id)) ?? "", 10);
+        const lsPage = parseInt(localStorage.getItem(LS_KEY(userEmail, id)) ?? "", 10);
         const sp =
           initialPage != null
             ? Math.min(initialPage, Math.max(built.length - 1, 0))
@@ -127,7 +130,7 @@ const ReadPage = () => {
     (e) => {
       const page = e.data;
       setCurrentPage(page);
-      localStorage.setItem(LS_KEY(id), String(page));
+      localStorage.setItem(LS_KEY(userEmail, id), String(page));
 
       if (loggedIn) {
         if (page === totalPagesRef.current - 1) markAsDone(id).catch(() => {});
