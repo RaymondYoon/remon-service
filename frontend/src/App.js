@@ -35,7 +35,7 @@ function App() {
     const handler = (e) => toastState.showToast(e.detail, "error");
     window.addEventListener("api-network-error", handler);
     return () => window.removeEventListener("api-network-error", handler);
-  }, [toastState.showToast]);
+  }, [toastState.showToast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ToastContext.Provider value={toastState}>
