@@ -1,11 +1,13 @@
 /* ─── 읽기 페이지 전체 배경 ─── */
 .read-container {
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  overflow: hidden;
   background: var(--color-read-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 24px 60px;
+  padding: 16px 24px;
+  box-sizing: border-box;
   transition: background-color 0.3s;
 }
 
@@ -13,10 +15,11 @@
 .read-header {
   width: 100%;
   max-width: 800px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 
 .read-back-btn {
@@ -47,10 +50,11 @@
 .read-progress-bar {
   width: 100%;
   max-width: 800px;
+  flex-shrink: 0;
   height: 4px;
   background: var(--color-read-progress-track);
   border-radius: 2px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   overflow: hidden;
   transition: background-color 0.3s;
 }
@@ -64,12 +68,14 @@
 
 /* ─── 책 영역 ─── */
 .read-book {
+  flex: 1;
+  min-height: 0;
   width: 100%;
   max-width: 800px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 16px;
 }
 
 /* ─── HTMLFlipBook 컨테이너 ─── */
@@ -143,6 +149,7 @@
 
 /* ─── 페이지 네비게이션 ─── */
 .read-nav {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 24px;

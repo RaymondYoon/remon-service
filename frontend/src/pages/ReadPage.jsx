@@ -63,16 +63,20 @@ const BookPage = React.forwardRef(({ paragraphs, pageNum, totalPages }, ref) => 
 ));
 BookPage.displayName = "BookPage";
 
+// App header(60) + container padding(32) + read-header(~40) + header-mb(12)
+// + progress(4) + progress-mb(12) + gap(16) + nav(~44) + 안전 여유(20)
+const VERTICAL_CHROME = 240;
+
 function getPageDimensions() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = Math.min(vw - 32, 360);
-    return { width: w, height: Math.round(w * 1.52), isMobile: true };
+    return { width: w, height: Math.min(Math.round(w * 1.52), maxH), isMobile: true };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  const height = Math.min(Math.round(pageWidth * 1.51), Math.round(vh * 0.75));
-  return { width: pageWidth, height, isMobile: false };
+  return { width: pageWidth, height: Math.min(Math.round(pageWidth * 1.51), maxH), isMobile: false };
 }
 
 const ReadPage = () => {
