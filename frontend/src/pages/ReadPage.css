@@ -89,7 +89,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 48px 44px 20px;
+  padding: clamp(28px, 4.5vw, 52px) clamp(24px, 3.8vw, 44px) 20px;
   box-sizing: border-box;
   position: relative;
 }
@@ -129,7 +129,7 @@
 
 /* ─── 본문 단락 ─── */
 .read-para {
-  font-size: 16px;
+  font-size: clamp(14px, 1.6vw, 16px);
   line-height: 2.0;
   color: var(--color-read-text);
   margin: 0 0 1.2em;
@@ -219,5 +219,11 @@
   .read-nav-btn {
     padding: 9px 18px;
     font-size: 13px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .read-para {
+    line-height: 1.9;
   }
 }

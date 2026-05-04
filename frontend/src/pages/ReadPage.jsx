@@ -65,11 +65,14 @@ BookPage.displayName = "BookPage";
 
 function getPageDimensions() {
   const vw = window.innerWidth;
-  if (vw < 640) {
-    const w = Math.min(vw - 32, 340);
+  const vh = window.innerHeight;
+  if (vw <= 640) {
+    const w = Math.min(vw - 32, 360);
     return { width: w, height: Math.round(w * 1.52), isMobile: true };
   }
-  return { width: 370, height: 560, isMobile: false };
+  const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
+  const height = Math.min(Math.round(pageWidth * 1.51), Math.round(vh * 0.75));
+  return { width: pageWidth, height, isMobile: false };
 }
 
 const ReadPage = () => {
@@ -85,7 +88,7 @@ const ReadPage = () => {
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [startPage, setStartPage] = useState(0);
-  const [dim] = useState(getPageDimensions);
+  const [dim, setDim] = useState(getPageDimensions);
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
@@ -156,6 +159,19 @@ const ReadPage = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
 
+  useEffect(() => {
+    let timer;
+    const handleResize = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => setDim(getPageDimensions()), 150);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="read-state">
@@ -215,6 +231,7 @@ const ReadPage = () => {
 
       <div className="read-book">
         <HTMLFlipBook
+          key={`${dim.width}x${dim.height}`}
           ref={bookRef}
           width={dim.width}
           height={dim.height}
@@ -225,7 +242,7 @@ const ReadPage = () => {
           showCover={false}
           mobileScrollSupport={false}
           onFlip={onFlip}
-          startPage={startPage}
+          startPage={currentPage}
           maxShadowOpacity={0.35}
           className="html-flipbook"
         >
