@@ -87,7 +87,6 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [startPage, setStartPage] = useState(0);
   const [dim, setDim] = useState(getPageDimensions);
 
   const bookRef = useRef(null);
@@ -115,7 +114,6 @@ const ReadPage = () => {
             : !isNaN(lsPage)
             ? Math.min(lsPage, Math.max(built.length - 1, 0))
             : 0;
-        setStartPage(sp);
         setCurrentPage(sp);
 
         if (loggedIn) startReading(id).catch(() => {});
