@@ -81,6 +81,7 @@
 .flip-page {
   background: var(--color-read-page);
   overflow: hidden;
+  height: 100%;
 }
 
 .flip-page-inner {

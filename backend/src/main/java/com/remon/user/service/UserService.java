@@ -1,5 +1,6 @@
 package com.remon.user.service;
 
+import com.remon.book.repository.BookRepository;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.logging.MaskingUtil;
 import com.remon.user.entity.Role;
@@ -22,12 +23,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserBookRepository userBookRepository;
+    private final BookRepository bookRepository;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                       UserBookRepository userBookRepository){
+                       UserBookRepository userBookRepository, BookRepository bookRepository){
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userBookRepository = userBookRepository;
+        this.bookRepository = bookRepository;
     }
 
     public User login (String email, String password) {
@@ -89,6 +92,7 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
         user.updateNickname(nickname);
+        bookRepository.updateAuthorByPublishedBy(user.getId(), nickname);
     }
 
     public void deleteAccount(String email) {
