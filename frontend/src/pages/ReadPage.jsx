@@ -5,7 +5,6 @@ import { getBookById, startReading, savePage, markAsDone } from "../api/bookApi"
 import { isLoggedIn, getUser } from "../utils/auth";
 import "./ReadPage.css";
 
-const CHARS_PER_PAGE = 500;
 const SAVE_DEBOUNCE_MS = 1500;
 
 function cleanContent(text) {
@@ -18,29 +17,60 @@ function cleanContent(text) {
     .trim();
 }
 
-function buildPages(content) {
+// DOM 렌더링 높이 기준으로 페이지 분할
+// padding/font CSS와 동일한 값으로 숨김 컨테이너를 측정해 paragraph 단위 분할
+function buildPagesByHeight(content, pageWidth, pageHeight) {
   if (!content) return [];
+
   const cleaned = cleanContent(content);
   const paragraphs = cleaned
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
+  if (paragraphs.length === 0) return [];
+
+  // CSS clamp/fixed 값과 동일하게 계산
+  const vw = window.innerWidth;
+  const isMobile = vw <= 640;
+  const topPad  = isMobile ? 32 : Math.min(52, Math.max(28, vw * 0.045));
+  const sidePad = isMobile ? 24 : Math.min(44, Math.max(24, vw * 0.038));
+  const fontSize = isMobile ? 15 : Math.min(16, Math.max(14, vw * 0.016));
+  const contentW = Math.max(1, pageWidth - sidePad * 2);
+  const contentH = Math.max(80, pageHeight - topPad - 48); // 48 = page num 영역
+
+  // 측정용 숨김 div 생성 — 실제 페이지와 동일한 font/width
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:absolute;top:-9999px;left:-9999px;" +
+    `width:${contentW}px;overflow:hidden;` +
+    `font-size:${fontSize}px;line-height:2;word-break:keep-all;font-family:inherit;`;
+  document.body.appendChild(probe);
 
   const pages = [];
   let current = [];
-  let charCount = 0;
 
   for (const para of paragraphs) {
-    if (charCount + para.length > CHARS_PER_PAGE && current.length > 0) {
-      pages.push(current);
+    const pEl = document.createElement("p");
+    pEl.style.cssText = "margin:0 0 1.2em;text-indent:1em;padding:0;";
+    pEl.textContent = para;
+    probe.appendChild(pEl);
+
+    if (probe.offsetHeight > contentH && current.length > 0) {
+      // 이 paragraph를 추가하면 넘침 → 이전까지 페이지 확정
+      pages.push([...current]);
       current = [para];
-      charCount = para.length;
+      probe.innerHTML = "";
+      const resetP = document.createElement("p");
+      resetP.style.cssText = "margin:0 0 1.2em;text-indent:1em;padding:0;";
+      resetP.textContent = para;
+      probe.appendChild(resetP);
     } else {
       current.push(para);
-      charCount += para.length;
     }
   }
+
   if (current.length > 0) pages.push(current);
+  document.body.removeChild(probe);
   return pages;
 }
 
@@ -107,7 +137,7 @@ const ReadPage = () => {
         const response = await getBookById(id);
         const data = response.data;
         setBook(data);
-        const built = buildPages(data.content);
+        const built = buildPagesByHeight(data.content, dim.width, dim.height);
         setPages(built);
         totalPagesRef.current = built.length;
 
@@ -173,6 +203,15 @@ const ReadPage = () => {
       clearTimeout(timer);
     };
   }, []);
+
+  // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치 유지
+  useEffect(() => {
+    if (!book) return;
+    const built = buildPagesByHeight(book.content, dim.width, dim.height);
+    setPages(built);
+    totalPagesRef.current = built.length;
+    setCurrentPage((prev) => Math.min(prev, Math.max(0, built.length - 1)));
+  }, [dim]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
