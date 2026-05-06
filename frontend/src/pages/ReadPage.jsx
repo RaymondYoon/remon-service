@@ -347,6 +347,7 @@ const ReadPage = () => {
           flippingTime={700}
           drawShadow={true}
           showCover={false}
+          showPageCorners={false}
           mobileScrollSupport={false}
           onFlip={onFlip}
           startPage={currentPage}
