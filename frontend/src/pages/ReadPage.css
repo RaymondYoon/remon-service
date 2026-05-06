@@ -82,6 +82,7 @@
 .html-flipbook {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   min-height: 500px;
+  overflow: hidden;
 }
 
 .html-flipbook .stf__parent {
@@ -159,6 +160,8 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .read-nav-btn {
