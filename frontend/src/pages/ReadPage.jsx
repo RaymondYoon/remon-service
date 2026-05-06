@@ -156,9 +156,10 @@ const VERTICAL_CHROME = 240;
 
 const MIN_PAGE_HEIGHT = 500;
 
-// isSingle: 한 페이지 모드 — 페이지 너비를 두 페이지 모드의 절반으로 계산
-// (두 페이지 spread 전체 너비 ≈ 2 × pageWidth, 한 페이지는 그 절반 = pageWidth 그대로)
-// isSingle 값을 반환 객체에 포함시켜 dim 교체 시 useEffect([dim])이 페이지 재계산을 트리거하도록 함
+// isSingle=false: 두 페이지 spread — pageWidth는 화면 절반 (총 2×pageWidth)
+// isSingle=true : 한 페이지 모드 — usePortrait=true로 pageWidth 그대로 1페이지만 표시
+//   → 시각적 책 너비가 2×pageWidth → pageWidth 로 "절반"이 됨
+// isSingle 값을 반환 객체에 포함해 dim 교체 시 useEffect([dim])이 pages 재계산을 트리거
 function getPageDimensions(isSingle = false) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -167,7 +168,10 @@ function getPageDimensions(isSingle = false) {
     const w = Math.min(vw - 32, 360);
     return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true, isSingle };
   }
-  const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
+  // 두 페이지: 화면 절반 너비 / 한 페이지: 화면 전체(여백 제외) 너비를 단일 페이지로
+  const pageWidth = isSingle
+    ? Math.max(320, Math.min(560, vw - 48))
+    : Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
   return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false, isSingle };
 }
 
@@ -358,8 +362,7 @@ const ReadPage = () => {
           width={dim.width}
           height={dim.height}
           size="fixed"
-          usePortrait={false}
-          singlePage={singlePage}
+          usePortrait={singlePage}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
