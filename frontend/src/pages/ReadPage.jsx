@@ -97,16 +97,18 @@ BookPage.displayName = "BookPage";
 // + progress(4) + progress-mb(12) + gap(16) + nav(~44) + 안전 여유(20)
 const VERTICAL_CHROME = 240;
 
+const MIN_PAGE_HEIGHT = 500;
+
 function getPageDimensions() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = Math.min(vw - 32, 360);
-    return { width: w, height: Math.min(Math.round(w * 1.52), maxH), isMobile: true };
+    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  return { width: pageWidth, height: Math.min(Math.round(pageWidth * 1.51), maxH), isMobile: false };
+  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
 }
 
 const ReadPage = () => {

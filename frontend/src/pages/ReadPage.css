@@ -1,7 +1,7 @@
 /* ─── 읽기 페이지 전체 배경 ─── */
 .read-container {
   height: calc(100vh - 60px);
-  overflow: hidden;
+  overflow-y: auto;
   background: var(--color-read-bg);
   display: flex;
   flex-direction: column;
@@ -81,6 +81,11 @@
 /* ─── HTMLFlipBook 컨테이너 ─── */
 .html-flipbook {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  min-height: 500px;
+}
+
+.html-flipbook .stf__parent {
+  min-height: 500px;
 }
 
 /* ─── 플립 페이지 (BookPage 컴포넌트) ─── */
