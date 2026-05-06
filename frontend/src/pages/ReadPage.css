@@ -183,6 +183,12 @@
   cursor: not-allowed;
 }
 
+/* 한/두 페이지 토글 버튼 — 현재 선택된 모드일 때 채워진 스타일 */
+.read-nav-btn--active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .read-page-num {
   font-size: 14px;
   color: var(--color-read-page-num);

@@ -156,16 +156,19 @@ const VERTICAL_CHROME = 240;
 
 const MIN_PAGE_HEIGHT = 500;
 
-function getPageDimensions() {
+// isSingle: 한 페이지 모드 — 페이지 너비를 두 페이지 모드의 절반으로 계산
+// (두 페이지 spread 전체 너비 ≈ 2 × pageWidth, 한 페이지는 그 절반 = pageWidth 그대로)
+// isSingle 값을 반환 객체에 포함시켜 dim 교체 시 useEffect([dim])이 페이지 재계산을 트리거하도록 함
+function getPageDimensions(isSingle = false) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = Math.min(vw - 32, 360);
-    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true };
+    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true, isSingle };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
+  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false, isSingle };
 }
 
 const ReadPage = () => {
@@ -180,7 +183,8 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [dim, setDim] = useState(getPageDimensions);
+  const [singlePage, setSinglePage] = useState(false);
+  const [dim, setDim] = useState(() => getPageDimensions(false));
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
@@ -241,6 +245,16 @@ const ReadPage = () => {
   const goNext = useCallback(() => bookRef.current?.pageFlip().flipNext(), []);
   const goPrev = useCallback(() => bookRef.current?.pageFlip().flipPrev(), []);
 
+  // 한/두 페이지 토글 — singlePage와 dim을 함께 업데이트해서
+  // useEffect([dim])이 페이지 재계산을 자동으로 트리거하도록 함
+  const toggleSinglePage = useCallback(() => {
+    setSinglePage((prev) => {
+      const next = !prev;
+      setDim(getPageDimensions(next));
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowRight") goNext();
@@ -250,18 +264,19 @@ const ReadPage = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
 
+  // singlePage를 deps에 포함 — resize 시 현재 모드(한/두 페이지)를 유지하며 dim 재계산
   useEffect(() => {
     let timer;
     const handleResize = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => setDim(getPageDimensions()), 150);
+      timer = setTimeout(() => setDim(getPageDimensions(singlePage)), 150);
     };
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
-  }, []);
+  }, [singlePage]);
 
   // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치를 새 페이지 수 범위 내로 보정
   useEffect(() => {
@@ -338,12 +353,13 @@ const ReadPage = () => {
 
       <div className="read-book">
         <HTMLFlipBook
-          key={`${dim.width}x${dim.height}`}
+          key={`${dim.width}x${dim.height}x${singlePage ? 1 : 2}`}
           ref={bookRef}
           width={dim.width}
           height={dim.height}
           size="fixed"
           usePortrait={false}
+          singlePage={singlePage}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
@@ -381,6 +397,12 @@ const ReadPage = () => {
             disabled={isLastPage}
           >
             다음 페이지
+          </button>
+          <button
+            className={`read-nav-btn${singlePage ? " read-nav-btn--active" : ""}`}
+            onClick={toggleSinglePage}
+          >
+            {singlePage ? "📖 두 페이지" : "📄 한 페이지"}
           </button>
         </div>
       </div>
