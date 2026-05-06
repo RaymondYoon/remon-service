@@ -17,8 +17,35 @@ function cleanContent(text) {
     .trim();
 }
 
+// CSS .flip-page-num의 실제 높이: font-size 13px × line-height 1.5 ≈ 20px + padding-top 6px + padding-bottom 10px
+// 하드코딩 48 대신 이 변수를 단일 진실 소스로 사용
+const PAGE_NUM_HEIGHT = 36;
+
+// probe(빈 상태)에 text를 binary search로 분할해 maxH에 맞는 최대 앞부분을 반환
+// 단락이 한 페이지를 초과할 때 호출 — paragraph 잘림 문제의 핵심 해결책
+function binarySearchSplit(probe, text, maxH, makeP) {
+  let lo = 0, hi = text.length, best = 0;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    probe.innerHTML = "";
+    probe.appendChild(makeP(text.slice(0, mid)));
+    if (probe.offsetHeight <= maxH) { best = mid; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  // 한글/영문 모두 공백 기준으로 단어 경계에서 자름 — 음절 중간 절단 방지
+  let cut = best;
+  if (cut > 0 && cut < text.length) {
+    const sp = text.lastIndexOf(" ", cut);
+    if (sp > 0) cut = sp;
+  }
+  return {
+    front: text.slice(0, cut).trimEnd(),
+    back: text.slice(cut).trimStart(),
+  };
+}
+
 // DOM 렌더링 높이 기준으로 페이지 분할
-// padding/font CSS와 동일한 값으로 숨김 컨테이너를 측정해 paragraph 단위 분할
+// 단락이 contentH를 초과하면 binary search로 분할 — 텍스트 잘림 문제 해결
 function buildPagesByHeight(content, pageWidth, pageHeight) {
   if (!content) return [];
 
@@ -29,43 +56,73 @@ function buildPagesByHeight(content, pageWidth, pageHeight) {
     .filter((p) => p.length > 0);
   if (paragraphs.length === 0) return [];
 
-  // CSS clamp/fixed 값과 동일하게 계산
   const vw = window.innerWidth;
   const isMobile = vw <= 640;
   const topPad  = isMobile ? 32 : Math.min(52, Math.max(28, vw * 0.045));
+  const botPad  = 8;  // CSS .flip-page-inner bottom padding과 동일
   const sidePad = isMobile ? 24 : Math.min(44, Math.max(24, vw * 0.038));
   const fontSize = isMobile ? 15 : Math.min(16, Math.max(14, vw * 0.016));
   const contentW = Math.max(1, pageWidth - sidePad * 2);
-  const contentH = Math.max(80, pageHeight - topPad - 48); // 48 = page num 영역
+  // PAGE_NUM_HEIGHT를 명시적으로 빼 하드코딩 제거 — CSS 변경 시 이 변수만 수정하면 됨
+  const contentH = Math.max(80, pageHeight - topPad - botPad - PAGE_NUM_HEIGHT);
 
-  // 측정용 숨김 div 생성 — 실제 페이지와 동일한 font/width
+  // probe: flip-page-content와 동일한 width/font/box-sizing 환경
+  // padding·box-sizing 포함해 실제 렌더 폭과 정확히 일치시킴
   const probe = document.createElement("div");
   probe.style.cssText =
     "position:absolute;top:-9999px;left:-9999px;" +
-    `width:${contentW}px;overflow:hidden;` +
-    `font-size:${fontSize}px;line-height:2;word-break:keep-all;font-family:inherit;`;
+    `width:${contentW}px;box-sizing:border-box;padding:0;margin:0;` +
+    `font-size:${fontSize}px;line-height:2;word-break:keep-all;font-family:inherit;` +
+    "overflow:hidden;";
   document.body.appendChild(probe);
+
+  const makeP = (text) => {
+    const el = document.createElement("p");
+    el.style.cssText = "margin:0 0 1.2em;text-indent:1em;padding:0;";
+    el.textContent = text;
+    return el;
+  };
 
   const pages = [];
   let current = [];
 
-  for (const para of paragraphs) {
-    const pEl = document.createElement("p");
-    pEl.style.cssText = "margin:0 0 1.2em;text-indent:1em;padding:0;";
-    pEl.textContent = para;
-    probe.appendChild(pEl);
+  // queue 방식으로 처리 — binary search 분할 결과를 queue 앞에 재삽입 가능
+  const queue = [...paragraphs];
 
-    if (probe.offsetHeight > contentH && current.length > 0) {
-      // 이 paragraph를 추가하면 넘침 → 이전까지 페이지 확정
-      pages.push([...current]);
-      current = [para];
-      probe.innerHTML = "";
-      const resetP = document.createElement("p");
-      resetP.style.cssText = "margin:0 0 1.2em;text-indent:1em;padding:0;";
-      resetP.textContent = para;
-      probe.appendChild(resetP);
-    } else {
+  while (queue.length > 0) {
+    const para = queue.shift();
+    probe.appendChild(makeP(para));
+
+    if (probe.offsetHeight <= contentH) {
+      // 아직 넘치지 않음 → 현재 페이지에 추가
       current.push(para);
+    } else {
+      // 넘침 — 마지막으로 추가한 단락 제거 후 분기 처리
+      probe.removeChild(probe.lastChild);
+
+      if (current.length === 0) {
+        // 현재 페이지가 비어있는데 이 단락 하나만으로도 넘침
+        // → binary search로 앞부분을 현재 페이지에, 나머지를 queue 앞에 삽입
+        const split = binarySearchSplit(probe, para, contentH, makeP);
+        if (split.front.length > 0) {
+          pages.push([split.front]);
+          probe.innerHTML = "";
+          current = [];
+          if (split.back.length > 0) queue.unshift(split.back);
+        } else {
+          // 한 글자도 안 들어가는 극단적 케이스 — 통째로 넣고 다음 페이지로
+          pages.push([para]);
+          probe.innerHTML = "";
+          current = [];
+        }
+      } else {
+        // 현재 페이지에 내용 있음 → 이 단락 추가 전에 페이지 확정
+        // 이 단락은 queue 앞에 재삽입해 다음 루프에서 새 페이지 시작점으로 처리
+        pages.push([...current]);
+        probe.innerHTML = "";
+        current = [];
+        queue.unshift(para);
+      }
     }
   }
 
@@ -206,12 +263,13 @@ const ReadPage = () => {
     };
   }, []);
 
-  // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치 유지
+  // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치를 새 페이지 수 범위 내로 보정
   useEffect(() => {
     if (!book) return;
     const built = buildPagesByHeight(book.content, dim.width, dim.height);
     setPages(built);
     totalPagesRef.current = built.length;
+    // resize 후 페이지 수가 줄어도 마지막 페이지를 넘지 않도록 보정
     setCurrentPage((prev) => Math.min(prev, Math.max(0, built.length - 1)));
   }, [dim]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -251,6 +309,12 @@ const ReadPage = () => {
     );
   }
 
+  // usePortrait를 항상 false로 고정 — 모바일에서도 2페이지 모드 유지
+  // portrait 모드에서는 react-pageflip 내부 index가 홀짝 기준으로 달라져
+  // currentPage와 실제 표시 페이지가 어긋나는 버그 발생
+  // isLastPage: >= 로 비교해 pages.length - 1 경계값 누락 방지
+  const isLastPage = currentPage >= pages.length - 1;
+
   return (
     <div className="read-container">
       <div className="read-header">
@@ -279,7 +343,7 @@ const ReadPage = () => {
           width={dim.width}
           height={dim.height}
           size="fixed"
-          usePortrait={dim.isMobile}
+          usePortrait={false}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
@@ -313,7 +377,7 @@ const ReadPage = () => {
           <button
             className="read-nav-btn"
             onClick={goNext}
-            disabled={currentPage === pages.length - 1}
+            disabled={isLastPage}
           >
             다음 페이지
           </button>
