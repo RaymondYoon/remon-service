@@ -19,10 +19,10 @@ public class BookGenerationTask {
     }
 
     @Async
-    public void run(Long bookId, List<String> keywords, String genre, String length, String tone) {
+    public void run(Long bookId, List<String> keywords, String genre, String tone, String ending, String protagonistName) {
         bookRepository.updateStatus(bookId, BookStatus.GENERATING);
         try {
-            String[] result = openAiService.generate(keywords, genre, length, tone);
+            String[] result = openAiService.generate(keywords, genre, tone, ending, protagonistName);
             bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.DONE);
         } catch (Exception e) {
             bookRepository.updateStatus(bookId, BookStatus.FAILED);

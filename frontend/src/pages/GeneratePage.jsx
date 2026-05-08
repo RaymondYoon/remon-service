@@ -7,15 +7,15 @@ import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
 
 const GENRES  = ["SF", "판타지", "로맨스", "일상", "공포"];
-const LENGTHS = [
-  { value: "SHORT",  label: "짧게 (~3,000자)" },
-  { value: "MEDIUM", label: "보통 (~8,000자)" },
-  { value: "LONG",   label: "길게 (~15,000자)" },
-];
 const TONES = [
   { value: "WARM",      label: "따뜻하게" },
   { value: "DARK",      label: "긴장감 있게" },
   { value: "HUMOROUS",  label: "유쾌하게" },
+];
+const ENDINGS = [
+  { value: "HAPPY", label: "해피엔딩" },
+  { value: "SAD",   label: "새드엔딩" },
+  { value: "OPEN",  label: "열린결말" },
 ];
 
 const GeneratePage = () => {
@@ -24,8 +24,9 @@ const GeneratePage = () => {
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords]         = useState([]);
   const [genre, setGenre]               = useState(GENRES[0]);
-  const [length, setLength]             = useState("SHORT");
   const [tone, setTone]                 = useState("WARM");
+  const [ending, setEnding]             = useState("HAPPY");
+  const [protagonistName, setProtagonistName] = useState("");
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
   const [generatingBookId, setGeneratingBookId] = useState(null);
@@ -110,8 +111,16 @@ const GeneratePage = () => {
     setLemonTrigger((prev) => prev + 1);
     setLoading(true);
 
+    const nameValue = protagonistName.trim() || null;
+
     try {
-      const response = await generateBook({ keywords: allKeywords, genre, length, tone });
+      const response = await generateBook({
+        keywords: allKeywords,
+        genre,
+        tone,
+        ending,
+        protagonistName: nameValue,
+      });
       // 생성 성공 시 레몬 정보 갱신
       getLemonInfo()
         .then((res) => setLemonInfo(res.data))
@@ -222,24 +231,7 @@ const GeneratePage = () => {
           </div>
         </div>
 
-        {/* 분량 */}
-        <div className="generate-field">
-          <label className="generate-label">분량</label>
-          <div className="chip-group">
-            {LENGTHS.map((l) => (
-              <button
-                key={l.value}
-                type="button"
-                className={`chip ${length === l.value ? "chip--active" : ""}`}
-                onClick={() => setLength(l.value)}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 톤 */}
+        {/* 분위기 */}
         <div className="generate-field">
           <label className="generate-label">분위기</label>
           <div className="chip-group">
@@ -254,6 +246,38 @@ const GeneratePage = () => {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* 결말 */}
+        <div className="generate-field">
+          <label className="generate-label">결말</label>
+          <div className="chip-group">
+            {ENDINGS.map((en) => (
+              <button
+                key={en.value}
+                type="button"
+                className={`chip ${ending === en.value ? "chip--active" : ""}`}
+                onClick={() => setEnding(en.value)}
+              >
+                {en.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 주인공 이름 */}
+        <div className="generate-field">
+          <label className="generate-label">
+            주인공 이름 <span className="generate-label-hint">선택사항 · 비워두면 AI가 결정</span>
+          </label>
+          <input
+            type="text"
+            className="generate-text-input"
+            placeholder="예: 지우, 하늘, Alex"
+            value={protagonistName}
+            onChange={(e) => setProtagonistName(e.target.value)}
+            maxLength={20}
+          />
         </div>
 
         {error && <p className="generate-error">{error}</p>}

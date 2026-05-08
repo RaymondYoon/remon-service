@@ -33,8 +33,8 @@ public class OpenAiService {
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
-    public String[] generate(List<String> keywords, String genre, String length, String tone) {
-        String prompt = buildPrompt(keywords, genre, length, tone);
+    public String[] generate(List<String> keywords, String genre, String tone, String ending, String protagonistName) {
+        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -56,18 +56,22 @@ public class OpenAiService {
 
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
-    private String buildPrompt(List<String> keywords, String genre, String length, String tone) {
-        String lengthDesc = switch (length != null ? length.toUpperCase() : "SHORT") {
-            case "MEDIUM" -> "8000자 내외";
-            case "LONG"   -> "15000자 내외";
-            default       -> "3000자 내외";
-        };
-
+    private String buildPrompt(List<String> keywords, String genre, String tone, String ending, String protagonistName) {
         String toneDesc = switch (tone != null ? tone.toUpperCase() : "WARM") {
             case "DARK"      -> "어둡고 긴장감 있게";
             case "HUMOROUS"  -> "유쾌하고 재미있게";
             default          -> "따뜻하고 감동적으로";
         };
+
+        String endingDesc = switch (ending != null ? ending.toUpperCase() : "HAPPY") {
+            case "SAD"  -> "새드엔딩 (슬프고 여운이 남는 결말)";
+            case "OPEN" -> "열린결말 (독자가 상상할 여지를 남기는 결말)";
+            default     -> "해피엔딩 (희망적이고 긍정적인 결말)";
+        };
+
+        String protagonistLine = (protagonistName != null && !protagonistName.isBlank())
+                ? "주인공 이름: " + protagonistName
+                : "주인공 이름: AI가 자유롭게 결정";
 
         return String.format(
                 """
@@ -84,12 +88,15 @@ public class OpenAiService {
                 아래 조건으로 한국어 단편 소설을 작성해줘.
                 장르: %s
                 톤: %s
-                분량: %s
+                분량: 3000자 내외
+                결말: %s
+                %s
                 키워드: %s
                 """,
                 genre != null ? genre : "일상",
                 toneDesc,
-                lengthDesc,
+                endingDesc,
+                protagonistLine,
                 String.join(", ", keywords)
         );
     }

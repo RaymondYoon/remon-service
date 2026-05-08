@@ -18,8 +18,9 @@ public class GenerateBookRequest {
     private String genre;           // "SF" | "판타지" | "로맨스" | "일상" | "공포"
 
     @NotBlank
-    private String length;          // "SHORT"(~3000자) | "MEDIUM"(~8000자) | "LONG"(~15000자)
-
-    @NotBlank
     private String tone;            // "WARM" | "DARK" | "HUMOROUS"
+
+    private String ending;          // "HAPPY" | "SAD" | "OPEN" (선택, 기본값 HAPPY)
+
+    private String protagonistName; // 주인공 이름 (선택, null이면 AI가 결정)
 }

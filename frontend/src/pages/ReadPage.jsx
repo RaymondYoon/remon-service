@@ -156,23 +156,16 @@ const VERTICAL_CHROME = 240;
 
 const MIN_PAGE_HEIGHT = 500;
 
-// isSingle=false: 두 페이지 spread — pageWidth는 화면 절반 (총 2×pageWidth)
-// isSingle=true : 한 페이지 모드 — usePortrait=true로 pageWidth 그대로 1페이지만 표시
-//   → 시각적 책 너비가 2×pageWidth → pageWidth 로 "절반"이 됨
-// isSingle 값을 반환 객체에 포함해 dim 교체 시 useEffect([dim])이 pages 재계산을 트리거
-function getPageDimensions(isSingle = false) {
+function getPageDimensions() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = Math.min(vw - 32, 360);
-    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true, isSingle };
+    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true };
   }
-  // 두 페이지: 화면 절반 너비 / 한 페이지: 화면 전체(여백 제외) 너비를 단일 페이지로
-  const pageWidth = isSingle
-    ? Math.max(320, Math.min(560, vw - 48))
-    : Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false, isSingle };
+  const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
+  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
 }
 
 const ReadPage = () => {
@@ -187,8 +180,7 @@ const ReadPage = () => {
   const [error, setError] = useState(null);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [singlePage, setSinglePage] = useState(false);
-  const [dim, setDim] = useState(() => getPageDimensions(false));
+  const [dim, setDim] = useState(() => getPageDimensions());
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
@@ -249,16 +241,6 @@ const ReadPage = () => {
   const goNext = useCallback(() => bookRef.current?.pageFlip().flipNext(), []);
   const goPrev = useCallback(() => bookRef.current?.pageFlip().flipPrev(), []);
 
-  // 한/두 페이지 토글 — singlePage와 dim을 함께 업데이트해서
-  // useEffect([dim])이 페이지 재계산을 자동으로 트리거하도록 함
-  const toggleSinglePage = useCallback(() => {
-    setSinglePage((prev) => {
-      const next = !prev;
-      setDim(getPageDimensions(next));
-      return next;
-    });
-  }, []);
-
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "ArrowRight") goNext();
@@ -268,19 +250,18 @@ const ReadPage = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
 
-  // singlePage를 deps에 포함 — resize 시 현재 모드(한/두 페이지)를 유지하며 dim 재계산
   useEffect(() => {
     let timer;
     const handleResize = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => setDim(getPageDimensions(singlePage)), 150);
+      timer = setTimeout(() => setDim(getPageDimensions()), 150);
     };
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
       clearTimeout(timer);
     };
-  }, [singlePage]);
+  }, []);
 
   // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치를 새 페이지 수 범위 내로 보정
   useEffect(() => {
@@ -328,10 +309,6 @@ const ReadPage = () => {
     );
   }
 
-  // usePortrait를 항상 false로 고정 — 모바일에서도 2페이지 모드 유지
-  // portrait 모드에서는 react-pageflip 내부 index가 홀짝 기준으로 달라져
-  // currentPage와 실제 표시 페이지가 어긋나는 버그 발생
-  // isLastPage: >= 로 비교해 pages.length - 1 경계값 누락 방지
   const isLastPage = currentPage >= pages.length - 1;
 
   return (
@@ -357,12 +334,12 @@ const ReadPage = () => {
 
       <div className="read-book">
         <HTMLFlipBook
-          key={`${dim.width}x${dim.height}x${singlePage ? 1 : 2}`}
+          key={`${dim.width}x${dim.height}`}
           ref={bookRef}
           width={dim.width}
           height={dim.height}
           size="fixed"
-          usePortrait={singlePage}
+          usePortrait={false}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
@@ -400,12 +377,6 @@ const ReadPage = () => {
             disabled={isLastPage}
           >
             다음 페이지
-          </button>
-          <button
-            className={`read-nav-btn${singlePage ? " read-nav-btn--active" : ""}`}
-            onClick={toggleSinglePage}
-          >
-            {singlePage ? "📖 두 페이지" : "📄 한 페이지"}
           </button>
         </div>
       </div>

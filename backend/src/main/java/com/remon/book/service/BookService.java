@@ -94,7 +94,8 @@ public class BookService {
 
         Book savedBook = bookRepository.save(book);
         bookGenerationTask.run(savedBook.getId(), request.getKeywords(),
-                request.getGenre(), request.getLength(), request.getTone());
+                request.getGenre(), request.getTone(),
+                request.getEnding(), request.getProtagonistName());
         return buildResponse(savedBook, null, null);
     }
 
