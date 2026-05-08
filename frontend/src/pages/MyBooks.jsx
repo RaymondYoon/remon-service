@@ -72,7 +72,7 @@ const MyBooks = () => {
                 className="mybooks-cover"
                 style={book.coverImageUrl ? { backgroundImage: `url(${book.coverImageUrl})` } : {}}
               >
-                {!book.coverImageUrl && <span className="mybooks-cover-placeholder">📖</span>}
+                {!book.coverImageUrl && <span className="mybooks-cover-placeholder">🍋</span>}
                 {book.genre && <span className="mybooks-genre-badge">{book.genre}</span>}
               </div>
 

@@ -161,9 +161,7 @@ const BookDetail = () => {
           {book.coverImage ? (
             <img src={book.coverImage} alt={book.title} />
           ) : (
-            <span className="detail-cover-placeholder">
-              {book.isAiGenerated ? "✨" : "📖"}
-            </span>
+            <span className="detail-cover-placeholder">🍋</span>
           )}
         </div>
 

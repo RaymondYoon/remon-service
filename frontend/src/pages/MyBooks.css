@@ -97,7 +97,7 @@
 .mybooks-cover {
   position: relative;
   height: 180px;
-  background: var(--color-bg-subtle) center / cover no-repeat;
+  background: #FFF9E6 center / cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,8 +105,8 @@
 }
 
 .mybooks-cover-placeholder {
-  font-size: 48px;
-  opacity: 0.5;
+  font-size: 3.5rem;
+  line-height: 1;
 }
 
 .mybooks-genre-badge {

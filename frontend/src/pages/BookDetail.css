@@ -33,7 +33,7 @@
   flex-shrink: 0;
   width: 200px;
   height: 280px;
-  background: var(--color-bg-subtle);
+  background: #FFF9E6;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -50,8 +50,8 @@
 }
 
 .detail-cover-placeholder {
-  font-size: 56px;
-  opacity: 0.4;
+  font-size: 4rem;
+  line-height: 1;
 }
 
 .detail-info {

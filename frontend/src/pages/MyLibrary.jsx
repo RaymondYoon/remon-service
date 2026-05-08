@@ -169,7 +169,7 @@ const MyLibrary = () => {
                   className="lib-cover"
                   style={book.coverImage ? { backgroundImage: `url(${book.coverImage})` } : {}}
                 >
-                  {!book.coverImage && <span className="lib-cover-placeholder">📖</span>}
+                  {!book.coverImage && <span className="lib-cover-placeholder">🍋</span>}
                   <button
                     className="lib-delete-btn"
                     onClick={() => handleDelete(book.id)}
