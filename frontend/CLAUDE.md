@@ -1,7 +1,7 @@
 # CLAUDE.md — Remon Service Frontend 작업 규칙
 
 ## 서비스 개요
-Remon은 사용자가 키워드와 간단한 내용을 입력하면
+Remon은 사용자가 키워드와 간단한 조건을 입력하면
 AI가 짧은 전자책/소설을 생성해주는 서비스다.
 
 ---
@@ -44,7 +44,7 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ```
 /                → Home.jsx            책 목록 + 검색 + 장르 필터 (debounce 300ms)
 /book/:id        → BookDetail.jsx      책 상세 + 서재 담기 + 별점/리뷰
-/book/:id/read   → ReadPage.jsx        react-pageflip 책 본문 뷰어
+/book/:id/read   → ReadPage.jsx        react-pageflip 책 본문 뷰어 (두 페이지 고정)
 /login           → Login.jsx           이메일 로그인 + 카카오 로그인 버튼
 /signup          → Signup.jsx          회원가입
 /library         → MyLibrary.jsx       내 서재 (ProtectedRoute)
@@ -88,13 +88,13 @@ src/
 │   ├── GeneratePage.jsx, MyLibrary.jsx, MyBooks.jsx, MyPage.jsx
 │   ├── ExplorePage.jsx, FeedPage.jsx, UserProfilePage.jsx
 │   ├── Login.jsx, Signup.jsx, OAuthCallback.jsx
-│   └── BookDetail.css
+│   └── BookDetail.css (각 페이지별 동일 이름 CSS 파일 존재)
 ├── styles/
 │   ├── variables.css       — CSS 변수 (다크/라이트 토큰)
 │   └── global.css
 └── utils/
     ├── auth.js             — 토큰/유저 저장·조회, JWT 만료 확인
-    └── lemonStorage.js     — 일일 레몬 사용 추적 (localStorage, 자정 초기화)
+    └── lemonStorage.js     — 일일 레몬 사용 횟수 추적 (localStorage, 자정 초기화)
 ```
 
 ---
@@ -105,7 +105,6 @@ src/
 - **다크모드**: 🌙/☀️ 토글 버튼 (헤더 우측), localStorage 저장, 새로고침 유지
   - `src/hooks/useTheme.js` — `data-theme` attribute + localStorage
   - CSS variables(`[data-theme="dark"]`)로 전체 색상 전환
-  - 모든 페이지/컴포넌트 CSS가 변수 기반으로 작성되어 있음
 
 ---
 
@@ -116,9 +115,10 @@ src/
 - **Background (다크)**: `#121212` (`--color-bg`)
 - **Card (다크)**: `#1e1e1e` (`--color-card`)
 - **Accent**: `#f5c842` (레몬 옐로우 — `--color-accent`)
+- **표지 없을 때 기본 배경**: `#FFF9E6` (부드러운 레몬색) + 🍋 이모지
 - 둥근 카드(14~16px), 안정적인 여백, 미니멀한 구성
 - 신규 색상은 반드시 `variables.css`에 먼저 추가한 뒤 사용한다.
-- 하드코딩된 색상값(`#2c2c2c`, `#fff` 등)은 사용하지 않는다.
+- 하드코딩된 색상값은 사용하지 않는다 (`#FFF9E6` 같은 의미 있는 고정값 예외).
 
 ---
 
@@ -128,6 +128,25 @@ src/
 - MyPage: LemonTree + 통계 (남은/사용/한도)
 - `src/utils/lemonStorage.js`: localStorage 기반 일일 사용 횟수 추적 (자정 초기화)
 - LemonTree 단계: 0개=앙상한 나무 / 1~3개=잎+열매 / 4개 이상=풍성+최대 8개
+
+---
+
+## 책 생성 옵션 (GeneratePage)
+- **키워드**: 최대 4개 (태그 형식, Enter/쉼표로 추가)
+- **장르**: SF / 판타지 / 로맨스 / 일상 / 공포
+- **분위기**: 따뜻하게(WARM) / 긴장감 있게(DARK) / 유쾌하게(HUMOROUS)
+- **결말**: 해피엔딩(HAPPY) / 새드엔딩(SAD) / 열린결말(OPEN)
+- **주인공 이름**: 텍스트 입력 (선택사항, 비워두면 AI가 결정)
+- 분량은 3000자 내외(SHORT)로 고정
+
+---
+
+## 책 뷰어 (ReadPage)
+- react-pageflip으로 두 페이지 모드 고정 (usePortrait=false)
+- DOM 높이 기반 페이지 분할 (`buildPagesByHeight` 함수)
+- 키보드 방향키 지원 (← →)
+- 읽은 페이지 localStorage + 서버 양쪽 저장 (debounce 1500ms)
+- 완독 시 자동으로 FINISHED 상태 처리
 
 ---
 
@@ -166,55 +185,38 @@ src/
 
 ### 2026-04-26
 - [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일)
-- [x] localStorage 키를 `token` → `accessToken`으로 변경, `refreshToken`도 저장
 - [x] axiosInstance 401 자동 재발급 로직 추가 (큐 처리 포함)
 - [x] OAuthCallback.jsx에서 accessToken + refreshToken 파라미터 파싱
-- [x] 카카오 로그인 정상 동작 확인
 
 ### 2026-04-30
 - [x] 팔로우/언팔로우 기능 (followApi.js)
 - [x] 공개 책 탐색 페이지 `/explore` (작가별 팔로우 버튼 포함)
-- [x] 팔로잉 피드 페이지 `/feed` (ProtectedRoute)
-- [x] 유저 프로필 페이지 `/profile/:userId` (팔로우 토글, 공개 책 목록)
-- [x] 별점·리뷰 기능 — BookDetail.jsx에 별점 선택 폼 + 리뷰 목록 + 삭제
-- [x] BookCard에 평균 별점 표시 (`averageRating`)
-- [x] 별점 UI 개선 — 크기 2rem, 선택 색상 #FFD700, hover fill 효과
-- [x] 다크모드 완성도 개선 — CSS variables 통일
-- [x] 검색 기능 개선 — 장르 드롭다운(전체/SF/판타지/로맨스/일상/공포), debounce 300ms
-- [x] AI 책 생성 비동기 처리 연동 (1초 이내 응답, 폴링 방식)
+- [x] 팔로잉 피드 페이지 `/feed`
+- [x] 유저 프로필 페이지 `/profile/:userId`
+- [x] 별점·리뷰 기능 (BookDetail.jsx에 별점 선택 폼 + 리뷰 목록)
+- [x] BookCard에 평균 별점 표시
+- [x] 검색 기능 개선 — 장르 드롭다운, debounce 300ms
 
 ### 2026-05-01
-- [x] 알림 기능 — 리뷰/팔로우 시 알림 생성, 헤더 🔔 뱃지, 드롭다운 UI
-- [x] 레몬 시스템 — 하루 1개 자동 충전, 책 생성 시 소모, 하루 3회 제한
-- [x] 레몬 떨어지는 애니메이션 (LemonFall.jsx)
-- [x] Gemini API 마이그레이션 대응 (gemini-2.5-flash)
-- [x] ReadPage: 마크다운 제거 `cleanContent()` 함수
-- [x] react-pageflip 책 넘기기 애니메이션 구현
-  - 데스크탑: 두 페이지 펼침 (usePortrait=false)
-  - 모바일: 한 페이지씩 (usePortrait=true)
-  - 키보드 방향키 지원
+- [x] 알림 기능 — 헤더 🔔 뱃지 + 드롭다운 UI
+- [x] 레몬 시스템 UI — 레몬트리 + 낙하 애니메이션
+- [x] ReadPage: react-pageflip 책 넘기기 애니메이션 구현
 
 ### 2026-05-02
-- [x] Lighthouse 성능 최적화
-  - index.html 타이틀/메타 태그 (og:title, og:description, twitter:card 등 SEO)
-  - Google Fonts Noto Sans KR preconnect + preload
-  - React.lazy + Suspense로 모든 페이지 컴포넌트 code splitting
-  - BookCard, BookList → React.memo로 불필요한 리렌더링 방지
-  - BookCard 커버 이미지 → `<img loading="lazy">` 변환
-  - MyLibrary filteredBooks → useMemo 적용
-- [x] 레몬트리 UI 구현 (LemonTree.jsx — CSS/SVG 직접 구현)
-- [x] 레몬트리 UI 위치 재배치
-  - Header.jsx: 🍋 N개 실시간 표시 (60초 폴링)
-  - GeneratePage.jsx: LemonTree + 보유 레몬/사용 횟수 표시
-  - MyPage.jsx (신규 `/mypage`): 프로필 + LemonTree + 통계
+- [x] Lighthouse 성능 최적화 (React.memo, lazy loading, code splitting, SEO 메타 태그)
+- [x] 레몬트리 UI (LemonTree.jsx — CSS/SVG 직접 구현)
+- [x] MyPage.jsx 신규 `/mypage` 라우트
 
 ### 2026-05-04
 - [x] AI 책 생성 키워드 입력 4개로 확장
 - [x] BookCard 전체 영역 클릭 가능 처리
 - [x] ReadPage 페이지 번호 겹침 문제 수정
-- [x] 홈 화면 첫 접속 시 책 목록 안 보이는 문제 수정
-- [x] ReadPage useCallback deps에 userEmail 추가 (ESLint 빌드 오류)
-- [x] 독서/홈 UI 3종 수정
+
+### 2026-05-08
+- [x] 책 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경으로 통일 (전 페이지)
+- [x] 분량 선택 UI 제거 (SHORT 고정)
+- [x] 책 생성 옵션 추가: 결말 방향(해피/새드/열린결말) + 주인공 이름 입력
+- [x] ReadPage 한/두 페이지 토글 버튼 제거 (두 페이지 고정)
 
 ---
 
@@ -224,7 +226,6 @@ src/
 - [ ] 무한 스크롤 (useInfiniteBooks 연동)
 - [ ] 테스트 코드 작성
 - [ ] React Native 앱 개발 검토
-- [ ] Oracle Cloud로 이전 검토 (메모리 여유)
 
 ---
 
@@ -232,7 +233,7 @@ src/
 1. 파일을 먼저 Read한 뒤 수정한다.
 2. 요청된 범위 외 수정(리팩터링, 주석 추가 등)은 하지 않는다.
 3. 새 라이브러리는 꼭 필요한 경우에만 추가한다.
-4. CSS는 `variables.css`의 변수를 우선 사용한다. 하드코딩 금지.
+4. CSS는 `variables.css`의 변수를 우선 사용한다. 하드코딩 금지 (의미 있는 고정값 예외).
 
 ---
 

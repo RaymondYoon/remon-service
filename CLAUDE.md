@@ -2,8 +2,8 @@
 
 ## 프로젝트 개요
 **Remon**은 AI가 전자책/소설을 자동 생성해주는 웹 서비스다.
-사용자가 키워드(최대 4개), 장르, 분량, 어조를 입력하면
-Google Gemini(gemini-2.5-flash)가 책 본문을 생성한다.
+사용자가 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름(선택)을 입력하면
+Google Gemini(gemini-2.5-flash)가 단편 소설을 생성한다.
 레몬 경제 시스템(하루 3회 제한)과 소셜 기능(팔로우, 리뷰, 피드)을 갖추고 있다.
 
 ---
@@ -80,11 +80,11 @@ remon-service/
 |------|------|
 | 회원가입/로그인 | 이메일 + 카카오 OAuth 2.0 |
 | JWT 인증 | Access Token 15분 + Refresh Token 7일 자동 재발급 |
-| AI 책 생성 | 키워드 4개 + 장르/어조 → Gemini 비동기 생성 (폴링) |
+| AI 책 생성 | 키워드·장르·분위기·결말·주인공 이름 → Gemini 비동기 생성 (폴링) |
 | 레몬 시스템 | 하루 1개 자동 충전, 책 생성 시 소모, 1일 3회 제한 |
 | 레몬트리 UI | 레몬 개수별 나무 시각화, 소모 시 낙하 애니메이션 |
 | 내 서재 | 책 저장, 독서 상태(SAVED/READING/FINISHED), 페이지 저장 |
-| 책 뷰어 | react-pageflip (데스크탑: 2페이지, 모바일: 1페이지, 키보드 지원) |
+| 책 뷰어 | react-pageflip 두 페이지 모드, 키보드 방향키 지원 |
 | 팔로우/언팔로우 | 유저 간 소셜 연결 |
 | 별점·리뷰 | 1~5점 별점 + 텍스트 리뷰 (유저당 1개 제한) |
 | 탐색 페이지 | 공개 책 목록 + 작가 팔로우 버튼 |
@@ -92,6 +92,7 @@ remon-service/
 | 알림 | 리뷰/팔로우 이벤트 알림 + 헤더 뱃지 + 드롭다운 |
 | 다크모드 | 헤더 토글 + localStorage 유지 + CSS 변수 기반 |
 | 성능 최적화 | React.memo, lazy loading, code splitting, SEO 메타 태그 |
+| 기본 표지 통일 | 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경 |
 
 ---
 
@@ -128,4 +129,4 @@ REACT_APP_API_URL=http://localhost:8080 npm start
 - **백엔드 작업**: `backend/CLAUDE.md` 참고
 - **프론트엔드 작업**: `frontend/CLAUDE.md` 참고
 - 커밋은 사용자가 명시적으로 요청할 때만 수행
-- 커밋 메시지: `feat:` / `fix:` / `refactor:` / `docs:`
+- 커밋 메시지: `feat:` / `fix:` / `refactor:` / `docs:` / `style:`
