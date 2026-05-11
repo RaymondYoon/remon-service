@@ -45,12 +45,12 @@ com.remon/
 │   ├── entity/         Book.java, BookStatus.java
 │   ├── repository/     BookRepository.java
 │   └── service/        BookService.java, BookGenerationTask.java, OpenAiService.java
-├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig
+├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig, DataInitializer
 ├── exception/          — GlobalExceptionHandler
 ├── follow/             — 팔로우/언팔로우, 팔로워·팔로잉 목록
 ├── lemon/              — 레몬 시스템 (하루 1개 자동 충전, 책 생성 시 소모)
 ├── library/            — 내 서재 (사용자-책 관계, 독서 상태 추적)
-├── logging/            — 로그 마스킹 처리 (MaskingMessageConverter)
+├── logging/            — 로그 마스킹 처리 (MaskingMessageConverter, MaskingUtil)
 ├── notification/       — 알림 (리뷰/팔로우 이벤트 자동 생성)
 ├── ratelimit/          — API 요청 제한 (bucket4j, RateLimitFilter)
 ├── review/             — 별점·리뷰 CRUD, 평균 평점
@@ -68,7 +68,7 @@ com.remon/
 |--------|-----------|------|
 | `users` | id, email, password, provider, providerId, nickname, role, created_at | email UNIQUE |
 | `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy | status: PENDING/GENERATING/DONE/FAILED |
-| `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/FINISHED |
+| `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/DONE |
 | `reviews` | id, book_id, user_id, rating (1–5), content (TEXT), createdAt | UNIQUE(book_id, user_id) — 중복 방지 |
 | `follows` | id, follower_id, following_id, createdAt | UNIQUE(follower_id, following_id) |
 | `notifications` | id, receiverId, senderId, type, message, isRead, createdAt | type: REVIEW/FOLLOW |
@@ -116,12 +116,13 @@ com.remon/
 | Method | Endpoint | 설명 | Auth |
 |--------|----------|------|------|
 | GET | `/api/library` | 내 서재 목록 | 필요 |
-| GET | `/api/library/my-book-ids` | 서재 bookId 목록 | 필요 |
-| POST | `/api/library` | 서재에 책 추가 | 필요 |
+| GET | `/api/library/my-book-ids` | 서재 전체 bookId 목록 | 필요 |
+| GET | `/api/library/my-reading-book-ids` | 읽기 시작한 bookId 목록 (READING+DONE) — 홈 ✓ 배지용 | 필요 |
+| POST | `/api/library` | 서재에 책 추가 (SAVED 상태) | 필요 |
 | PATCH | `/api/library/{bookId}/status` | 독서 상태 변경 | 필요 |
-| PATCH | `/api/library/{bookId}/start-reading` | 읽기 시작 | 필요 |
+| PATCH | `/api/library/{bookId}/start-reading` | 읽기 시작 (upsert: 서재 없으면 READING으로 자동 추가) | 필요 |
 | PATCH | `/api/library/{bookId}/page` | 현재 페이지 저장 | 필요 |
-| PATCH | `/api/library/{bookId}/finish` | 완독 처리 | 필요 |
+| PATCH | `/api/library/{bookId}/finish` | 완독 처리 (DONE) | 필요 |
 | DELETE | `/api/library/{bookId}` | 서재에서 제거 | 필요 |
 
 ### 리뷰 & 별점 (`/api/books/{bookId}/reviews`)
@@ -182,7 +183,8 @@ Authorization: Bearer <token>
 - Book을 PENDING 상태로 즉시 저장 → `@Async`로 Gemini API 호출 → DONE/FAILED 업데이트
 - 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지
 - AI 모델: `gemini-2.5-flash` (30초 타임아웃)
-- 분량: 항상 3000자 내외 (SHORT 고정)
+- 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
+- 분량: 항상 3000자 내외 고정
 - 생성 시 레몬 1개 소모 (서버측 처리)
 
 ---
@@ -213,6 +215,33 @@ Authorization: Bearer <token>
 
 ---
 
+## 로컬 실행 방법
+
+```bash
+# 1. JAR 빌드 (루트에서)
+cd backend && ./gradlew bootJar -x test && cd ..
+
+# 2. Docker Compose로 MySQL + 백엔드 실행
+docker compose up
+
+# 헬스체크
+curl http://localhost:8080/actuator/health
+```
+
+`.env` 파일 필요 항목:
+```
+MYSQL_ROOT_PASSWORD=...
+MYSQL_DATABASE=remon
+MYSQL_USER=remon
+MYSQL_PASSWORD=...
+JWT_SECRET=...
+KAKAO_CLIENT_ID=...
+KAKAO_CLIENT_SECRET=...
+GEMINI_API_KEY=...
+```
+
+---
+
 ## 완료된 작업
 
 ### 2026-04-26
@@ -239,8 +268,12 @@ Authorization: Bearer <token>
 
 ### 2026-05-08
 - [x] 책 생성 옵션 확장: `ending`(결말), `protagonistName`(주인공 이름) 추가
-- [x] 분량 선택 제거 — 3000자 내외로 고정 (length 필드 제거)
-- [x] Gemini 프롬프트에 결말 방향·주인공 이름 반영
+- [x] 분량 선택 제거 — 3000자 내외로 고정
+
+### 2026-05-11
+- [x] Gemini 응답 파싱 방식 변경: JSON → `[TITLE]`/`[CONTENT]` 구분자 (파싱 오류 근본 해결)
+- [x] `GET /api/library/my-reading-book-ids` 신규 엔드포인트 (READING+DONE bookId 목록)
+- [x] `startReading` upsert 방식으로 변경 — 서재에 없어도 ReadPage 방문 시 READING 자동 등록
 
 ---
 
@@ -248,9 +281,9 @@ Authorization: Bearer <token>
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] 무한 스크롤 (커서 기반 페이지네이션)
 - [ ] 광고 보고 레몬 추가 획득 API
-- [ ] 테스트 코드 작성
-- [ ] React Native 앱 개발 검토
-- [ ] Oracle Cloud 이전 검토 (메모리 여유)
+- [ ] 테스트 코드 작성 (JUnit)
+- [ ] React Native 앱 개발 (별도 저장소)
+- [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 
 ---
 

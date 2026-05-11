@@ -64,14 +64,14 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 src/
 ├── api/
 │   ├── axiosInstance.js    — Axios 공통 인스턴스 (401 자동 재발급, 8초 타임아웃)
-│   ├── bookApi.js          — 책 목록/상세/생성/AI 생성/탐색/피드
+│   ├── bookApi.js          — 책 목록/상세/생성/AI 생성/탐색/피드/서재 ID 목록
 │   ├── userApi.js          — 로그인/회원가입/프로필/레몬/닉네임/계정삭제
 │   ├── followApi.js        — 팔로우/언팔로우/목록
 │   ├── reviewApi.js        — 리뷰 작성/목록/삭제
 │   └── notificationApi.js  — 알림 목록/읽음 처리/미읽음 수
 ├── components/
 │   ├── Header.jsx          — 로고, 알림 벨(미읽음 뱃지), 🍋 레몬 수, 다크모드 토글, 햄버거 메뉴
-│   ├── BookCard.jsx        — 책 카드 (React.memo, lazy 이미지, 전체 클릭 가능)
+│   ├── BookCard.jsx        — 책 카드 (React.memo, lazy 이미지, 전체 클릭 가능, ✓ 배지)
 │   ├── BookList.jsx        — BookCard 목록 래퍼 (React.memo)
 │   ├── LemonTree.jsx       — CSS/SVG 레몬 나무 시각화 (레몬 개수별 3단계)
 │   ├── LemonFall.jsx       — 레몬 소모 시 낙하 애니메이션
@@ -88,9 +88,9 @@ src/
 │   ├── GeneratePage.jsx, MyLibrary.jsx, MyBooks.jsx, MyPage.jsx
 │   ├── ExplorePage.jsx, FeedPage.jsx, UserProfilePage.jsx
 │   ├── Login.jsx, Signup.jsx, OAuthCallback.jsx
-│   └── BookDetail.css (각 페이지별 동일 이름 CSS 파일 존재)
+│   └── (각 페이지별 동일 이름 CSS 파일 존재)
 ├── styles/
-│   ├── variables.css       — CSS 변수 (다크/라이트 토큰)
+│   ├── variables.css       — CSS 변수 (다크/라이트 토큰, 컬러, 폰트)
 │   └── global.css
 └── utils/
     ├── auth.js             — 토큰/유저 저장·조회, JWT 만료 확인
@@ -137,16 +137,24 @@ src/
 - **분위기**: 따뜻하게(WARM) / 긴장감 있게(DARK) / 유쾌하게(HUMOROUS)
 - **결말**: 해피엔딩(HAPPY) / 새드엔딩(SAD) / 열린결말(OPEN)
 - **주인공 이름**: 텍스트 입력 (선택사항, 비워두면 AI가 결정)
-- 분량은 3000자 내외(SHORT)로 고정
+- 분량은 3000자 내외로 고정
 
 ---
 
 ## 책 뷰어 (ReadPage)
 - react-pageflip으로 두 페이지 모드 고정 (usePortrait=false)
-- DOM 높이 기반 페이지 분할 (`buildPagesByHeight` 함수)
+- DOM 높이 기반 페이지 분할 (`buildPagesByHeight` 함수) — binary search로 단락 잘림 방지
 - 키보드 방향키 지원 (← →)
 - 읽은 페이지 localStorage + 서버 양쪽 저장 (debounce 1500ms)
-- 완독 시 자동으로 FINISHED 상태 처리
+- 완독 시 자동으로 DONE 상태 처리
+- **ReadPage 방문 시 `startReading` 자동 호출** — 서재에 없는 책도 READING으로 자동 등록
+
+---
+
+## 홈 ✓ 배지 동작 방식
+- `GET /api/library/my-reading-book-ids`로 READING + DONE 상태 bookId 목록 조회
+- BookCard에 ✓ 배지는 해당 목록에 있는 책(읽기 시작한 책)에만 표시
+- ReadPage 방문 → `startReading` upsert → 다음 홈 방문 시 ✓ 배지 표시
 
 ---
 
@@ -174,7 +182,7 @@ src/
 - 401 응답 시 자동 로그아웃 + `/login` 리다이렉트 (인터셉터 처리됨)
 - API 함수는 도메인별로 분리:
   - `src/api/userApi.js` — 로그인, 회원가입, 프로필, 레몬
-  - `src/api/bookApi.js` — 책 목록, 상세, AI 생성, 탐색, 피드
+  - `src/api/bookApi.js` — 책 목록, 상세, AI 생성, 탐색, 피드, 서재 ID
   - `src/api/followApi.js` — 팔로우/언팔로우
   - `src/api/reviewApi.js` — 리뷰 CRUD
   - `src/api/notificationApi.js` — 알림
@@ -214,17 +222,21 @@ src/
 
 ### 2026-05-08
 - [x] 책 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경으로 통일 (전 페이지)
-- [x] 분량 선택 UI 제거 (SHORT 고정)
+- [x] 분량 선택 UI 제거 (3000자 고정)
 - [x] 책 생성 옵션 추가: 결말 방향(해피/새드/열린결말) + 주인공 이름 입력
 - [x] ReadPage 한/두 페이지 토글 버튼 제거 (두 페이지 고정)
+
+### 2026-05-11
+- [x] 홈 ✓ 배지 기준 변경: 서재 담기 → 읽기 시작한 책 (READING+DONE)
+- [x] `getMyReadingBookIds` API 함수 추가 (`bookApi.js`)
 
 ---
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD
 - [ ] 광고 보고 레몬 추가 획득
-- [ ] 무한 스크롤 (useInfiniteBooks 연동)
-- [ ] 테스트 코드 작성
+- [ ] 무한 스크롤 (useInfiniteBooks 연동 완성)
+- [ ] 테스트 코드 작성 (Jest)
 - [ ] React Native 앱 개발 검토
 
 ---
