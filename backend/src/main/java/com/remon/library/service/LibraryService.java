@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -110,6 +111,17 @@ public class LibraryService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
         return userBookRepository.findByUserId(user.getId()).stream()
+                .map(ub -> ub.getBook().getId())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> getMyReadingBookIds(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        return userBookRepository
+                .findByUserIdAndStatusIn(user.getId(), Set.of(ReadingStatus.READING, ReadingStatus.DONE))
+                .stream()
                 .map(ub -> ub.getBook().getId())
                 .toList();
     }

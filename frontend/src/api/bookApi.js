@@ -80,9 +80,14 @@ export const getFeedBooks = async () => {
   return await axiosInstance.get("/api/books/feed");
 };
 
-// 내 서재 책 ID 목록 (인증 필요) — 홈 체크 배지용
+// 내 서재 책 ID 목록 (인증 필요)
 export const getMyBookIds = async () => {
   return await axiosInstance.get("/api/library/my-book-ids");
+};
+
+// 읽기 시작한 책 ID 목록 (READING + DONE, 인증 필요) — 홈 ✓ 배지용
+export const getMyReadingBookIds = async () => {
+  return await axiosInstance.get("/api/library/my-reading-book-ids");
 };
 
 // 어드민 전용 — 책 강제 삭제

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import BookList from "../components/BookList";
 import useInfiniteBooks from "../hooks/useInfiniteBooks";
-import { getMyBookIds } from "../api/bookApi";
+import { getMyReadingBookIds } from "../api/bookApi";
 import { isLoggedIn } from "../utils/auth";
 import "./Home.css";
 
@@ -19,7 +19,7 @@ const Home = () => {
 
   useEffect(() => {
     if (!isLoggedIn()) return;
-    getMyBookIds()
+    getMyReadingBookIds()
       .then((res) => setLibraryIds(new Set(res.data)))
       .catch(() => {});
   }, []);

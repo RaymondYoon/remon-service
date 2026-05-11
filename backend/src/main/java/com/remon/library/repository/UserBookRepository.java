@@ -1,8 +1,10 @@
 package com.remon.library.repository;
 
+import com.remon.library.entity.ReadingStatus;
 import com.remon.library.entity.UserBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +13,8 @@ public interface UserBookRepository extends JpaRepository<UserBook, Long> {
     boolean existsByUserIdAndBookId(Long userId, Long bookId);
 
     List<UserBook> findByUserId(Long userId);
+
+    List<UserBook> findByUserIdAndStatusIn(Long userId, Collection<ReadingStatus> statuses);
 
     Optional<UserBook> findByUserIdAndBookId(Long userId, Long bookId);
 
