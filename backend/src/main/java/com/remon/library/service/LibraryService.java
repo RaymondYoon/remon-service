@@ -69,19 +69,31 @@ public class LibraryService {
     }
 
     /**
-     * 읽기 시작 — SAVED 상태일 때만 READING으로 변경.
-     * 서재에 없거나 이미 READING/DONE이면 아무것도 하지 않음.
+     * 읽기 시작 — 서재에 없으면 READING 상태로 자동 추가(upsert).
+     * SAVED 상태면 READING으로 변경, 이미 READING/DONE이면 그대로 유지.
      */
     public void startReading(String email, Long bookId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
         userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
-                .ifPresent(ub -> {
-                    if (ub.getStatus() == ReadingStatus.SAVED) {
-                        ub.updateStatus(ReadingStatus.READING);
-                    }
-                });
+                .ifPresentOrElse(
+                        ub -> {
+                            if (ub.getStatus() == ReadingStatus.SAVED) {
+                                ub.updateStatus(ReadingStatus.READING);
+                            }
+                        },
+                        () -> {
+                            Book book = bookRepository.findById(bookId)
+                                    .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+                            UserBook newEntry = UserBook.builder()
+                                    .user(user)
+                                    .book(book)
+                                    .status(ReadingStatus.READING)
+                                    .build();
+                            userBookRepository.save(newEntry);
+                        }
+                );
     }
 
     /**
