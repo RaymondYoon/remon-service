@@ -107,6 +107,19 @@ coverage-final.json
 .env
 
 ########################################
+# App (React Native / Expo)
+########################################
+app/node_modules/
+app/.expo/
+app/dist/
+app/web-build/
+app/.kotlin/
+app/ios/
+app/android/
+app/expo-env.d.ts
+app/.env*.local
+
+########################################
 # Misc
 ########################################
 *.orig

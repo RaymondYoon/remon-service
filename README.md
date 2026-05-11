@@ -3,6 +3,8 @@
 ![Java](https://img.shields.io/badge/Java_17-ED8B00?style=flat&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.5-6DB33F?style=flat&logo=springboot&logoColor=white)
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=flat&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo_SDK_54-000020?style=flat&logo=expo&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?style=flat&logo=mysql&logoColor=white)
 ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat&logo=railway&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
@@ -58,6 +60,16 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 책 뷰어 | react-pageflip 2.0.3 |
 | 스타일링 | CSS + CSS 변수 (다크/라이트 모드) |
 | 배포 | Vercel |
+
+### Mobile App
+| 분류 | 기술 |
+|------|------|
+| 플랫폼 | React Native (Expo SDK 54) |
+| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs) |
+| HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급) |
+| 제스처 | react-native-gesture-handler (PanGestureHandler) |
+| 저장소 | @react-native-async-storage/async-storage |
+| 배포 | Expo Go (개발) / EAS Build (예정) |
 
 ### Infra
 | 분류 | 기술 |
@@ -124,7 +136,8 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ```
 remon-service/
 ├── backend/      — Spring Boot (com.remon 패키지 12개 모듈)
-├── frontend/     — React (api/, components/, hooks/, pages/, utils/)
+├── frontend/     — React 19 웹 (api/, components/, hooks/, pages/, utils/)
+├── app/          — React Native 모바일 앱 (Expo SDK 54)
 └── docker-compose.yml  — 로컬 개발 환경
 ```
 
@@ -242,6 +255,14 @@ REACT_APP_API_URL=http://localhost:8080 npm start
 ```
 - 프론트엔드: `http://localhost:3000`
 
+### 4. 앱 실행 (React Native / Expo)
+```bash
+cd app
+npm install
+npx expo start
+```
+- Expo Go 앱에서 QR 코드 스캔 또는 iOS/Android 시뮬레이터 실행
+
 ---
 
 ## 프로젝트 구조
@@ -259,10 +280,16 @@ remon-service/
 │   ├── security/      JWT 필터
 │   ├── ratelimit/     bucket4j Rate Limiting
 │   └── config/        Security, Async, JPA, Swagger 설정
-└── frontend/src/
-    ├── api/           axios API 모듈 (bookApi, userApi, ...)
-    ├── components/    Header, BookCard, LemonTree, Toast, ...
-    ├── hooks/         useInfiniteBooks, useTheme, useToast
-    ├── pages/         Home, ReadPage, GeneratePage, ...
-    └── utils/         auth.js, lemonStorage.js
+├── frontend/src/
+│   ├── api/           axios API 모듈 (bookApi, userApi, ...)
+│   ├── components/    Header, BookCard, LemonTree, Toast, ...
+│   ├── hooks/         useInfiniteBooks, useTheme, useToast
+│   ├── pages/         Home, ReadPage, GeneratePage, ...
+│   └── utils/         auth.js, lemonStorage.js
+└── app/src/
+    ├── api/           axiosInstance, bookApi
+    ├── navigation/    AppNavigator (Stack + BottomTabs)
+    ├── screens/       HomeScreen, GenerateScreen, ReadScreen, LibraryScreen, LoginScreen
+    ├── utils/         auth.js (AsyncStorage 토큰 관리)
+    └── theme.js       색상 팔레트
 ```
