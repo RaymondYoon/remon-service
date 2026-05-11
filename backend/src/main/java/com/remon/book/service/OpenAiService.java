@@ -12,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class OpenAiService {
@@ -34,7 +36,7 @@ public class OpenAiService {
 
     /**
      * Gemini generateContent API 호출.
-     * 프롬프트에서 {"title": "...", "content": "..."} JSON 형태로 응답받는다.
+     * 프롬프트에서 [TITLE] / [CONTENT] 구분자 형식으로 응답받는다.
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
@@ -49,8 +51,7 @@ public class OpenAiService {
                         Map.of("parts", List.of(Map.of("text", prompt)))
                 ),
                 "generationConfig", Map.of(
-                        "maxOutputTokens", 8192,
-                        "responseMimeType", "application/json"
+                        "maxOutputTokens", 8192
                 )
         );
 
@@ -98,16 +99,16 @@ public class OpenAiService {
         return String.format(
                 """
                 너는 한국어 단편 소설 작가다.
-                반드시 아래 JSON 형식으로만 응답해라. 다른 텍스트는 절대 포함하지 마라.
-                {"title": "소설 제목", "content": "소설 본문 전체"}
-                반드시 RFC8259 표준의 유효한 JSON만 반환해라.
-                JSON 외의 텍스트는 절대 포함하지 마라.
-                content 문자열 내부 줄바꿈은 실제 개행문자가 아니라 반드시 \\n 으로 escape 해라.
-                JSON 문자열 내부에서 실제 엔터(개행 문자) 사용을 금지한다.
+                반드시 아래 형식으로만 응답해라. 다른 텍스트는 절대 포함하지 마라.
+
+                [TITLE]
+                소설 제목
+                [CONTENT]
+                소설 본문 전체
 
                 본문 작성 규칙:
                 - 마크다운 문법(**, *, --, ---, ~~) 절대 사용 금지
-                - 단락 구분은 반드시 빈 줄(\\n\\n)로만 표시
+                - 단락 구분은 반드시 빈 줄로만 표시
                 - "..." 또는 "* * *" 같은 장식 구분선 사용 금지
                 - 문장 부호 외에 특수기호 사용 금지
 
@@ -137,30 +138,12 @@ public class OpenAiService {
                 throw new RuntimeException("Gemini 응답에 candidates가 없습니다. 응답: " + responseBody);
             }
 
-            String rawJson = candidates.get(0)
+            String raw = candidates.get(0)
                     .path("content").path("parts").get(0).path("text").asText().strip();
 
-            // 마크다운 코드블록(```json ... ```) 래핑 제거
-            if (rawJson.startsWith("```")) {
-                rawJson = rawJson.replaceAll("(?s)^```(?:json)?\\s*", "").replaceAll("(?s)\\s*```$", "").strip();
-            }
+            log.info("Gemini 원본 응답 텍스트 길이: {}", raw.length());
 
-            JsonNode parsed;
-            try {
-                parsed = objectMapper.readTree(rawJson);
-            } catch (Exception firstParseException) {
-                String escapedRawJson = escapeControlCharsInJsonStrings(rawJson);
-                log.warn("Gemini JSON 1차 파싱 실패 - 제어문자 escape 후 재시도. 원본 길이: {}, 보정 길이: {}",
-                        rawJson.length(), escapedRawJson.length());
-                parsed = objectMapper.readTree(escapedRawJson);
-            }
-            String title     = parsed.path("title").asText("");
-            String content   = parsed.path("content").asText("");
-
-            if (title.isBlank() || content.isBlank()) {
-                throw new RuntimeException("AI 응답에서 title 또는 content를 찾을 수 없습니다. rawJson: " + rawJson);
-            }
-            return new String[]{title, content};
+            return parseDelimited(raw);
 
         } catch (RuntimeException e) {
             throw e;
@@ -170,54 +153,35 @@ public class OpenAiService {
     }
 
     /**
-     * JSON 문자열 내부에 비정상적으로 포함된 제어문자(개행/CR/TAB)를 escape 형태로 보정한다.
-     * JSON 구조 자체(따옴표 밖)는 건드리지 않기 위해 문자열 내부에서만 동작한다.
+     * [TITLE] ~ [CONTENT] 구분자로 title/content 추출.
+     * 파싱 실패 시 첫 줄을 title, 나머지를 content로 사용하는 fallback 적용.
      */
-    private String escapeControlCharsInJsonStrings(String rawJson) {
-        StringBuilder out = new StringBuilder(rawJson.length() + 16);
-        boolean inString = false;
-        boolean escaped = false;
+    private String[] parseDelimited(String raw) {
+        Pattern pattern = Pattern.compile(
+                "\\[TITLE]\\s*(.+?)\\s*\\[CONTENT]\\s*(.+)",
+                Pattern.DOTALL | Pattern.CASE_INSENSITIVE
+        );
+        Matcher matcher = pattern.matcher(raw);
 
-        for (int i = 0; i < rawJson.length(); i++) {
-            char ch = rawJson.charAt(i);
-
-            if (!inString) {
-                out.append(ch);
-                if (ch == '"') {
-                    inString = true;
-                }
-                continue;
-            }
-
-            if (escaped) {
-                out.append(ch);
-                escaped = false;
-                continue;
-            }
-
-            if (ch == '\\') {
-                out.append(ch);
-                escaped = true;
-                continue;
-            }
-
-            if (ch == '"') {
-                out.append(ch);
-                inString = false;
-                continue;
-            }
-
-            if (ch == '\n') {
-                out.append("\\n");
-            } else if (ch == '\r') {
-                out.append("\\r");
-            } else if (ch == '\t') {
-                out.append("\\t");
-            } else {
-                out.append(ch);
+        if (matcher.find()) {
+            String title   = matcher.group(1).strip();
+            String content = matcher.group(2).strip();
+            if (!title.isBlank() && !content.isBlank()) {
+                log.info("구분자 파싱 성공 - title: '{}', contentLength: {}", title, content.length());
+                return new String[]{title, content};
             }
         }
 
-        return out.toString();
+        // fallback: 첫 줄 title, 나머지 content
+        log.warn("구분자 파싱 실패 — fallback 적용. raw 앞 200자: {}",
+                raw.length() > 200 ? raw.substring(0, 200) : raw);
+        String[] lines = raw.split("\\r?\\n", 2);
+        String title   = lines[0].strip();
+        String content = lines.length > 1 ? lines[1].strip() : "";
+
+        if (title.isBlank() || content.isBlank()) {
+            throw new RuntimeException("AI 응답에서 title 또는 content를 추출할 수 없습니다. raw: " + raw);
+        }
+        return new String[]{title, content};
     }
 }
