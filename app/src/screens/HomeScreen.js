@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
   },
   genreList: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
   genreChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 16,
+    height: 28,
+    paddingHorizontal: 13,
+    borderRadius: 14,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
