@@ -5,12 +5,11 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { isLoggedIn, clearAuth } from './src/utils/auth';
-import LoginScreen from './src/screens/LoginScreen';
 import AppNavigator from './src/navigation/AppNavigator';
 import { colors } from './src/theme';
 
 export default function App() {
-  const [authState, setAuthState] = useState('checking'); // 'checking' | 'loggedIn' | 'loggedOut'
+  const [authState, setAuthState] = useState('checking');
 
   useEffect(() => {
     isLoggedIn().then(ok => {
@@ -36,10 +35,11 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" backgroundColor={colors.background} />
-        {authState === 'loggedOut'
-          ? <LoginScreen onLogin={handleLogin} />
-          : <AppNavigator isLoggedIn onLogout={handleLogout} />
-        }
+        <AppNavigator
+          isLoggedIn={authState === 'loggedIn'}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+        />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

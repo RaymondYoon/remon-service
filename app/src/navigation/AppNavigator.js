@@ -8,8 +8,12 @@ import { colors } from '../theme';
 import HomeScreen from '../screens/HomeScreen';
 import GenerateScreen from '../screens/GenerateScreen';
 import LibraryScreen from '../screens/LibraryScreen';
+import ExploreScreen from '../screens/ExploreScreen';
 import MyPageScreen from '../screens/MyPageScreen';
 import ReadScreen from '../screens/ReadScreen';
+import BookDetailScreen from '../screens/BookDetailScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignupScreen from '../screens/SignupScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -35,12 +39,7 @@ function MainTabs({ onLogout }) {
           paddingTop: 8,
           height: Platform.OS === 'ios' ? 80 : 68,
           ...Platform.select({
-            ios: {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-            },
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.06, shadowRadius: 8 },
             android: { elevation: 8 },
           }),
         },
@@ -58,10 +57,18 @@ function MainTabs({ onLogout }) {
         }}
       />
       <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        options={{
+          tabBarLabel: '둘러보기',
+          tabBarIcon: ({ focused }) => <TabIcon icon="🔍" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
         name="Generate"
         component={GenerateScreen}
         options={{
-          tabBarLabel: '책 만들기',
+          tabBarLabel: '만들기',
           tabBarIcon: ({ focused }) => <TabIcon icon="✨" focused={focused} />,
         }}
       />
@@ -69,14 +76,14 @@ function MainTabs({ onLogout }) {
         name="Library"
         component={LibraryScreen}
         options={{
-          tabBarLabel: '내 서재',
+          tabBarLabel: '서재',
           tabBarIcon: ({ focused }) => <TabIcon icon="📚" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="MyPage"
         options={{
-          tabBarLabel: '마이페이지',
+          tabBarLabel: '마이',
           tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
         }}
       >
@@ -88,20 +95,18 @@ function MainTabs({ onLogout }) {
 
 const tabStyles = StyleSheet.create({
   iconWrap: {
-    width: 44,
-    height: 30,
+    width: 40,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
+    borderRadius: 12,
   },
-  iconWrapActive: {
-    backgroundColor: '#EEF5E8',
-  },
-  icon: { fontSize: 20, opacity: 0.45 },
+  iconWrapActive: { backgroundColor: '#EEF5E8' },
+  icon: { fontSize: 18, opacity: 0.45 },
   iconActive: { opacity: 1 },
 });
 
-export default function AppNavigator({ isLoggedIn, onLogout }) {
+export default function AppNavigator({ isLoggedIn, onLogin, onLogout }) {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -115,8 +120,24 @@ export default function AppNavigator({ isLoggedIn, onLogout }) {
               component={ReadScreen}
               options={{ presentation: 'card', gestureEnabled: true }}
             />
+            <Stack.Screen
+              name="BookDetail"
+              component={BookDetailScreen}
+              options={{ presentation: 'card', gestureEnabled: true }}
+            />
           </>
-        ) : null}
+        ) : (
+          <>
+            <Stack.Screen name="Login">
+              {props => <LoginScreen {...props} onLogin={onLogin} />}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{ presentation: 'card', gestureEnabled: true }}
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

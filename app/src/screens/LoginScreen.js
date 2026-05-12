@@ -8,7 +8,7 @@ import { saveAuth } from '../utils/auth';
 import { login } from '../api/bookApi';
 import { colors } from '../theme';
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ onLogin, navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function LoginScreen({ onLogin }) {
       });
       onLogin();
     } catch (e) {
-      const msg = e.response?.data?.message ?? '로그인에 실패했습니다.';
+      const msg = e.response?.data?.error ?? e.response?.data?.message ?? '로그인에 실패했습니다.';
       Alert.alert('로그인 실패', msg);
     } finally {
       setLoading(false);
@@ -80,6 +80,17 @@ export default function LoginScreen({ onLogin }) {
               : <Text style={styles.btnText}>로그인</Text>
             }
           </TouchableOpacity>
+
+          {navigation && (
+            <TouchableOpacity
+              style={styles.signupLink}
+              onPress={() => navigation.navigate('Signup')}
+            >
+              <Text style={styles.signupLinkText}>
+                계정이 없으신가요? <Text style={styles.signupLinkBold}>회원가입</Text>
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -115,4 +126,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  signupLink: { alignItems: 'center', marginTop: 16 },
+  signupLinkText: { fontSize: 14, color: colors.textMuted },
+  signupLinkBold: { color: colors.primary, fontWeight: '700' },
 });

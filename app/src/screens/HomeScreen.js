@@ -99,7 +99,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const openBook = (book) => {
-    navigation.navigate('Read', { bookId: book.id, title: book.title });
+    navigation.navigate('BookDetail', { bookId: book.id });
   };
 
   return (

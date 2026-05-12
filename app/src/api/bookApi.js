@@ -3,6 +3,21 @@ import axiosInstance from './axiosInstance';
 export const login = (email, password) =>
   axiosInstance.post('/api/users/login', { email, password });
 
+export const register = (email, password, nickname) =>
+  axiosInstance.post('/api/users/register', { email, password, nickname });
+
+export const getExploreBooks = () =>
+  axiosInstance.get('/api/books/explore');
+
+export const getFeedBooks = () =>
+  axiosInstance.get('/api/books/feed');
+
+export const getReviews = (bookId) =>
+  axiosInstance.get(`/api/books/${bookId}/reviews`);
+
+export const addToLibrary = (bookId) =>
+  axiosInstance.post('/api/library', { bookId });
+
 export const getBooks = (params = {}) =>
   axiosInstance.get('/api/books', { params });
 
