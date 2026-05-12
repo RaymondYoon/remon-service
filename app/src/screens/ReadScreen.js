@@ -2,29 +2,32 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet,
   TouchableOpacity, ActivityIndicator,
-  Animated, PanResponder, useWindowDimensions, Platform,
+  Animated, useWindowDimensions, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { getBookById, startReading, savePage, markAsDone } from '../api/bookApi';
 import { colors } from '../theme';
 
 const SAVE_DEBOUNCE = 1500;
-const SWIPE_THRESHOLD = 50;
-const SWIPE_VELOCITY = 0.3;
-const CHROME_HEIGHT = 52 + 4 + 36;
+const SWIPE_THRESHOLD = 40;
+const SWIPE_VELOCITY = 400;
+const FLIP_DURATION = 200;
+
+const CHROME_HEIGHT = 52 + 4 + 36 + 32;
 const LINE_HEIGHT = 28;
 const FONT_SIZE = 16;
 const H_PADDING = 28;
 
 function estimateCharsPerPage(pageWidth, pageHeight) {
   const contentW = pageWidth - H_PADDING * 2;
-  const charsPerLine = Math.floor(contentW / (FONT_SIZE * 0.58));
+  const charsPerLine = Math.floor(contentW / (FONT_SIZE * 0.98));
   const linesPerPage = Math.floor(pageHeight / LINE_HEIGHT);
-  return Math.max(150, charsPerLine * linesPerPage);
+  return Math.max(200, charsPerLine * linesPerPage);
 }
 
 function buildPages(content, charsPerPage) {
-  if (!content) return [''];
+  if (!content) return [];
   const cleaned = content
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
@@ -43,7 +46,7 @@ function buildPages(content, charsPerPage) {
     }
   }
   if (current.trim()) pages.push(current.trim());
-  return pages.length > 0 ? pages : [''];
+  return pages;
 }
 
 export default function ReadScreen({ route, navigation }) {
@@ -57,20 +60,21 @@ export default function ReadScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const translateX = useRef(new Animated.Value(0)).current;
+  // 3D flip animation
+  const flipAnim = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
   const currentPageRef = useRef(0);
   const pagesRef = useRef([]);
   const saveTimer = useRef(null);
 
-  const pageAreaHeight = height - insets.top - insets.bottom - CHROME_HEIGHT;
+  const contentHeight = height - insets.top - insets.bottom - CHROME_HEIGHT;
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const { data } = await getBookById(bookId);
         setBook(data);
-        const charsPerPage = estimateCharsPerPage(width, pageAreaHeight);
+        const charsPerPage = estimateCharsPerPage(width, contentHeight);
         const built = buildPages(data.content, charsPerPage);
         setPages(built);
         pagesRef.current = built;
@@ -85,71 +89,70 @@ export default function ReadScreen({ route, navigation }) {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [bookId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const doSave = useCallback((pageIndex) => {
+  const goToPage = useCallback((nextPage) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      savePage(bookId, pageIndex).catch(() => {});
-      if (pageIndex === pagesRef.current.length - 1) markAsDone(bookId).catch(() => {});
+      savePage(bookId, nextPage).catch(() => {});
+      if (nextPage === pagesRef.current.length - 1) markAsDone(bookId).catch(() => {});
     }, SAVE_DEBOUNCE);
   }, [bookId]);
 
-  const goToPage = useCallback((direction) => {
+  // direction: 'next' → 왼쪽으로 넘기기, 'prev' → 오른쪽으로 넘기기
+  const doFlip = useCallback((direction) => {
     if (isAnimating.current) return;
-    const next = currentPageRef.current + (direction === 'next' ? 1 : -1);
+    const next = direction === 'next'
+      ? currentPageRef.current + 1
+      : currentPageRef.current - 1;
     if (next < 0 || next >= pagesRef.current.length) return;
 
     isAnimating.current = true;
-    const toValue = direction === 'next' ? -width : width;
 
-    Animated.spring(translateX, {
-      toValue,
+    // Phase 1: 현재 페이지 접기 (0 → 나가는 방향)
+    Animated.timing(flipAnim, {
+      toValue: direction === 'next' ? 1 : -1,
+      duration: FLIP_DURATION,
       useNativeDriver: true,
-      speed: 20,
-      bounciness: 0,
     }).start(() => {
-      translateX.setValue(0);
+      // 페이지 교체
       currentPageRef.current = next;
       setCurrentPage(next);
-      doSave(next);
-      isAnimating.current = false;
+      goToPage(next);
+
+      // 반대편에서 들어오는 시작 각도로 리셋
+      flipAnim.setValue(direction === 'next' ? -1 : 1);
+
+      // Phase 2: 새 페이지 펼치기 (반대 방향 → 0)
+      Animated.timing(flipAnim, {
+        toValue: 0,
+        duration: FLIP_DURATION,
+        useNativeDriver: true,
+      }).start(() => {
+        isAnimating.current = false;
+      });
     });
-  }, [width, translateX, doSave]);
+  }, [flipAnim, goToPage]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
-      onPanResponderMove: (_, g) => {
-        if (!isAnimating.current) translateX.setValue(g.dx);
-      },
-      onPanResponderRelease: (_, g) => {
-        if (isAnimating.current) return;
-        const swipeLeft = g.dx < -SWIPE_THRESHOLD || g.vx < -SWIPE_VELOCITY;
-        const swipeRight = g.dx > SWIPE_THRESHOLD || g.vx > SWIPE_VELOCITY;
+  const onHandlerStateChange = useCallback(({ nativeEvent }) => {
+    if (nativeEvent.state === State.END) {
+      const { translationX, velocityX } = nativeEvent;
+      const swipeLeft = translationX < -SWIPE_THRESHOLD || velocityX < -SWIPE_VELOCITY;
+      const swipeRight = translationX > SWIPE_THRESHOLD || velocityX > SWIPE_VELOCITY;
+      if (swipeLeft) doFlip('next');
+      else if (swipeRight) doFlip('prev');
+    }
+  }, [doFlip]);
 
-        if (swipeLeft && currentPageRef.current < pagesRef.current.length - 1) {
-          goToPage('next');
-        } else if (swipeRight && currentPageRef.current > 0) {
-          goToPage('prev');
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-            speed: 20,
-            bounciness: 4,
-          }).start();
-        }
-      },
-      onPanResponderTerminate: () => {
-        Animated.spring(translateX, {
-          toValue: 0,
-          useNativeDriver: true,
-          speed: 20,
-          bounciness: 0,
-        }).start();
-      },
-    })
-  ).current;
+  // flipAnim: -1 = 90deg(우측), 0 = 0deg(정면), 1 = -90deg(좌측)
+  const rotateY = flipAnim.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: ['90deg', '0deg', '-90deg'],
+  });
+
+  // 페이지 뒤집힐수록 약간 어두워지는 효과
+  const shadowOpacity = flipAnim.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: [0.18, 0, 0.18],
+  });
 
   const progress = pages.length > 0 ? (currentPage + 1) / pages.length : 0;
 
@@ -175,7 +178,7 @@ export default function ReadScreen({ route, navigation }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* 헤더 */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -188,23 +191,59 @@ export default function ReadScreen({ route, navigation }) {
         <Text style={styles.pageIndicator}>{currentPage + 1} / {pages.length}</Text>
       </View>
 
-      {/* 진행률 바 */}
+      {/* Progress bar */}
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      {/* 스와이프 영역 */}
-      <Animated.View
-        style={[styles.pageWrapper, { transform: [{ translateX }] }]}
-        {...panResponder.panHandlers}
+      {/* 3D 페이지 플립 */}
+      <PanGestureHandler
+        onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-12, 12]}
+        failOffsetY={[-20, 20]}
       >
-        <View style={styles.pageContent}>
-          <Text style={styles.pageText}>{pages[currentPage]}</Text>
+        <View style={styles.pageOuter}>
+          <Animated.View
+            style={[
+              styles.pageWrapper,
+              {
+                transform: [
+                  { perspective: 1200 },
+                  { rotateY },
+                ],
+              },
+            ]}
+          >
+            {/* 본문 */}
+            <View style={styles.pageContent}>
+              <Text style={styles.pageText}>{pages[currentPage]}</Text>
+            </View>
+
+            {/* 페이지 넘길 때 어두워지는 오버레이 */}
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.shadowOverlay, { opacity: shadowOpacity }]}
+            />
+          </Animated.View>
+
+          {/* 좌우 탭 영역 */}
+          <TouchableOpacity
+            style={styles.tapLeft}
+            onPress={() => doFlip('prev')}
+            activeOpacity={1}
+          />
+          <TouchableOpacity
+            style={styles.tapRight}
+            onPress={() => doFlip('next')}
+            activeOpacity={1}
+          />
         </View>
-        <View style={styles.pageNumBar}>
-          <Text style={styles.pageNum}>{currentPage + 1} / {pages.length}</Text>
-        </View>
-      </Animated.View>
+      </PanGestureHandler>
+
+      {/* 페이지 번호 */}
+      <View style={styles.pageNumBar}>
+        <Text style={styles.pageNum}>{currentPage + 1} / {pages.length}</Text>
+      </View>
     </View>
   );
 }
@@ -219,7 +258,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: { color: colors.textMuted, fontSize: 14 },
-  errorText: { fontSize: 15, color: '#CC3333', textAlign: 'center', paddingHorizontal: 24 },
+  errorText: { color: colors.error ?? '#CC3333', fontSize: 15, textAlign: 'center', paddingHorizontal: 24 },
 
   header: {
     height: 52,
@@ -248,7 +287,22 @@ const styles = StyleSheet.create({
   progressTrack: { height: 4, backgroundColor: colors.border },
   progressFill: { height: 4, backgroundColor: colors.primary },
 
-  pageWrapper: { flex: 1, backgroundColor: '#FFFEF5' },
+  pageOuter: { flex: 1, position: 'relative' },
+
+  pageWrapper: {
+    flex: 1,
+    backgroundColor: '#FFFEF5',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+      },
+      android: { elevation: 4 },
+    }),
+  },
+
   pageContent: {
     flex: 1,
     paddingHorizontal: H_PADDING,
@@ -261,6 +315,29 @@ const styles = StyleSheet.create({
     color: '#2C2C2C',
     letterSpacing: 0.2,
   },
+
+  shadowOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000',
+    borderRadius: 2,
+  },
+
+  // 좌우 탭: 화면 양쪽 20% 터치 시 페이지 이동
+  tapLeft: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '20%',
+  },
+  tapRight: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: '20%',
+  },
+
   pageNumBar: {
     height: 36,
     alignItems: 'center',
@@ -269,7 +346,11 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.card,
   },
-  pageNum: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
+  pageNum: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
+  },
 
   backBtn: {
     backgroundColor: colors.primary,
