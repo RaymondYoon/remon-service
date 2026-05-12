@@ -8,12 +8,13 @@ import { colors } from '../theme';
 import HomeScreen from '../screens/HomeScreen';
 import GenerateScreen from '../screens/GenerateScreen';
 import LibraryScreen from '../screens/LibraryScreen';
+import MyPageScreen from '../screens/MyPageScreen';
 import ReadScreen from '../screens/ReadScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function TabIcon({ icon, focused, label }) {
+function TabIcon({ icon, focused }) {
   return (
     <View style={[tabStyles.iconWrap, focused && tabStyles.iconWrapActive]}>
       <Text style={[tabStyles.icon, focused && tabStyles.iconActive]}>{icon}</Text>
@@ -21,7 +22,7 @@ function TabIcon({ icon, focused, label }) {
   );
 }
 
-function MainTabs() {
+function MainTabs({ onLogout }) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -72,6 +73,15 @@ function MainTabs() {
           tabBarIcon: ({ focused }) => <TabIcon icon="📚" focused={focused} />,
         }}
       />
+      <Tab.Screen
+        name="MyPage"
+        options={{
+          tabBarLabel: '마이페이지',
+          tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
+        }}
+      >
+        {props => <MyPageScreen {...props} onLogout={onLogout} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -97,7 +107,9 @@ export default function AppNavigator({ isLoggedIn, onLogout }) {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isLoggedIn ? (
           <>
-            <Stack.Screen name="Main" component={MainTabs} />
+            <Stack.Screen name="Main">
+              {props => <MainTabs {...props} onLogout={onLogout} />}
+            </Stack.Screen>
             <Stack.Screen
               name="Read"
               component={ReadScreen}

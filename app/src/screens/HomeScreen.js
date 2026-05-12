@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
   },
   genreList: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
   genreChip: {
-    height: 36,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 16,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   genreChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  genreChipText: { fontSize: 13, color: colors.textMuted, fontWeight: '500' },
+  genreChipText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
   genreChipTextActive: { color: colors.white, fontWeight: '700' },
   list: { padding: 16, gap: 14 },
   card: {

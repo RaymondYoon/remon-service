@@ -31,6 +31,12 @@ export const clearAuth = async () => {
   await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER]);
 };
 
+export const updateUser = async (updates) => {
+  const raw = await AsyncStorage.getItem(KEYS.USER);
+  const current = raw ? JSON.parse(raw) : {};
+  await AsyncStorage.setItem(KEYS.USER, JSON.stringify({ ...current, ...updates }));
+};
+
 export const isLoggedIn = async () => {
   const token = await getToken();
   return !!token;

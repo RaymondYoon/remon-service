@@ -29,3 +29,9 @@ export const markAsDone = (bookId) =>
 
 export const getLemon = () =>
   axiosInstance.get('/api/users/me/lemon');
+
+export const updateNickname = (nickname) =>
+  axiosInstance.patch('/api/users/me/nickname', { nickname });
+
+export const logoutApi = () =>
+  axiosInstance.post('/api/users/logout');

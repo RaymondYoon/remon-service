@@ -24,7 +24,7 @@ export default function LoginScreen({ onLogin }) {
       await saveAuth({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
-        user: data.user ?? { email: email.trim() },
+        user: { email: data.email, nickname: data.nickname },
       });
       onLogin();
     } catch (e) {

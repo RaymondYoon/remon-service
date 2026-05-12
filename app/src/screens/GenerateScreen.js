@@ -116,7 +116,7 @@ export default function GenerateScreen({ navigation }) {
     } catch (e) {
       setGenerating(false);
       setStatusMsg('');
-      const msg = e.response?.data?.message ?? '생성 요청에 실패했습니다.';
+      const msg = e.response?.data?.error ?? e.response?.data?.message ?? '생성 요청에 실패했습니다.';
       Alert.alert('오류', msg);
       return;
     }
@@ -144,7 +144,7 @@ export default function GenerateScreen({ navigation }) {
           pollRef.current = setTimeout(poll, 3000);
         }
       } catch (e) {
-        const msg = e.response?.data?.message ?? '상태 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
+        const msg = e.response?.data?.error ?? e.response?.data?.message ?? '상태 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
         stopGenerating(msg);
       }
     };
