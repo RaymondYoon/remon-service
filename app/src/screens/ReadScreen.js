@@ -49,10 +49,24 @@ function buildPages(content, charsPerPage) {
 }
 
 function PageView({ text, style }) {
+  const paragraphs = text
+    ? text.split('\n\n').map(p => p.trim()).filter(Boolean)
+    : [];
+
   return (
     <Animated.View style={[styles.pageWrapper, style]}>
       <View style={styles.pageContent}>
-        <Text style={styles.pageText}>{text}</Text>
+        {paragraphs.map((para, idx) => (
+          <Text
+            key={idx}
+            style={[
+              styles.pageText,
+              idx < paragraphs.length - 1 && styles.paraSpacing,
+            ]}
+          >
+            {'  '}{para}
+          </Text>
+        ))}
       </View>
     </Animated.View>
   );
@@ -305,6 +319,9 @@ const styles = StyleSheet.create({
     lineHeight: LINE_HEIGHT,
     color: '#2C2C2C',
     letterSpacing: 0.2,
+  },
+  paraSpacing: {
+    marginBottom: 16,
   },
 
   tapLeft: {
