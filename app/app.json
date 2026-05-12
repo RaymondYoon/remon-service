@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "remon-app",
-    "slug": "remon-app",
+    "name": "Remon",
+    "slug": "remon",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFF9E6"
       },
       "edgeToEdgeEnabled": true
     },
