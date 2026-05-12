@@ -2,26 +2,24 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet,
   TouchableOpacity, ActivityIndicator,
-  useWindowDimensions, Platform,
+  Animated, PanResponder, useWindowDimensions, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PageFlipper from '@thanhdong272/react-native-page-flipper';
 import { getBookById, startReading, savePage, markAsDone } from '../api/bookApi';
 import { colors } from '../theme';
 
 const SAVE_DEBOUNCE = 1500;
-const LINE_HEIGHT = 26;
-const FONT_SIZE = 15;
-const H_PADDING = 24;
-const V_PADDING = 20;
-// 헤더(52) + 진행바(4) + 하단 페이지번호(36) + SafeArea
+const SWIPE_THRESHOLD = 50;
+const SWIPE_VELOCITY = 0.3;
 const CHROME_HEIGHT = 52 + 4 + 36;
+const LINE_HEIGHT = 28;
+const FONT_SIZE = 16;
+const H_PADDING = 28;
 
 function estimateCharsPerPage(pageWidth, pageHeight) {
   const contentW = pageWidth - H_PADDING * 2;
-  const contentH = pageHeight - V_PADDING * 2;
   const charsPerLine = Math.floor(contentW / (FONT_SIZE * 0.58));
-  const linesPerPage = Math.floor(contentH / LINE_HEIGHT);
+  const linesPerPage = Math.floor(pageHeight / LINE_HEIGHT);
   return Math.max(150, charsPerLine * linesPerPage);
 }
 
@@ -48,38 +46,6 @@ function buildPages(content, charsPerPage) {
   return pages.length > 0 ? pages : [''];
 }
 
-function PageContent({ text, pageIndex, totalPages }) {
-  return (
-    <View style={pageStyles.page}>
-      <Text style={pageStyles.text}>{text}</Text>
-      <Text style={pageStyles.pageNum}>{pageIndex + 1} / {totalPages}</Text>
-    </View>
-  );
-}
-
-const pageStyles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: '#FFFEF5',
-    paddingHorizontal: H_PADDING,
-    paddingVertical: V_PADDING,
-    justifyContent: 'space-between',
-  },
-  text: {
-    flex: 1,
-    fontSize: FONT_SIZE,
-    lineHeight: LINE_HEIGHT,
-    color: '#2C2C2C',
-    letterSpacing: 0.15,
-  },
-  pageNum: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: 11,
-    paddingTop: 8,
-  },
-});
-
 export default function ReadScreen({ route, navigation }) {
   const { bookId } = route.params ?? {};
   const { width, height } = useWindowDimensions();
@@ -91,8 +57,11 @@ export default function ReadScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const saveTimer = useRef(null);
+  const translateX = useRef(new Animated.Value(0)).current;
+  const isAnimating = useRef(false);
+  const currentPageRef = useRef(0);
   const pagesRef = useRef([]);
+  const saveTimer = useRef(null);
 
   const pageAreaHeight = height - insets.top - insets.bottom - CHROME_HEIGHT;
 
@@ -116,16 +85,71 @@ export default function ReadScreen({ route, navigation }) {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [bookId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFlippedEnd = useCallback((index) => {
-    setCurrentPage(index);
+  const doSave = useCallback((pageIndex) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      savePage(bookId, index).catch(() => {});
-      if (index === pagesRef.current.length - 1) {
-        markAsDone(bookId).catch(() => {});
-      }
+      savePage(bookId, pageIndex).catch(() => {});
+      if (pageIndex === pagesRef.current.length - 1) markAsDone(bookId).catch(() => {});
     }, SAVE_DEBOUNCE);
   }, [bookId]);
+
+  const goToPage = useCallback((direction) => {
+    if (isAnimating.current) return;
+    const next = currentPageRef.current + (direction === 'next' ? 1 : -1);
+    if (next < 0 || next >= pagesRef.current.length) return;
+
+    isAnimating.current = true;
+    const toValue = direction === 'next' ? -width : width;
+
+    Animated.spring(translateX, {
+      toValue,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 0,
+    }).start(() => {
+      translateX.setValue(0);
+      currentPageRef.current = next;
+      setCurrentPage(next);
+      doSave(next);
+      isAnimating.current = false;
+    });
+  }, [width, translateX, doSave]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) =>
+        Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderMove: (_, g) => {
+        if (!isAnimating.current) translateX.setValue(g.dx);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (isAnimating.current) return;
+        const swipeLeft = g.dx < -SWIPE_THRESHOLD || g.vx < -SWIPE_VELOCITY;
+        const swipeRight = g.dx > SWIPE_THRESHOLD || g.vx > SWIPE_VELOCITY;
+
+        if (swipeLeft && currentPageRef.current < pagesRef.current.length - 1) {
+          goToPage('next');
+        } else if (swipeRight && currentPageRef.current > 0) {
+          goToPage('prev');
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 4,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+          speed: 20,
+          bounciness: 0,
+        }).start();
+      },
+    })
+  ).current;
 
   const progress = pages.length > 0 ? (currentPage + 1) / pages.length : 0;
 
@@ -169,29 +193,18 @@ export default function ReadScreen({ route, navigation }) {
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      {/* PageFlipper */}
-      <View style={styles.flipperWrap}>
-        {pages.length > 0 && (
-          <PageFlipper
-            data={pages}
-            portrait
-            pressable
-            renderPage={(pageData) => {
-              const idx = pages.indexOf(pageData);
-              return (
-                <PageContent
-                  text={pageData}
-                  pageIndex={idx >= 0 ? idx : currentPage}
-                  totalPages={pages.length}
-                />
-              );
-            }}
-            onFlippedEnd={handleFlippedEnd}
-            pageSize={{ width, height: pageAreaHeight }}
-            contentContainerStyle={styles.flipperContent}
-          />
-        )}
-      </View>
+      {/* 스와이프 영역 */}
+      <Animated.View
+        style={[styles.pageWrapper, { transform: [{ translateX }] }]}
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.pageContent}>
+          <Text style={styles.pageText}>{pages[currentPage]}</Text>
+        </View>
+        <View style={styles.pageNumBar}>
+          <Text style={styles.pageNum}>{currentPage + 1} / {pages.length}</Text>
+        </View>
+      </Animated.View>
     </View>
   );
 }
@@ -235,8 +248,28 @@ const styles = StyleSheet.create({
   progressTrack: { height: 4, backgroundColor: colors.border },
   progressFill: { height: 4, backgroundColor: colors.primary },
 
-  flipperWrap: { flex: 1 },
-  flipperContent: { backgroundColor: '#FFFEF5' },
+  pageWrapper: { flex: 1, backgroundColor: '#FFFEF5' },
+  pageContent: {
+    flex: 1,
+    paddingHorizontal: H_PADDING,
+    paddingTop: 24,
+    paddingBottom: 8,
+  },
+  pageText: {
+    fontSize: FONT_SIZE,
+    lineHeight: LINE_HEIGHT,
+    color: '#2C2C2C',
+    letterSpacing: 0.2,
+  },
+  pageNumBar: {
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  pageNum: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
 
   backBtn: {
     backgroundColor: colors.primary,
