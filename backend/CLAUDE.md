@@ -282,8 +282,8 @@ GEMINI_API_KEY=...
 - [ ] 무한 스크롤 (커서 기반 페이지네이션)
 - [ ] 광고 보고 레몬 추가 획득 API
 - [ ] 테스트 코드 작성 (JUnit)
-- [ ] React Native 앱 개발 (별도 저장소)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
+- [ ] 앱 EAS Build 배포를 위한 카카오 OAuth 앱 도메인 추가
 
 ---
 

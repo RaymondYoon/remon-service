@@ -43,8 +43,8 @@ Google Gemini(gemini-2.5-flash)가 단편 소설을 생성한다.
 - **배포**: Vercel
 
 ### 앱 (`app/`)
-- **플랫폼**: React Native (Expo SDK 54)
-- **네비게이션**: @react-navigation/native v7, stack + bottom-tabs
+- **플랫폼**: React Native 0.81.5 (Expo SDK 54)
+- **네비게이션**: @react-navigation/native v7, Stack + BottomTabs (5탭)
 - **HTTP**: axios (공통 인스턴스, 401 자동 재발급)
 - **제스처**: react-native-gesture-handler (PanGestureHandler 스와이프)
 - **저장소**: @react-native-async-storage/async-storage (토큰 관리)
@@ -75,11 +75,13 @@ remon-service/
 │   ├── public/
 │   ├── package.json
 │   └── CLAUDE.md                            (프론트엔드 작업 규칙)
-├── app/               — React Native 모바일 앱 (Expo)
+├── app/               — React Native 모바일 앱 (Expo SDK 54)
 │   ├── src/
-│   │   ├── api/       — axiosInstance, bookApi
-│   │   ├── navigation/ — AppNavigator (Stack + BottomTabs)
-│   │   ├── screens/   — HomeScreen, GenerateScreen, ReadScreen, LibraryScreen, LoginScreen
+│   │   ├── api/       — axiosInstance, bookApi (16개 API 함수)
+│   │   ├── navigation/ — AppNavigator (Stack + BottomTabs 5탭)
+│   │   ├── screens/   — LoginScreen, SignupScreen, HomeScreen, ExploreScreen,
+│   │   │                FeedScreen, BookDetailScreen, GenerateScreen,
+│   │   │                ReadScreen, LibraryScreen, MyPageScreen (10개)
 │   │   ├── utils/     — auth.js (AsyncStorage 토큰 관리)
 │   │   └── theme.js   — 색상 팔레트
 │   ├── App.js
@@ -114,7 +116,7 @@ remon-service/
 | 성능 최적화 | React.memo, lazy loading, code splitting, SEO 메타 태그 |
 | 기본 표지 통일 | 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경 |
 | 홈 읽기 배지 | 읽기 시작한 책(READING+DONE)에 ✓ 배지 표시 |
-| 모바일 앱 | React Native (Expo) 앱 — 홈·생성·읽기·서재 화면 |
+| 모바일 앱 | React Native (Expo SDK 54) — 10개 화면, 로그인/회원가입/홈/탐색/생성/읽기/서재/마이페이지 |
 
 ---
 
@@ -139,15 +141,19 @@ REACT_APP_API_URL=http://localhost:8080 npm start
 ```bash
 cd app
 npm install
-npx expo start
+npx expo start            # 기본 실행 (LAN)
+npx expo start --tunnel   # 실기기 테스트 시 (방화벽 환경)
+npx expo start --clear    # 캐시 초기화 후 실행
 ```
-- Expo Go 앱에서 QR 코드 스캔 또는 시뮬레이터 실행
+- Expo Go 앱에서 QR 코드 스캔 또는 iOS/Android 시뮬레이터 실행
 - API URL은 `src/api/axiosInstance.js`의 `BASE_URL`에서 변경
 
 ---
 
 ## 앞으로 할 작업
 - [ ] 앱 EAS Build 설정 및 스토어 배포 (iOS/Android)
+- [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
+- [ ] 앱 팔로우/알림 기능 연동
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] 무한 스크롤 (커서 기반 페이지네이션)
 - [ ] 광고 보고 레몬 추가 획득

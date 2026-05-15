@@ -137,10 +137,12 @@ NavigationContainer
 ---
 
 ## 앞으로 할 작업
-- [ ] 책 생성 오류 수정 (실기기 테스트 후 오류 내용 확인)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] EAS Build 설정 및 내 폰에 직접 설치
 - [ ] 플레이스토어 / 앱스토어 배포 검토
+- [ ] 팔로우/언팔로우 기능 앱에 연동 (followApi 추가)
+- [ ] 알림 기능 앱에 연동
+- [ ] 카카오 OAuth 앱 지원 (딥링크 설정)
 
 ---
 
@@ -148,8 +150,13 @@ NavigationContainer
 ```bash
 cd app
 npm install
-npx expo start --clear   # 캐시 초기화 필수 (설정 변경 후)
+npx expo start            # 기본 실행 (LAN)
+npx expo start --tunnel   # 실기기 테스트 시 (ngrok 터널 — 방화벽 환경)
+npx expo start --clear    # 캐시 초기화 후 실행 (설정 변경 후 권장)
 ```
+
+- Expo Go 앱에서 QR 코드 스캔 또는 iOS/Android 시뮬레이터 실행
+- API BASE_URL: `app/src/api/axiosInstance.js`의 `BASE_URL` 상수에서 변경
 
 ## 작업 규칙
 - 커밋은 사용자가 명시적으로 요청할 때만 수행

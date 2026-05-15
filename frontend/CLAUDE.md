@@ -237,7 +237,6 @@ src/
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 무한 스크롤 (useInfiniteBooks 연동 완성)
 - [ ] 테스트 코드 작성 (Jest)
-- [ ] React Native 앱 개발 검토
 
 ---
 

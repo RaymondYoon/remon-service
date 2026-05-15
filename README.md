@@ -9,7 +9,7 @@
 ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat&logo=railway&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
 
-> 키워드 몇 개를 입력하면 AI가 나만의 단편 소설을 만들어주는 풀스택 웹 서비스
+> 키워드 몇 개를 입력하면 AI가 나만의 단편 소설을 만들어주는 풀스택 웹 + 모바일 서비스
 
 **서비스 URL**: https://remon-service.vercel.app
 **Swagger API 문서**: https://remon-service-production.up.railway.app/swagger-ui.html
@@ -18,12 +18,14 @@
 
 ## 목차
 1. [프로젝트 소개](#프로젝트-소개)
-2. [기술 스택](#기술-스택)
-3. [주요 기능](#주요-기능)
-4. [아키텍처](#아키텍처)
-5. [핵심 구현 내용](#핵심-구현-내용)
-6. [트러블슈팅](#트러블슈팅)
-7. [로컬 실행 방법](#로컬-실행-방법)
+2. [스크린샷](#스크린샷)
+3. [기술 스택](#기술-스택)
+4. [주요 기능](#주요-기능)
+5. [아키텍처](#아키텍처)
+6. [핵심 구현 내용 (STAR)](#핵심-구현-내용)
+7. [트러블슈팅](#트러블슈팅)
+8. [로컬 실행 방법](#로컬-실행-방법)
+9. [프로젝트 구조](#프로젝트-구조)
 
 ---
 
@@ -31,10 +33,32 @@
 
 Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책 생성 플랫폼입니다.
 
-- 키워드, 장르, 분위기, 결말, 주인공 이름을 입력하면 Google Gemini가 3000자 내외의 단편 소설을 비동기로 생성합니다.
-- 생성된 책은 react-pageflip 기반 뷰어에서 실제 책처럼 넘겨 읽을 수 있습니다.
-- 레몬 경제 시스템(하루 1개 자동 충전, 1일 3회 생성 제한)으로 사용 제한을 둡니다.
-- 팔로우, 리뷰, 피드 등 소셜 기능으로 다른 사용자가 만든 책도 탐색할 수 있습니다.
+- 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름을 입력하면 Google Gemini가 3,000자 내외의 단편 소설을 비동기로 생성합니다.
+- 생성된 책은 **웹**에서는 react-pageflip 기반 책 넘기기 뷰어로, **앱**에서는 PanGestureHandler 스와이프 애니메이션으로 읽을 수 있습니다.
+- 레몬 경제 시스템(하루 1개 자동 충전, 1일 3회 생성 제한)으로 생성 횟수를 관리합니다.
+- 팔로우, 별점·리뷰, 피드, 알림 등 소셜 기능으로 다른 사용자의 책도 탐색할 수 있습니다.
+
+---
+
+## 스크린샷
+
+### 웹 (React 19)
+
+| 홈 화면 | AI 책 생성 | 책 뷰어 |
+|--------|-----------|--------|
+| ![홈](docs/screenshots/web-home.png) | ![생성](docs/screenshots/web-generate.png) | ![뷰어](docs/screenshots/web-reader.png) |
+
+| 책 상세 | 내 서재 | 마이페이지 |
+|--------|--------|-----------|
+| ![상세](docs/screenshots/web-detail.png) | ![서재](docs/screenshots/web-library.png) | ![마이](docs/screenshots/web-mypage.png) |
+
+### 앱 (React Native / Expo)
+
+| 홈 | 탐색 | 책 생성 | 책 읽기 | 서재 |
+|----|-----|--------|--------|-----|
+| ![홈](docs/screenshots/app-home.png) | ![탐색](docs/screenshots/app-explore.png) | ![생성](docs/screenshots/app-generate.png) | ![읽기](docs/screenshots/app-read.png) | ![서재](docs/screenshots/app-library.png) |
+
+> 스크린샷 이미지는 `docs/screenshots/` 디렉터리에 추가하세요.
 
 ---
 
@@ -49,53 +73,55 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | AI | Google Gemini API (gemini-2.5-flash) |
 | Rate Limiting | Bucket4j 8.10.1 |
 | API 문서 | springdoc-openapi 2.8.3 (Swagger UI) |
-| 빌드 / 배포 | Gradle, nixpacks, Railway |
+| 빌드 / 배포 | Gradle, nixpacks, Railway (JVM -Xms128m -Xmx400m) |
 
-### Frontend
+### Frontend (Web)
 | 분류 | 기술 |
 |------|------|
-| 프레임워크 | React 19 |
-| 라우팅 | react-router-dom v7 |
-| HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급) |
-| 책 뷰어 | react-pageflip 2.0.3 |
+| 프레임워크 | React 19, react-router-dom v7 |
+| HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급, failedQueue) |
+| 책 뷰어 | react-pageflip 2.0.3 (두 페이지 고정, DOM 높이 기반 분할) |
+| 상태관리 | useState / useEffect (전역 라이브러리 없음) |
 | 스타일링 | CSS + CSS 변수 (다크/라이트 모드) |
+| 성능 | React.memo, React.lazy + Suspense, code splitting |
 | 배포 | Vercel |
 
 ### Mobile App
 | 분류 | 기술 |
 |------|------|
-| 플랫폼 | React Native (Expo SDK 54) |
-| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs) |
+| 플랫폼 | React Native 0.81.5 (Expo SDK 54) |
+| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs 5탭) |
 | HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급) |
-| 제스처 | react-native-gesture-handler (PanGestureHandler) |
-| 저장소 | @react-native-async-storage/async-storage |
+| 제스처 | react-native-gesture-handler (PanGestureHandler 스와이프) |
+| 저장소 | @react-native-async-storage/async-storage (토큰 관리) |
 | 배포 | Expo Go (개발) / EAS Build (예정) |
 
 ### Infra
 | 분류 | 기술 |
 |------|------|
 | 컨테이너 | Docker, docker-compose |
-| 백엔드 호스팅 | Railway (JVM -Xms128m -Xmx400m) |
+| 백엔드 호스팅 | Railway |
 | 프론트엔드 호스팅 | Vercel |
-| DB 호스팅 | MySQL on Railway (내부 연결) |
+| DB 호스팅 | MySQL 8 on Railway (내부 연결) |
+| 로컬 개발 | Docker Compose (MySQL + Spring Boot) |
 
 ---
 
 ## 주요 기능
 
 ### AI 책 생성
-- 키워드(최대 4개), 장르, 분위기, 결말, 주인공 이름 → Google Gemini API로 3000자 소설 생성
-- 비동기 처리(202 Accepted + 폴링 방식)로 UI 블로킹 없이 생성 진행 상태 실시간 확인
+- 키워드(최대 4개), 장르(SF/판타지/로맨스/일상/공포), 분위기(따뜻/긴장감/유쾌), 결말(해피/새드/열린결말), 주인공 이름 → Google Gemini API로 3,000자 소설 자동 생성
+- `202 Accepted` + 폴링 방식 비동기 처리 — UI 블로킹 없이 생성 진행 상태 실시간 확인
 
 ### 책 뷰어
-- react-pageflip으로 실제 책처럼 페이지 넘기기 애니메이션
-- DOM 높이 기반 자동 페이지 분할 — 텍스트 잘림 없이 모든 화면 크기에서 정확한 페이지 구성
-- 읽은 페이지 localStorage + 서버 양쪽 저장, 이어 읽기 지원
+- **웹**: react-pageflip 두 페이지 모드 고정, DOM 높이 기반 자동 페이지 분할, 키보드 방향키(←→) 지원
+- **앱**: `Animated.spring` 슬라이드 전환, PanGestureHandler 스와이프, `useNativeDriver: true`
+- 이어 읽기: 마지막 읽은 페이지 localStorage + 서버 동시 저장 (debounce 1500ms)
 
 ### 레몬 경제 시스템
-- 유저당 레몬 보유량 관리 (DB 기반), 자정에 1개 자동 충전
-- 책 생성 시 레몬 1개 소모 / 하루 최대 3회 생성 제한
-- 레몬트리 UI: 보유 레몬 개수에 따라 나무가 자라는 시각화 (CSS/SVG 직접 구현)
+- DB 기반 레몬 보유량 관리, 자정에 1개 자동 충전
+- 책 생성 시 레몬 1개 소모 / 하루 최대 3회 생성 제한 (서버측 처리)
+- 레몬트리 UI: 보유 개수에 따라 나무가 자라는 3단계 시각화 (CSS/SVG 직접 구현)
 
 ### 소셜 기능
 - 팔로우/언팔로우, 팔로잉 유저의 책 피드
@@ -112,33 +138,42 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ## 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  Vercel (Frontend)                   │
-│  React 19 + react-router-dom v7 + react-pageflip    │
-│  axios (JWT 자동첨부, 401 자동재발급)                 │
-└───────────────────┬─────────────────────────────────┘
-                    │ HTTPS
-┌───────────────────▼─────────────────────────────────┐
-│               Railway (Backend)                      │
-│  Spring Boot 3.5.5 / Java 17                        │
-│  Spring Security + JWT + Kakao OAuth                 │
-│  @Async AI 생성 / bucket4j Rate Limit               │
-│  Swagger UI (/swagger-ui.html)                       │
-└───────┬───────────────────────────┬──────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│              Vercel (Web Frontend)                           │
+│  React 19 · react-router-dom v7 · react-pageflip           │
+│  axios (JWT 자동첨부, 401 자동재발급, failedQueue)            │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+┌───────────────────────┤  HTTPS
+│  Expo Go / EAS Build  │
+│  (Mobile App)         │
+│  React Native 0.81.5  │
+│  Expo SDK 54          │
+│  axios + AsyncStorage │
+└───────────────────────┼─────────────────────────────────────┐
+                        │ HTTPS                               │
+┌───────────────────────▼─────────────────────────────────────┤
+│                  Railway (Backend)                           │
+│  Spring Boot 3.5.5 / Java 17                                │
+│  Spring Security + JWT + Kakao OAuth 2.0                    │
+│  @Async AI 생성 파이프라인 / bucket4j Rate Limiting          │
+│  Swagger UI (/swagger-ui.html)                               │
+└───────┬───────────────────────────┬──────────────────────────┘
         │                           │
 ┌───────▼────────┐        ┌─────────▼──────────────┐
 │  MySQL 8       │        │  Google Gemini API      │
 │  (Railway 내부) │        │  gemini-2.5-flash       │
+│  8개 테이블    │        │  30초 타임아웃           │
 └────────────────┘        └────────────────────────┘
 ```
 
 **모노레포 구조**
 ```
 remon-service/
-├── backend/      — Spring Boot (com.remon 패키지 12개 모듈)
-├── frontend/     — React 19 웹 (api/, components/, hooks/, pages/, utils/)
-├── app/          — React Native 모바일 앱 (Expo SDK 54)
-└── docker-compose.yml  — 로컬 개발 환경
+├── backend/      — Spring Boot (com.remon 패키지 12개 모듈, 60+ REST API)
+├── frontend/     — React 19 웹 (13개 페이지, 8개 컴포넌트)
+├── app/          — React Native (Expo SDK 54, 10개 화면, 5탭 네비게이션)
+└── docker-compose.yml  — 로컬 개발 환경 (MySQL + Spring Boot)
 ```
 
 ---
@@ -149,29 +184,31 @@ remon-service/
 
 **Situation**: Gemini API 호출은 최대 30초 소요 → 동기 처리 시 요청 타임아웃 및 UX 차단 발생
 
-**Task**: 사용자가 생성 버튼을 눌렀을 때 즉시 응답하면서 백그라운드에서 생성 진행
+**Task**: 생성 버튼 클릭 시 즉시 응답하면서 백그라운드에서 생성 진행, 완료·실패 상태를 실시간으로 사용자에게 전달
 
 **Action**:
-- `POST /api/books/generate`에서 Book을 PENDING 상태로 즉시 DB 저장, 202 Accepted 반환
-- `@Async`로 별도 스레드에서 Gemini API 호출 → 완료 시 DONE, 실패 시 FAILED 업데이트
-- 프론트엔드에서 `GET /api/books/{id}/status`를 1초 간격으로 폴링하여 DONE 감지 후 뷰어로 이동
+- `POST /api/books/generate`에서 Book을 PENDING 상태로 즉시 DB 저장, `202 Accepted + { id }` 반환
+- Spring `@Async`로 별도 스레드(`BookGenerationTask`)에서 Gemini API 호출 → 완료 시 DONE, 실패 시 FAILED 업데이트
+- 프론트엔드에서 `GET /api/books/{id}/status`를 3초 간격(최대 60회)으로 폴링하여 DONE 감지 → 뷰어로 자동 이동
+- 레몬 소모도 서버측에서 처리하여 클라이언트 조작 불가
 
-**Result**: 30초 생성 대기 중에도 UI가 블로킹되지 않으며, 실패 시 FAILED 상태로 사용자에게 명확한 피드백 제공
+**Result**: 30초 생성 대기 중에도 UI 블로킹 없음. FAILED 상태로 사용자에게 명확한 피드백 제공, 레몬 차감은 서버 신뢰 보장
 
 ---
 
 ### 2. DOM 높이 기반 책 페이지 자동 분할
 
-**Situation**: 소설 본문 길이·폰트 크기·화면 크기가 제각각이라 고정 글자 수로 페이지를 나누면 텍스트가 넘치거나 잘림
+**Situation**: 소설 본문 길이·폰트·화면 크기가 제각각이라 고정 글자 수로 페이지를 나누면 텍스트가 넘치거나 잘림
 
-**Task**: 실제 렌더링 높이를 기준으로 페이지를 동적으로 분할
+**Task**: 실제 렌더링 높이를 기준으로 모든 환경에서 정확한 페이지 구성
 
 **Action**:
-- 화면 밖 숨김 DOM probe 요소에 단락을 하나씩 추가하며 `offsetHeight`로 실제 렌더 높이 측정
+- 화면 밖 숨김 DOM probe 요소에 단락을 순서대로 추가하며 `offsetHeight`로 실제 렌더 높이 측정
 - 단락 하나만으로도 한 페이지를 초과하는 경우 binary search로 단어 경계에서 분할
 - 창 크기 변경(resize) 시 debounce 150ms 후 전체 페이지 재계산
+- 앱(ReadScreen)에서는 `Dimensions.get('window').height` 기준으로 동일 로직 구현
 
-**Result**: 단락 잘림 없이 정확한 페이지 구성, 모바일·태블릿·데스크톱 모두 동일하게 동작
+**Result**: 단락 잘림 없이 정확한 페이지 구성. 모바일·태블릿·데스크톱, 웹·앱 모두 동일하게 동작
 
 ---
 
@@ -179,13 +216,14 @@ remon-service/
 
 **Situation**: Access Token 15분 만료 시 사용자가 수동으로 재로그인해야 하는 UX 문제
 
-**Task**: 사용자가 인식하지 못하는 투명한 토큰 갱신
+**Task**: 사용자가 인식하지 못하는 투명한 토큰 갱신 구현
 
 **Action**:
 - axiosInstance 응답 인터셉터에서 401 감지 → `POST /api/auth/refresh`로 Refresh Token 전송
-- 동시에 여러 API가 401을 받는 경우 `failedQueue`로 큐잉하여 갱신 완료 후 일괄 재시도
-- 갱신 실패(Refresh Token 만료) 시 clearAuth() + 로그인 페이지로 리다이렉트
-- 백엔드: `deleteByEmail() + flush()` 후 새 Refresh Token 저장 → duplicate key 방지
+- 동시에 여러 API가 401을 받는 경우 `failedQueue`로 큐잉하여 갱신 완료 후 일괄 재시도 (Race Condition 방지)
+- 갱신 실패(Refresh Token 만료) 시 `clearAuth()` + 로그인 페이지 리다이렉트
+- 백엔드: `deleteByEmail() + entityManager.flush()` 후 새 Refresh Token 저장 → duplicate key 방지
+- 앱(React Native)도 동일한 인터셉터 구조를 AsyncStorage 기반으로 구현
 
 **Result**: Access Token 만료와 무관하게 로그인 상태 유지, 사용자 경험 저하 없음
 
@@ -193,16 +231,31 @@ remon-service/
 
 ### 4. Gemini 응답 파싱 안정화
 
-**Situation**: Gemini API에 JSON 형식 응답을 요청했지만 소설 본문에 따옴표·쉼표·줄바꿈이 포함되어 JSON parse error 빈발
+**Situation**: Gemini API에 JSON 형식 응답 요청 시 소설 본문 내 따옴표·쉼표·줄바꿈으로 JSON parse error 빈발
 
-**Task**: 파싱 방식을 근본적으로 바꿔 소설 내용과 무관하게 안정적으로 파싱
+**Task**: 소설 내용과 무관하게 안정적으로 제목/본문을 파싱
 
 **Action**:
 - `responseMimeType: "application/json"` 제거, 프롬프트에서 `[TITLE]` / `[CONTENT]` 구분자 방식으로 변경
-- 백엔드에서 정규식 `\[TITLE\]\s*(.+?)\s*\[CONTENT\]\s*(.+)` (DOTALL)으로 title/content 추출
+- 백엔드에서 정규식 `\[TITLE\]\s*(.+?)\s*\[CONTENT\]\s*(.+)` (DOTALL 플래그)으로 title/content 추출
 - 구분자 파싱 실패 시 첫 줄 = title, 나머지 = content로 fallback 처리
 
-**Result**: JSON 파싱 오류 근본 해결, fallback으로 극단적 케이스도 처리
+**Result**: JSON 파싱 오류 근본 해결. fallback으로 극단적 케이스도 처리 가능
+
+---
+
+### 5. 읽기 시작 upsert — 서재 없이도 독서 상태 등록
+
+**Situation**: ReadPage 방문 시 서재에 책이 없으면 독서 상태(READING)를 등록할 수 없어 홈의 ✓ 배지가 표시되지 않음
+
+**Task**: 서재에 없는 책도 ReadPage 방문 즉시 READING 상태로 자동 등록
+
+**Action**:
+- `PATCH /api/library/{bookId}/start-reading`을 upsert 방식으로 변경 — UserBook이 없으면 READING으로 신규 생성, 있으면 상태만 업데이트
+- `GET /api/library/my-reading-book-ids` 신규 엔드포인트 추가 — READING + DONE bookId 목록 반환
+- 홈 화면에서 해당 목록을 기준으로 BookCard에 ✓ 배지 표시
+
+**Result**: 서재 담기 없이 읽기만 해도 ✓ 배지 표시, 독서 이력 자동 추적
 
 ---
 
@@ -210,12 +263,14 @@ remon-service/
 
 | 문제 | 원인 | 해결 |
 |------|------|------|
-| Railway 컨테이너 OOM 재시작 반복 | Spring Boot 기본 힙 크기가 512MB 제한 초과 | 시작 명령에 `-Xms128m -Xmx400m` 추가 |
-| 카카오 로그인 간헐적 500 오류 | `deleteByEmail` 후 flush 없이 save 시 같은 트랜잭션에서 duplicate key 감지 | `deleteByEmail()` 직후 `entityManager.flush()` 추가 |
-| 두 페이지 모드 nav 버튼 비활성화 | HTMLFlipBook DOM이 버튼 영역 위에 z-index로 덮음 | `.read-nav`에 `position: relative; z-index: 10` 추가 |
-| 홈 ✓ 배지 미표시 | `startReading`이 서재에 없으면 아무것도 안 하는 구조 | upsert 방식으로 변경 — 서재에 없으면 READING 상태로 자동 추가 |
-| Gemini JSON parse error | 소설 본문 내 따옴표·쉼표·줄바꿈이 JSON 파싱 오류 유발 | JSON 대신 `[TITLE]`/`[CONTENT]` 구분자 방식으로 프롬프트·파싱 전면 변경 |
+| Railway 컨테이너 OOM 재시작 반복 | Spring Boot 기본 힙 크기가 Railway 512MB 메모리 제한 초과 | 시작 명령에 `-Xms128m -Xmx400m` 추가 |
+| 카카오 로그인 간헐적 500 오류 | `deleteByEmail` 후 flush 없이 save 시 동일 트랜잭션에서 duplicate key 감지 | `deleteByEmail()` 직후 `entityManager.flush()` 추가 |
+| 책 뷰어 nav 버튼 클릭 불가 | HTMLFlipBook DOM이 버튼 영역 위에 z-index로 덮음 | `.read-nav`에 `position: relative; z-index: 10` 추가 |
+| 홈 ✓ 배지 미표시 | `startReading`이 서재에 없으면 아무것도 안 하는 구조 | upsert 방식으로 변경 — 서재 없으면 READING으로 자동 추가 |
+| Gemini JSON parse error 빈발 | 소설 본문 내 따옴표·쉼표·줄바꿈이 JSON 파싱 오류 유발 | JSON 대신 `[TITLE]`/`[CONTENT]` 구분자 방식으로 전면 변경 |
 | 책 뷰어 텍스트 잘림 | 고정 글자 수 기반 페이지 분할로 폰트/화면 크기 미반영 | DOM probe + offsetHeight 기반 동적 분할로 교체 |
+| 앱 401 오류 메시지 파싱 실패 | `data.message` 키로 읽었으나 백엔드 GlobalExceptionHandler는 `data.error` 반환 | 오류 파싱을 `e.response?.data?.error ?? e.response?.data?.message` 로 수정 |
+| Railway nixpacks JAVA_HOME 미설정 | Railway 기본 빌드 시 JDK가 PATH에 없어 Gradle 빌드 실패 | `nixpacks.toml`에 `nixPkgs = ["jdk17_headless"]` 추가 |
 
 ---
 
@@ -237,7 +292,7 @@ KAKAO_CLIENT_SECRET=your_kakao_client_secret
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### 2. 백엔드 실행
+### 2. 백엔드 실행 (Docker)
 ```bash
 cd backend
 ./gradlew bootJar -x test
@@ -259,7 +314,8 @@ REACT_APP_API_URL=http://localhost:8080 npm start
 ```bash
 cd app
 npm install
-npx expo start
+npx expo start            # 기본 (LAN)
+npx expo start --tunnel   # 실기기 테스트 시 (방화벽 환경)
 ```
 - Expo Go 앱에서 QR 코드 스캔 또는 iOS/Android 시뮬레이터 실행
 
@@ -270,26 +326,34 @@ npx expo start
 ```
 remon-service/
 ├── backend/src/main/java/com/remon/
-│   ├── book/          책 CRUD, AI 생성 비동기 처리
-│   ├── user/          인증, JWT, 카카오 OAuth
-│   ├── library/       내 서재, 독서 상태 관리
-│   ├── lemon/         레몬 경제 시스템
-│   ├── review/        별점·리뷰
-│   ├── follow/        팔로우/언팔로우
-│   ├── notification/  알림
-│   ├── security/      JWT 필터
-│   ├── ratelimit/     bucket4j Rate Limiting
-│   └── config/        Security, Async, JPA, Swagger 설정
+│   ├── book/          책 CRUD, AI 생성 비동기 처리 (@Async, PENDING→DONE/FAILED)
+│   ├── user/          인증, JWT, 카카오 OAuth 2.0
+│   ├── library/       내 서재, 독서 상태 (SAVED/READING/DONE), upsert
+│   ├── lemon/         레몬 경제 시스템 (1/day 자동 충전, 3/day 생성 제한)
+│   ├── review/        별점·리뷰 CRUD (유저당 1개 제한, averageRating 포함)
+│   ├── follow/        팔로우/언팔로우, 팔로워·팔로잉 목록
+│   ├── notification/  알림 (REVIEW/FOLLOW 이벤트 자동 생성)
+│   ├── security/      JwtTokenProvider, JwtAuthenticationFilter
+│   ├── ratelimit/     bucket4j Rate Limiting (RateLimitFilter)
+│   ├── admin/         관리자 전용 (책/리뷰 삭제)
+│   ├── logging/       로그 마스킹 (MaskingMessageConverter)
+│   └── config/        SecurityConfig, AsyncConfig, SwaggerConfig, DataInitializer
+│
 ├── frontend/src/
-│   ├── api/           axios API 모듈 (bookApi, userApi, ...)
-│   ├── components/    Header, BookCard, LemonTree, Toast, ...
-│   ├── hooks/         useInfiniteBooks, useTheme, useToast
-│   ├── pages/         Home, ReadPage, GeneratePage, ...
-│   └── utils/         auth.js, lemonStorage.js
+│   ├── api/           axiosInstance, bookApi, userApi, followApi, reviewApi, notificationApi
+│   ├── components/    Header, BookCard(memo), BookList(memo), LemonTree, LemonFall, Toast, ProtectedRoute, Footer
+│   ├── hooks/         useBooks, useInfiniteBooks, useTheme, useToast
+│   ├── pages/         Home, BookDetail, ReadPage, GeneratePage, MyLibrary, MyBooks,
+│   │                  MyPage, ExplorePage, FeedPage, UserProfilePage,
+│   │                  Login, Signup, OAuthCallback
+│   ├── styles/        variables.css (CSS 변수, 다크/라이트 토큰), global.css
+│   └── utils/         auth.js (localStorage 토큰), lemonStorage.js (일일 사용 횟수)
+│
 └── app/src/
-    ├── api/           axiosInstance, bookApi
-    ├── navigation/    AppNavigator (Stack + BottomTabs)
-    ├── screens/       HomeScreen, GenerateScreen, ReadScreen, LibraryScreen, LoginScreen
-    ├── utils/         auth.js (AsyncStorage 토큰 관리)
-    └── theme.js       색상 팔레트
+    ├── api/           axiosInstance (AsyncStorage 기반 401 자동갱신), bookApi (16개 함수)
+    ├── navigation/    AppNavigator (Stack + BottomTabs 5탭)
+    ├── screens/       LoginScreen, SignupScreen, HomeScreen, ExploreScreen, FeedScreen,
+    │                  BookDetailScreen, GenerateScreen, ReadScreen, LibraryScreen, MyPageScreen
+    ├── utils/         auth.js (AsyncStorage 토큰/유저 관리)
+    └── theme.js       색상 팔레트 (colors.primary 등)
 ```
