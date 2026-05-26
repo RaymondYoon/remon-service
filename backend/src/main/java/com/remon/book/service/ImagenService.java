@@ -45,7 +45,7 @@ public class ImagenService {
                     "prompt", prompt,
                     "n", 1,
                     "size", "1024x1792",
-                    "quality", "standard"
+                    "quality", "auto"
             );
 
             HttpHeaders headers = new HttpHeaders();
