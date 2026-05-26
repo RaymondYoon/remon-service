@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -20,6 +21,7 @@ public class Book {
     private String title;
     private String author;
     private String isbn;
+    @Setter
     private String coverImageUrl;
     private String fileurl;
     private double price;

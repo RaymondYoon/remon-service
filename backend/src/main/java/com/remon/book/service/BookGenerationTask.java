@@ -1,5 +1,6 @@
 package com.remon.book.service;
 
+import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import org.slf4j.Logger;
@@ -16,10 +17,15 @@ public class BookGenerationTask {
 
     private final BookRepository bookRepository;
     private final OpenAiService openAiService;
+    private final ImagenService imagenService;
+    private final CloudinaryService cloudinaryService;
 
-    public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService) {
-        this.bookRepository = bookRepository;
-        this.openAiService  = openAiService;
+    public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService,
+                              ImagenService imagenService, CloudinaryService cloudinaryService) {
+        this.bookRepository     = bookRepository;
+        this.openAiService      = openAiService;
+        this.imagenService      = imagenService;
+        this.cloudinaryService  = cloudinaryService;
     }
 
     @Async
@@ -32,6 +38,23 @@ public class BookGenerationTask {
             bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.DONE);
             log.info("책 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
                     bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);
+
+            try {
+                byte[] imageBytes = imagenService.generateCoverImage(result[0], genre);
+                if (imageBytes != null) {
+                    String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
+                    if (coverImageUrl != null) {
+                        Book book = bookRepository.findById(bookId).orElse(null);
+                        if (book != null) {
+                            book.setCoverImageUrl(coverImageUrl);
+                            bookRepository.save(book);
+                            log.info("표지 이미지 저장 완료 - bookId: {}", bookId);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
+            }
         } catch (Exception e) {
             bookRepository.updateStatus(bookId, BookStatus.FAILED);
             log.error("책 생성 실패 - bookId: {}, message: {}", bookId, e.getMessage(), e);
