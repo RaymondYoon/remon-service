@@ -23,10 +23,16 @@ public class ImagenService {
         this.restTemplate = new RestTemplate(factory);
     }
 
-    public byte[] generateCoverImage(String title, String genre) {
+    public byte[] generateCoverImage(String title, String genre, String content) {
         try {
-            String prompt = "book cover illustration, " + genre + " korean short story titled " + title
-                    + ", soft watercolor style, warm pastel colors, minimalist, artistic, no text, no letters, no words";
+            String summary = (content != null && content.length() > 100)
+                    ? content.substring(0, 100) : (content != null ? content : "");
+
+            String prompt = "simple anime illustration, book cover art, studio ghibli inspired style, " +
+                    "title: " + title + ", genre: " + genre + ", story summary: " + summary + ". " +
+                    "clean minimalist composition, soft pastel colors, simple background, " +
+                    "one main visual element that represents the story mood and theme, " +
+                    "NO TEXT, NO LETTERS, NO WORDS, NO WRITING, purely visual illustration only";
 
             String encodedPrompt = URLEncoder.encode(prompt, StandardCharsets.UTF_8);
             String url = "https://image.pollinations.ai/prompt/" + encodedPrompt

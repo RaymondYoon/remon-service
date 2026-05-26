@@ -40,7 +40,7 @@ public class BookGenerationTask {
                     bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);
 
             try {
-                byte[] imageBytes = imagenService.generateCoverImage(result[0], genre);
+                byte[] imageBytes = imagenService.generateCoverImage(result[0], genre, result[1]);
                 if (imageBytes != null) {
                     String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
                     log.info("Cloudinary URL: {}", coverImageUrl);
