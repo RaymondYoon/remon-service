@@ -41,7 +41,7 @@ public class ImagenService {
                     "absolutely NO TEXT, NO LETTERS, NO WORDS, NO WRITING of any kind";
 
             Map<String, Object> body = Map.of(
-                    "model", "dall-e-3",
+                    "model", "gpt-image-1",
                     "prompt", prompt,
                     "n", 1,
                     "size", "1024x1792",
