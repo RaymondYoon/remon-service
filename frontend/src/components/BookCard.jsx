@@ -12,9 +12,9 @@ const BookCard = React.memo(({ book, isInLibrary }) => {
       className="book-card"
     >
       <div className="book-cover">
-        {book.coverImage ? (
+        {book.coverImageUrl ? (
           <img
-            src={book.coverImage}
+            src={book.coverImageUrl}
             alt={book.title}
             className="book-cover-img"
             loading="lazy"
