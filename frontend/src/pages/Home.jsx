@@ -103,8 +103,10 @@ const Home = () => {
         </h2>
 
         {error ? (
-          <div className="home-error">
-            <p className="home-error-msg">{error}</p>
+          <div className="home-server-down">
+            <div className="home-server-down-icon">🍋</div>
+            <p className="home-server-down-title">지금 서버가 잠시 쉬고 있어요</p>
+            <p className="home-server-down-sub">곧 돌아올게요. 잠깐 기다렸다가 다시 시도해주세요.</p>
             <button className="home-retry-btn" onClick={retry}>다시 시도</button>
           </div>
         ) : (

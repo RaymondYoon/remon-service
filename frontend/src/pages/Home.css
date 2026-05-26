@@ -164,3 +164,36 @@
 .home-retry-btn:hover {
   opacity: 0.85;
 }
+
+.home-server-down {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 72px 0 60px;
+  text-align: center;
+}
+
+.home-server-down-icon {
+  font-size: 52px;
+  line-height: 1;
+  animation: lemon-bounce 2s ease-in-out infinite;
+}
+
+@keyframes lemon-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.home-server-down-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.home-server-down-sub {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}

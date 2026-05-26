@@ -2,12 +2,22 @@ import React from "react";
 import BookCard from "./BookCard";
 import "./BookList.css";
 
+const SkeletonCard = () => (
+  <div className="skeleton-card">
+    <div className="skeleton-cover" />
+    <div className="skeleton-line skeleton-title" />
+    <div className="skeleton-line skeleton-author" />
+    <div className="skeleton-line skeleton-rating" />
+  </div>
+);
+
 const BookList = React.memo(({ books, loading, error, emptyMessage = "책이 없습니다.", libraryIds }) => {
   if (loading) {
     return (
-      <div className="booklist-state">
-        <div className="booklist-spinner" />
-        <p>불러오는 중...</p>
+      <div className="booklist-grid">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
     );
   }
