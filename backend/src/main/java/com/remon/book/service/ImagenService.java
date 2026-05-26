@@ -24,15 +24,20 @@ public class ImagenService {
     @SuppressWarnings("unchecked")
     public byte[] generateCoverImage(String title, String genre) {
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=" + geminiApiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-fast-generate-001:generateContent?key=" + geminiApiKey;
 
             String prompt = "Book cover illustration for a Korean short story titled '" + title
                     + "', genre: " + genre
                     + ". Soft watercolor style, warm colors, minimalist, no text, no letters";
 
             Map<String, Object> body = Map.of(
-                    "instances", List.of(Map.of("prompt", prompt)),
-                    "parameters", Map.of("sampleCount", 1)
+                    "contents", List.of(Map.of(
+                            "parts", List.of(Map.of("text", prompt))
+                    )),
+                    "generationConfig", Map.of(
+                            "responseModalities", List.of("IMAGE"),
+                            "responseMimeType", "image/jpeg"
+                    )
             );
 
             HttpHeaders headers = new HttpHeaders();
@@ -42,12 +47,21 @@ public class ImagenService {
             ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Map<String, Object>> predictions =
-                        (List<Map<String, Object>>) response.getBody().get("predictions");
-                if (predictions != null && !predictions.isEmpty()) {
-                    String base64 = (String) predictions.get(0).get("bytesBase64Encoded");
-                    if (base64 != null) {
-                        return Base64.getDecoder().decode(base64);
+                List<Map<String, Object>> candidates =
+                        (List<Map<String, Object>>) response.getBody().get("candidates");
+                if (candidates != null && !candidates.isEmpty()) {
+                    Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                    if (content != null) {
+                        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                        if (parts != null && !parts.isEmpty()) {
+                            Map<String, Object> inlineData = (Map<String, Object>) parts.get(0).get("inlineData");
+                            if (inlineData != null) {
+                                String base64 = (String) inlineData.get("data");
+                                if (base64 != null) {
+                                    return Base64.getDecoder().decode(base64);
+                                }
+                            }
+                        }
                     }
                 }
             }
