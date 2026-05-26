@@ -26,6 +26,7 @@ const BookCard = React.memo(({ book, isInLibrary }) => {
             <span className="book-cover-lemon">🍋</span>
           </div>
         )}
+        {book.genre && <span className="book-genre-badge">{book.genre}</span>}
         {isInLibrary && <span className="book-library-badge">✓</span>}
       </div>
 
