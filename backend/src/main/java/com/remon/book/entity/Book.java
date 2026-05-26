@@ -22,6 +22,7 @@ public class Book {
     private String author;
     private String isbn;
     @Setter
+    @Column(columnDefinition = "TEXT")
     private String coverImageUrl;
     private String fileurl;
     private double price;

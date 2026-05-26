@@ -43,12 +43,13 @@ public class BookGenerationTask {
                 byte[] imageBytes = imagenService.generateCoverImage(result[0], genre);
                 if (imageBytes != null) {
                     String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
+                    log.info("Cloudinary URL: {}", coverImageUrl);
                     if (coverImageUrl != null) {
                         Book book = bookRepository.findById(bookId).orElse(null);
                         if (book != null) {
                             book.setCoverImageUrl(coverImageUrl);
                             bookRepository.save(book);
-                            log.info("표지 이미지 저장 완료 - bookId: {}", bookId);
+                            log.info("저장된 coverImageUrl: {}", book.getCoverImageUrl());
                         }
                     }
                 }

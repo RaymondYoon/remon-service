@@ -207,6 +207,7 @@ public class BookService {
                 .title(book.getTitle())
                 .author(book.getAuthor())
                 .isbn(book.getIsbn())
+                .coverImageUrl(book.getCoverImageUrl())
                 .publishedDate(book.getPublishedDate() != null
                         ? book.getPublishedDate().toString() : null)
                 .price(book.getPrice())
