@@ -26,7 +26,9 @@ Google Gemini(gemini-2.5-flash)가 단편 소설을 생성한다.
 - **인증**: Spring Security + JWT (jjwt 0.12.6), 카카오 OAuth 2.0
 - **DB**: MySQL 8 (Railway) / H2 (테스트)
 - **ORM**: Spring Data JPA + Hibernate
-- **AI**: Google Gemini API (gemini-2.5-flash)
+- **AI (텍스트)**: Google Gemini API (gemini-2.5-flash)
+- **AI (이미지)**: OpenAI API (gpt-image-1) — 표지 이미지 생성, b64_json 응답
+- **이미지 CDN**: Cloudinary (cloudinary-http45:1.39.0)
 - **Rate Limiting**: bucket4j-core 8.10.1
 - **API 문서**: springdoc-openapi 2.8.3 (Swagger UI)
 - **빌드**: Gradle, nixpacks (Railway)
@@ -115,6 +117,9 @@ remon-service/
 | 다크모드 | 헤더 토글 + localStorage 유지 + CSS 변수 기반 |
 | 성능 최적화 | React.memo, lazy loading, code splitting, SEO 메타 태그 |
 | 기본 표지 통일 | 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경 |
+| AI 표지 이미지 | gpt-image-1으로 책 생성 시 Studio Ghibli 스타일 표지 자동 생성 → Cloudinary CDN 저장 |
+| 홈 스켈레톤 로딩 | 홈 화면 로딩 중 카드 형태 플레이스홀더 + 서버 다운 에러 화면 |
+| BookCard 개선 | 그리드 레이아웃, 장르 배지, hover 효과, coverImageUrl 표지 |
 | 홈 읽기 배지 | 읽기 시작한 책(READING+DONE)에 ✓ 배지 표시 |
 | 모바일 앱 | React Native (Expo SDK 54) — 10개 화면, 로그인/회원가입/홈/탐색/생성/읽기/서재/마이페이지 |
 

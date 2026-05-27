@@ -70,7 +70,9 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 언어 / 프레임워크 | Java 17, Spring Boot 3.5.5 |
 | 인증 | Spring Security, JWT (jjwt 0.12.6), 카카오 OAuth 2.0 |
 | DB / ORM | MySQL 8, Spring Data JPA, Hibernate |
-| AI | Google Gemini API (gemini-2.5-flash) |
+| AI (텍스트) | Google Gemini API (gemini-2.5-flash) |
+| AI (이미지) | OpenAI API gpt-image-1 (표지 이미지, b64_json 응답) |
+| 이미지 CDN | Cloudinary (cloudinary-http45:1.39.0) |
 | Rate Limiting | Bucket4j 8.10.1 |
 | API 문서 | springdoc-openapi 2.8.3 (Swagger UI) |
 | 빌드 / 배포 | Gradle, nixpacks, Railway (JVM -Xms128m -Xmx400m) |
@@ -161,10 +163,15 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 └───────┬───────────────────────────┬──────────────────────────┘
         │                           │
 ┌───────▼────────┐        ┌─────────▼──────────────┐
-│  MySQL 8       │        │  Google Gemini API      │
-│  (Railway 내부) │        │  gemini-2.5-flash       │
-│  8개 테이블    │        │  30초 타임아웃           │
-└────────────────┘        └────────────────────────┘
+│  MySQL 8       │        │  Google Gemini API      │        │  OpenAI gpt-image-1  │
+│  (Railway 내부) │        │  gemini-2.5-flash       │        │  표지 이미지 생성     │
+│  8개 테이블    │        │  30초 타임아웃           │        │  b64_json 응답        │
+└────────────────┘        └────────────────────────┘        └──────────┬───────────┘
+                                                                        │
+                                                             ┌──────────▼───────────┐
+                                                             │  Cloudinary CDN       │
+                                                             │  이미지 영구 저장     │
+                                                             └──────────────────────┘
 ```
 
 **모노레포 구조**
@@ -175,6 +182,15 @@ remon-service/
 ├── app/          — React Native (Expo SDK 54, 10개 화면, 5탭 네비게이션)
 └── docker-compose.yml  — 로컬 개발 환경 (MySQL + Spring Boot)
 ```
+
+**외부 API 의존성**
+
+| API | 용도 | 비고 |
+|-----|------|------|
+| Google Gemini (gemini-2.5-flash) | 소설 텍스트 생성 | 30초 타임아웃, 500/503 재시도 (3회) |
+| OpenAI (gpt-image-1) | 표지 이미지 생성 | size 1024x1536, quality auto, b64_json 반환 |
+| Cloudinary | 이미지 CDN 업로드·저장 | book-{id} public_id |
+| Kakao OAuth 2.0 | 소셜 로그인 | redirect → JWT 발급 |
 
 ---
 
@@ -271,6 +287,10 @@ remon-service/
 | 책 뷰어 텍스트 잘림 | 고정 글자 수 기반 페이지 분할로 폰트/화면 크기 미반영 | DOM probe + offsetHeight 기반 동적 분할로 교체 |
 | 앱 401 오류 메시지 파싱 실패 | `data.message` 키로 읽었으나 백엔드 GlobalExceptionHandler는 `data.error` 반환 | 오류 파싱을 `e.response?.data?.error ?? e.response?.data?.message` 로 수정 |
 | Railway nixpacks JAVA_HOME 미설정 | Railway 기본 빌드 시 JDK가 PATH에 없어 Gradle 빌드 실패 | `nixpacks.toml`에 `nixPkgs = ["jdk17_headless"]` 추가 |
+| 표지 이미지 항상 null | gpt-image-1은 URL이 아닌 `b64_json`(Base64 인코딩 이미지) 반환 — 코드가 `url` 필드만 조회 | `data.get("b64_json")` 우선 처리, `Base64.getDecoder().decode()`로 바이트 변환 |
+| gpt-image-1 `400 Bad Request` | 구 DALL-E 3 파라미터(`style`, `response_format`) 포함 전송 | gpt-image-1 스펙에 맞게 `size`, `quality`, `n`만 전달 |
+| Gemini 간헐적 500/503 | Google 측 일시 과부하 | `HttpServerErrorException` catch → 3초 대기 후 최대 3회 재시도 |
+| `coverImageUrl` DB 미저장 | `Book` 엔티티 및 `BookResponse` DTO에 `coverImageUrl` 필드 누락 | 엔티티·DTO 양쪽에 필드 추가 및 로그 확인 |
 
 ---
 
@@ -290,6 +310,10 @@ JWT_SECRET=base64EncodedSecretKey
 KAKAO_CLIENT_ID=your_kakao_client_id
 KAKAO_CLIENT_SECRET=your_kakao_client_secret
 GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 ### 2. 백엔드 실행 (Docker)
@@ -327,6 +351,7 @@ npx expo start --tunnel   # 실기기 테스트 시 (방화벽 환경)
 remon-service/
 ├── backend/src/main/java/com/remon/
 │   ├── book/          책 CRUD, AI 생성 비동기 처리 (@Async, PENDING→DONE/FAILED)
+│   │                  ImagenService (gpt-image-1 표지), CloudinaryService (CDN 업로드)
 │   ├── user/          인증, JWT, 카카오 OAuth 2.0
 │   ├── library/       내 서재, 독서 상태 (SAVED/READING/DONE), upsert
 │   ├── lemon/         레몬 경제 시스템 (1/day 자동 충전, 3/day 생성 제한)

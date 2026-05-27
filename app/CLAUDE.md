@@ -42,6 +42,8 @@ app/
     │   ├── ReadScreen.js       — 책 읽기 (슬라이드 페이지 전환, 단락 렌더링)
     │   ├── LibraryScreen.js    — 내 서재 (독서 상태별 목록)
     │   └── MyPageScreen.js     — 마이페이지 (프로필, 레몬, 닉네임 변경, 로그아웃)
+    ├── shims/
+    │   └── react-native-linear-gradient.js  — 미사용 라이브러리 shim (빌드 오류 방지)
     ├── utils/
     │   └── auth.js             — AsyncStorage 토큰/유저 저장·조회·삭제
     └── theme.js                — 색상 팔레트 (colors.primary 등)

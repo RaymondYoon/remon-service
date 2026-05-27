@@ -20,7 +20,9 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 - springdoc-openapi 2.8.3 (Swagger UI: `/swagger-ui.html`)
 - jjwt 0.12.6 (jjwt-api, jjwt-impl, jjwt-jackson)
 - bucket4j-core 8.10.1 (API Rate Limiting)
-- Google Gemini API (gemini-2.5-flash) — AI 책 생성
+- Google Gemini API (gemini-2.5-flash) — AI 책 생성 (텍스트)
+- OpenAI API (gpt-image-1) — AI 표지 이미지 생성 (응답: b64_json)
+- Cloudinary (cloudinary-http45:1.39.0) — 이미지 CDN 업로드/저장
 
 ---
 
@@ -44,8 +46,10 @@ com.remon/
 │   ├── dto/            BookRequest, BookResponse, GenerateBookRequest
 │   ├── entity/         Book.java, BookStatus.java
 │   ├── repository/     BookRepository.java
-│   └── service/        BookService.java, BookGenerationTask.java, OpenAiService.java
-├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig, DataInitializer
+│   └── service/        BookService.java, BookGenerationTask.java, OpenAiService.java,
+│                       ImagenService.java (gpt-image-1 표지 생성), CloudinaryService.java (이미지 CDN 업로드)
+├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig, DataInitializer,
+│                       CloudinaryConfig.java
 ├── exception/          — GlobalExceptionHandler
 ├── follow/             — 팔로우/언팔로우, 팔로워·팔로잉 목록
 ├── lemon/              — 레몬 시스템 (하루 1개 자동 충전, 책 생성 시 소모)
@@ -67,7 +71,7 @@ com.remon/
 | 테이블 | 주요 컬럼 | 비고 |
 |--------|-----------|------|
 | `users` | id, email, password, provider, providerId, nickname, role, created_at | email UNIQUE |
-| `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy | status: PENDING/GENERATING/DONE/FAILED |
+| `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl | status: PENDING/GENERATING/DONE/FAILED |
 | `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/DONE |
 | `reviews` | id, book_id, user_id, rating (1–5), content (TEXT), createdAt | UNIQUE(book_id, user_id) — 중복 방지 |
 | `follows` | id, follower_id, following_id, createdAt | UNIQUE(follower_id, following_id) |
@@ -208,6 +212,10 @@ Authorization: Bearer <token>
 | `KAKAO_CLIENT_ID` | 카카오 REST API 키 | Railway 환경변수 |
 | `KAKAO_CLIENT_SECRET` | 카카오 클라이언트 시크릿 | Railway 환경변수 |
 | `GEMINI_API_KEY` | Google Gemini API 키 | Railway 환경변수 |
+| `OPENAI_API_KEY` | OpenAI API 키 (gpt-image-1 표지 이미지) | Railway 환경변수 |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud Name | Railway 환경변수 |
+| `CLOUDINARY_API_KEY` | Cloudinary API Key | Railway 환경변수 |
+| `CLOUDINARY_API_SECRET` | Cloudinary API Secret | Railway 환경변수 |
 | `PORT` | 서버 포트 (기본 8080) | Railway 자동 주입 |
 | `SPRING_PROFILES_ACTIVE` | 프로파일 (local/production) | Railway 환경변수 |
 
@@ -238,6 +246,10 @@ JWT_SECRET=...
 KAKAO_CLIENT_ID=...
 KAKAO_CLIENT_SECRET=...
 GEMINI_API_KEY=...
+OPENAI_API_KEY=...
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
 ```
 
 ---
@@ -274,6 +286,27 @@ GEMINI_API_KEY=...
 - [x] Gemini 응답 파싱 방식 변경: JSON → `[TITLE]`/`[CONTENT]` 구분자 (파싱 오류 근본 해결)
 - [x] `GET /api/library/my-reading-book-ids` 신규 엔드포인트 (READING+DONE bookId 목록)
 - [x] `startReading` upsert 방식으로 변경 — 서재에 없어도 ReadPage 방문 시 READING 자동 등록
+
+### 2026-05-27
+- [x] AI 표지 이미지 생성 파이프라인 구축: `ImagenService`(gpt-image-1) + `CloudinaryService`(CDN 업로드)
+- [x] `Book` 엔티티 / `BookResponse` DTO에 `coverImageUrl` 필드 추가
+- [x] gpt-image-1 모델: size `"1024x1536"`, quality `"auto"`, 응답 형식 `b64_json` → `Base64.getDecoder().decode()`
+- [x] `OpenAiService` Gemini 500/503 재시도 로직 추가 (maxAttempts=3, 3초 대기 후 재시도)
+
+---
+
+## 트러블슈팅 이력
+
+| 문제 | 원인 | 해결 |
+|------|------|------|
+| 표지 이미지 항상 null | gpt-image-1은 `url` 대신 `b64_json` 반환 — 코드는 `url` 필드만 읽음 | `data.get("b64_json")` 우선 처리, `Base64.getDecoder().decode()` 로 직접 변환 |
+| 표지 이미지 `coverImageUrl` DB 미저장 | `Book` 엔티티에 `coverImageUrl` 필드 누락 + `BookResponse` DTO에도 미포함 | 엔티티·DTO 양쪽에 필드 추가 |
+| gpt-image-1 `400 Bad Request` | 구 DALL-E 파라미터(`style`, `response_format`) 그대로 전달 | gpt-image-1 스펙에 맞게 파라미터 정리 (size, quality, n만) |
+| Gemini 간헐적 500/503 | Google 측 일시 과부하 | maxAttempts=3, 3초 대기 재시도 로직 추가 |
+| Railway OOM 재시작 | Spring Boot 기본 힙이 Railway 512MB 제한 초과 | `-Xms128m -Xmx400m` JVM 옵션 추가 |
+| 카카오 로그인 500 오류 | `deleteByEmail` 후 flush 없이 save 시 같은 트랜잭션에서 duplicate key | `deleteByEmail()` 직후 `entityManager.flush()` 추가 |
+| Gemini JSON parse error 빈발 | 소설 본문의 따옴표·쉼표·줄바꿈이 JSON 파싱 오류 유발 | JSON 대신 `[TITLE]`/`[CONTENT]` 구분자 방식으로 변경 |
+| Railway nixpacks JAVA_HOME 미설정 | Railway 기본 빌드 시 JDK가 PATH 없어 Gradle 실패 | `nixpacks.toml`에 `nixPkgs = ["jdk17_headless"]` 추가 |
 
 ---
 

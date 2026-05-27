@@ -71,7 +71,7 @@ src/
 │   └── notificationApi.js  — 알림 목록/읽음 처리/미읽음 수
 ├── components/
 │   ├── Header.jsx          — 로고, 알림 벨(미읽음 뱃지), 🍋 레몬 수, 다크모드 토글, 햄버거 메뉴
-│   ├── BookCard.jsx        — 책 카드 (React.memo, lazy 이미지, 전체 클릭 가능, ✓ 배지)
+│   ├── BookCard.jsx        — 책 카드 (React.memo, coverImageUrl 표지, 장르 배지, 그리드 레이아웃, hover 효과, ✓ 배지)
 │   ├── BookList.jsx        — BookCard 목록 래퍼 (React.memo)
 │   ├── LemonTree.jsx       — CSS/SVG 레몬 나무 시각화 (레몬 개수별 3단계)
 │   ├── LemonFall.jsx       — 레몬 소모 시 낙하 애니메이션
@@ -229,6 +229,11 @@ src/
 ### 2026-05-11
 - [x] 홈 ✓ 배지 기준 변경: 서재 담기 → 읽기 시작한 책 (READING+DONE)
 - [x] `getMyReadingBookIds` API 함수 추가 (`bookApi.js`)
+
+### 2026-05-27
+- [x] `BookCard.jsx` 디자인 개선 — 그리드 레이아웃, 장르 배지, hover 효과, `coverImageUrl` 필드 반영
+- [x] `Home.jsx` 스켈레톤 로딩 UI 추가 (로딩 중 카드 형태 플레이스홀더)
+- [x] `Home.jsx` 서버 다운 에러 화면 추가 (API 연결 실패 시 안내 화면)
 
 ---
 
