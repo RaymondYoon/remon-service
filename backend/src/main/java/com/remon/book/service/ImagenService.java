@@ -8,6 +8,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,10 @@ public class ImagenService {
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 List<Map<String, Object>> data = (List<Map<String, Object>>) response.getBody().get("data");
                 if (data != null && !data.isEmpty()) {
+                    String b64Json = (String) data.get(0).get("b64_json");
+                    if (b64Json != null) {
+                        return Base64.getDecoder().decode(b64Json);
+                    }
                     String imageUrl = (String) data.get(0).get("url");
                     if (imageUrl != null) {
                         return restTemplate.getForObject(imageUrl, byte[].class);
