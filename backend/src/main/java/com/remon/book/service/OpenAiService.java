@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,20 +62,31 @@ public class OpenAiService {
         log.info("Gemini 요청 시작 - url: {}, keywords: {}, genre: {}, tone: {}, ending: {}, protagonistNameProvided: {}",
                 apiUrl, keywords.size(), genre, tone, ending, protagonistName != null && !protagonistName.isBlank());
 
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-            String responseBody = response.getBody();
-            log.info("Gemini 응답 수신 - status: {}, bodyLength: {}",
-                    response.getStatusCode(), responseBody != null ? responseBody.length() : 0);
-            return parseResponse(responseBody);
-        } catch (HttpStatusCodeException e) {
-            log.error("Gemini HTTP 오류 - status: {}, responseBody: {}",
-                    e.getStatusCode(), e.getResponseBodyAsString(), e);
-            throw new RuntimeException("Gemini API HTTP 오류: " + e.getStatusCode(), e);
-        } catch (Exception e) {
-            log.error("Gemini 호출 중 예외 발생 - message: {}", e.getMessage(), e);
-            throw e;
+        int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+                String responseBody = response.getBody();
+                log.info("Gemini 응답 수신 - status: {}, bodyLength: {}",
+                        response.getStatusCode(), responseBody != null ? responseBody.length() : 0);
+                return parseResponse(responseBody);
+            } catch (HttpServerErrorException.InternalServerError | HttpServerErrorException.ServiceUnavailable e) {
+                log.warn("Gemini {} 오류 (attempt {}/{}) - 3초 후 재시도. responseBody: {}",
+                        e.getStatusCode(), attempt, maxAttempts, e.getResponseBodyAsString());
+                if (attempt == maxAttempts) {
+                    throw new RuntimeException("Gemini API HTTP 오류: " + e.getStatusCode(), e);
+                }
+                try { Thread.sleep(3000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+            } catch (HttpStatusCodeException e) {
+                log.error("Gemini HTTP 오류 - status: {}, responseBody: {}",
+                        e.getStatusCode(), e.getResponseBodyAsString(), e);
+                throw new RuntimeException("Gemini API HTTP 오류: " + e.getStatusCode(), e);
+            } catch (Exception e) {
+                log.error("Gemini 호출 중 예외 발생 - message: {}", e.getMessage(), e);
+                throw e;
+            }
         }
+        throw new RuntimeException("Gemini API 재시도 횟수 초과");
     }
 
     // ── 프롬프트 ────────────────────────────────────────────────────────────
