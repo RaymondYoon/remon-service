@@ -1,9 +1,7 @@
 package com.remon.admin;
 
-import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
-import com.remon.book.service.CloudinaryService;
-import com.remon.book.service.ImagenService;
+import com.remon.book.service.BookGenerationTask;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -27,8 +24,7 @@ public class AdminController {
     private final BookRepository bookRepository;
     private final ReviewRepository reviewRepository;
     private final UserBookRepository userBookRepository;
-    private final ImagenService imagenService;
-    private final CloudinaryService cloudinaryService;
+    private final BookGenerationTask bookGenerationTask;
 
     @DeleteMapping("/books/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -53,29 +49,11 @@ public class AdminController {
     }
 
     @PostMapping("/books/generate-covers")
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public Map<String, Object> generateMissingCovers() {
-        List<Book> books = bookRepository.findDoneBooksWithoutCover();
-        int success = 0, failed = 0;
-        for (Book book : books) {
-            try {
-                byte[] imageBytes = imagenService.generateCoverImage(book.getTitle(), book.getGenre(), book.getContent());
-                if (imageBytes != null) {
-                    String url = cloudinaryService.uploadImage(imageBytes, "book-" + book.getId());
-                    if (url != null) {
-                        book.setCoverImageUrl(url);
-                        bookRepository.save(book);
-                        log.info("표지 생성 완료 - bookId: {}, url: {}", book.getId(), url);
-                        success++;
-                        continue;
-                    }
-                }
-                log.warn("표지 생성 실패 - bookId: {}", book.getId());
-                failed++;
-            } catch (Exception e) {
-                log.warn("표지 생성 오류 - bookId: {}, message: {}", book.getId(), e.getMessage());
-                failed++;
-            }
-        }
-        return Map.of("total", books.size(), "success", success, "failed", failed);
+        int queued = bookRepository.findDoneBooksWithoutCover().size();
+        bookGenerationTask.generateMissingCoversAsync();
+        log.info("표지 일괄 생성 요청 - queued: {}", queued);
+        return Map.of("queued", queued, "message", "백그라운드로 표지 생성을 시작했습니다. Railway 로그에서 진행 상황을 확인하세요.");
     }
 }

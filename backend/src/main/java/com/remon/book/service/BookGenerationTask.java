@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class BookGenerationTask {
@@ -60,5 +61,35 @@ public class BookGenerationTask {
             bookRepository.updateStatus(bookId, BookStatus.FAILED);
             log.error("책 생성 실패 - bookId: {}, message: {}", bookId, e.getMessage(), e);
         }
+    }
+
+    @Async
+    public void generateMissingCoversAsync() {
+        List<Book> books = bookRepository.findDoneBooksWithoutCover();
+        log.info("표지 일괄 생성 시작 - 대상 책 수: {}", books.size());
+        AtomicInteger success = new AtomicInteger(0);
+        AtomicInteger failed = new AtomicInteger(0);
+        for (Book book : books) {
+            try {
+                byte[] imageBytes = imagenService.generateCoverImage(book.getTitle(), book.getGenre(), book.getContent());
+                if (imageBytes != null) {
+                    String url = cloudinaryService.uploadImage(imageBytes, "book-" + book.getId());
+                    if (url != null) {
+                        book.setCoverImageUrl(url);
+                        bookRepository.save(book);
+                        log.info("표지 생성 완료 - bookId: {}, url: {}", book.getId(), url);
+                        success.incrementAndGet();
+                        continue;
+                    }
+                }
+                log.warn("표지 생성 실패 - bookId: {}", book.getId());
+                failed.incrementAndGet();
+            } catch (Exception e) {
+                log.warn("표지 생성 오류 - bookId: {}, message: {}", book.getId(), e.getMessage());
+                failed.incrementAndGet();
+            }
+        }
+        log.info("표지 일괄 생성 완료 - total: {}, success: {}, failed: {}",
+                books.size(), success.get(), failed.get());
     }
 }
