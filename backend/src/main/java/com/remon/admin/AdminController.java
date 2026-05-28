@@ -51,7 +51,7 @@ public class AdminController {
     @PostMapping("/books/generate-covers")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Map<String, Object> generateMissingCovers() {
-        int queued = bookRepository.findDoneBooksWithoutCover().size();
+        int queued = bookRepository.findByStatusAndCoverImageUrlIsNull(com.remon.book.entity.BookStatus.DONE).size();
         bookGenerationTask.generateMissingCoversAsync();
         log.info("표지 일괄 생성 요청 - queued: {}", queued);
         return Map.of("queued", queued, "message", "백그라운드로 표지 생성을 시작했습니다. Railway 로그에서 진행 상황을 확인하세요.");

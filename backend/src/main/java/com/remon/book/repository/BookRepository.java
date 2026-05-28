@@ -57,6 +57,5 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("UPDATE Book b SET b.author = :newNickname WHERE b.publishedBy = :userId")
     void updateAuthorByPublishedBy(@Param("userId") Long userId, @Param("newNickname") String newNickname);
 
-    @Query("SELECT b FROM Book b WHERE b.status = 'DONE' AND (b.coverImageUrl IS NULL OR b.coverImageUrl = '')")
-    List<Book> findDoneBooksWithoutCover();
+    List<Book> findByStatusAndCoverImageUrlIsNull(BookStatus status);
 }
