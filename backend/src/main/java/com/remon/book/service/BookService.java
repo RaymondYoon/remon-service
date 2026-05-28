@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
@@ -157,6 +158,23 @@ public class BookService {
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
         return new PageImpl<>(content, pageable, page.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getBooksCursor(String keyword, Long cursor, int size) {
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+        List<Book> books = bookRepository.findBooksWithCursor(cursor, kw, PageRequest.of(0, size));
+        Map<Long, Double> ratingCache = buildRatingCache(books);
+        List<BookResponse> content = books.stream()
+                .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
+                .collect(Collectors.toList());
+        Long nextCursor = books.isEmpty() ? null : books.get(books.size() - 1).getId();
+        boolean hasMore = books.size() == size;
+        Map<String, Object> result = new HashMap<>();
+        result.put("books", content);
+        result.put("nextCursor", nextCursor);
+        result.put("hasMore", hasMore);
+        return result;
     }
 
     @Transactional(readOnly = true)

@@ -36,6 +36,8 @@ public class Notification {
     @Column(nullable = false)
     private String message;
 
+    private Long bookId;
+
     @Builder.Default
     @Column(nullable = false)
     private boolean isRead = false;

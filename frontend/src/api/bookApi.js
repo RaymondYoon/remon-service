@@ -90,6 +90,11 @@ export const getMyReadingBookIds = async () => {
   return await axiosInstance.get("/api/library/my-reading-book-ids");
 };
 
+// 커서 기반 책 목록 조회 (무한 스크롤용)
+export const getBooksCursor = async (params = {}) => {
+  return await axiosInstance.get("/api/books/cursor", { params });
+};
+
 // 어드민 전용 — 책 강제 삭제
 export const adminDeleteBook = async (bookId) => {
   return await axiosInstance.delete(`/api/admin/books/${bookId}`);

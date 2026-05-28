@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getBooks } from "../api/bookApi";
+import { getBooksCursor } from "../api/bookApi";
 
 const PAGE_SIZE = 12;
 
 const useInfiniteBooks = (params = {}) => {
   const [books, setBooks] = useState([]);
-  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [loadTrigger, setLoadTrigger] = useState(0);
 
   const paramsRef = useRef(params);
   // ref로 관리 — IntersectionObserver stale closure 방지
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
+  const cursorRef = useRef(null);
+  const isResetRef = useRef(true);
 
   const paramsKey = JSON.stringify(params);
 
@@ -22,13 +23,15 @@ const useInfiniteBooks = (params = {}) => {
   useEffect(() => {
     paramsRef.current = params;
     hasMoreRef.current = true;
+    cursorRef.current = null;
+    isResetRef.current = true;
     setBooks([]);
-    setPage(0);
     setHasMore(true);
     setError(null);
+    setLoadTrigger((t) => t + 1);
   }, [paramsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 페이지 fetch — hasMore는 ref로 읽으므로 deps에서 제외
+  // cursor fetch
   useEffect(() => {
     let cancelled = false;
     const fetchPage = async () => {
@@ -36,14 +39,21 @@ const useInfiniteBooks = (params = {}) => {
       loadingRef.current = true;
       setLoading(true);
       try {
-        const res = await getBooks({ ...paramsRef.current, page, size: PAGE_SIZE });
+        const res = await getBooksCursor({
+          ...paramsRef.current,
+          cursor: cursorRef.current ?? undefined,
+          size: PAGE_SIZE,
+        });
         if (cancelled) return;
         const data = res.data;
-        const items = Array.isArray(data) ? data : (data.content ?? []);
-        const last = Array.isArray(data) ? items.length < PAGE_SIZE : (data.last ?? true);
-        setBooks((prev) => page === 0 ? items : [...prev, ...items]);
-        hasMoreRef.current = !last;
-        setHasMore(!last);
+        const items = data.books ?? [];
+        const nextCursor = data.nextCursor ?? null;
+        const more = data.hasMore ?? false;
+        setBooks((prev) => isResetRef.current ? items : [...prev, ...items]);
+        isResetRef.current = false;
+        cursorRef.current = nextCursor;
+        hasMoreRef.current = more;
+        setHasMore(more);
       } catch {
         if (!cancelled) {
           setError("서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.");
@@ -59,20 +69,21 @@ const useInfiniteBooks = (params = {}) => {
     };
     fetchPage();
     return () => { cancelled = true; };
-  }, [page, paramsKey, retryCount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ref 사용으로 stable identity 보장 — Observer 재설정 불필요
   const loadMore = useCallback(() => {
-    if (!loadingRef.current && hasMoreRef.current) setPage((p) => p + 1);
+    if (!loadingRef.current && hasMoreRef.current) setLoadTrigger((t) => t + 1);
   }, []);
 
   const retry = useCallback(() => {
     setError(null);
     setBooks([]);
     hasMoreRef.current = true;
+    cursorRef.current = null;
+    isResetRef.current = true;
     setHasMore(true);
-    setPage(0);
-    setRetryCount((c) => c + 1);
+    setLoadTrigger((t) => t + 1);
   }, []);
 
   return { books, loading, error, hasMore, loadMore, retry };

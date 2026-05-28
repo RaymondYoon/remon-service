@@ -3,6 +3,8 @@ package com.remon.book.service;
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
+import com.remon.notification.entity.NotificationType;
+import com.remon.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -20,13 +22,16 @@ public class BookGenerationTask {
     private final OpenAiService openAiService;
     private final ImagenService imagenService;
     private final CloudinaryService cloudinaryService;
+    private final NotificationService notificationService;
 
     public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService,
-                              ImagenService imagenService, CloudinaryService cloudinaryService) {
-        this.bookRepository     = bookRepository;
-        this.openAiService      = openAiService;
-        this.imagenService      = imagenService;
-        this.cloudinaryService  = cloudinaryService;
+                              ImagenService imagenService, CloudinaryService cloudinaryService,
+                              NotificationService notificationService) {
+        this.bookRepository      = bookRepository;
+        this.openAiService       = openAiService;
+        this.imagenService       = imagenService;
+        this.cloudinaryService   = cloudinaryService;
+        this.notificationService = notificationService;
     }
 
     @Async
@@ -40,18 +45,31 @@ public class BookGenerationTask {
             log.info("책 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
                     bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);
 
+            Book book = bookRepository.findById(bookId).orElse(null);
+
+            // 책 생성 완료 알림
+            if (book != null && book.getPublishedBy() != null) {
+                try {
+                    notificationService.createBookNotification(
+                            book.getPublishedBy(),
+                            NotificationType.BOOK_GENERATED,
+                            "이야기가 완성됐어요! 지금 바로 읽어보세요.",
+                            bookId
+                    );
+                } catch (Exception e) {
+                    log.warn("책 생성 알림 발송 실패 - bookId: {}", bookId);
+                }
+            }
+
             try {
                 byte[] imageBytes = imagenService.generateCoverImage(result[0], genre, result[1]);
                 if (imageBytes != null) {
                     String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
                     log.info("Cloudinary URL: {}", coverImageUrl);
-                    if (coverImageUrl != null) {
-                        Book book = bookRepository.findById(bookId).orElse(null);
-                        if (book != null) {
-                            book.setCoverImageUrl(coverImageUrl);
-                            bookRepository.save(book);
-                            log.info("저장된 coverImageUrl: {}", book.getCoverImageUrl());
-                        }
+                    if (coverImageUrl != null && book != null) {
+                        book.setCoverImageUrl(coverImageUrl);
+                        bookRepository.save(book);
+                        log.info("저장된 coverImageUrl: {}", book.getCoverImageUrl());
                     }
                 }
             } catch (Exception e) {

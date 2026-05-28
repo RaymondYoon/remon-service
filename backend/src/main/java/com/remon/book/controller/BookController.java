@@ -70,6 +70,14 @@ public class BookController {
         bookService.deleteMyBook(authentication.getName(), id);
     }
 
+    @GetMapping("/cursor")
+    public Map<String, Object> getBooksCursor(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "12") int size) {
+        return bookService.getBooksCursor(keyword, cursor, size);
+    }
+
     @GetMapping("/explore")
     public List<BookResponse> getExploreBooks() {
         return bookService.getPublicBooks();

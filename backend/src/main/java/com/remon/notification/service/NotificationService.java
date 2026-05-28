@@ -37,6 +37,17 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public void createBookNotification(Long userId, NotificationType type, String message, Long bookId) {
+        Notification notification = Notification.builder()
+                .receiverId(userId)
+                .senderId(userId)
+                .type(type)
+                .message(message)
+                .bookId(bookId)
+                .build();
+        notificationRepository.save(notification);
+    }
+
     @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotifications(String email) {
         User user = userRepository.findByEmail(email)
@@ -77,6 +88,7 @@ public class NotificationService {
                 .senderId(n.getSenderId())
                 .type(n.getType())
                 .message(n.getMessage())
+                .bookId(n.getBookId())
                 .isRead(n.isRead())
                 .createdAt(n.getCreatedAt() != null ? n.getCreatedAt().toLocalDate().toString() : null)
                 .build();

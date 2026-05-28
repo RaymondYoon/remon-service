@@ -12,6 +12,7 @@ public class NotificationResponse {
     private Long senderId;
     private NotificationType type;
     private String message;
+    private Long bookId;
     private boolean isRead;
     private String createdAt;
 }

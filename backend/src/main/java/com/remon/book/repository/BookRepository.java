@@ -59,4 +59,19 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b WHERE b.status = :status AND b.coverImageUrl IS NULL")
     List<Book> findByStatusAndNoCover(@Param("status") BookStatus status);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE (:cursor IS NULL OR b.id < :cursor)
+              AND (:keyword IS NULL
+                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            ORDER BY b.id DESC
+            """)
+    List<Book> findBooksWithCursor(
+            @Param("cursor") Long cursor,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }
