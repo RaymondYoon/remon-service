@@ -6,8 +6,8 @@ import "./MyLibrary.css";
 
 const TABS = [
   { key: "ALL",     label: "전체" },
-  { key: "SAVED",   label: "담은 책" },
   { key: "READING", label: "읽는 중" },
+  { key: "SAVED",   label: "읽고 싶어요" },
   { key: "DONE",    label: "완독" },
 ];
 
