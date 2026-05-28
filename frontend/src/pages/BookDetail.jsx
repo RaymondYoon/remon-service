@@ -158,8 +158,8 @@ const BookDetail = () => {
 
       <div className="detail-card">
         <div className="detail-cover">
-          {book.coverImage ? (
-            <img src={book.coverImage} alt={book.title} />
+          {book.coverImageUrl ? (
+            <img src={book.coverImageUrl} alt={book.title} />
           ) : (
             <span className="detail-cover-placeholder">🍋</span>
           )}
