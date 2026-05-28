@@ -242,6 +242,15 @@
     padding: 9px 18px;
     font-size: 13px;
   }
+
+  .tap-left,
+  .tap-right {
+    width: 35%;
+  }
+
+  .read-nav {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
 }
 
 @media (min-width: 641px) and (max-width: 900px) {
