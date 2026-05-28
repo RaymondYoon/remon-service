@@ -64,7 +64,8 @@ function buildPagesByHeight(content, pageWidth, pageHeight) {
   const fontSize = isMobile ? 15 : Math.min(16, Math.max(14, vw * 0.016));
   const contentW = Math.max(1, pageWidth - sidePad * 2);
   // PAGE_NUM_HEIGHT를 명시적으로 빼 하드코딩 제거 — CSS 변경 시 이 변수만 수정하면 됨
-  const contentH = Math.max(80, pageHeight - topPad - botPad - PAGE_NUM_HEIGHT);
+  // 모바일은 안전 마진 40px 추가 — 마지막 줄 경계 잘림 방지
+  const contentH = Math.max(80, pageHeight - topPad - botPad - PAGE_NUM_HEIGHT - (isMobile ? 40 : 0));
 
   // probe: flip-page-content와 동일한 width/font/box-sizing 환경
   // padding·box-sizing 포함해 실제 렌더 폭과 정확히 일치시킴
