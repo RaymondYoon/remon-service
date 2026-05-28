@@ -46,7 +46,7 @@ function binarySearchSplit(probe, text, maxH, makeP) {
 
 // DOM 렌더링 높이 기준으로 페이지 분할
 // 단락이 contentH를 초과하면 binary search로 분할 — 텍스트 잘림 문제 해결
-function buildPagesByHeight(content, pageWidth, pageHeight) {
+function buildPagesByHeight(content, pageWidth, pageHeight, pageNumHeight = PAGE_NUM_HEIGHT) {
   if (!content) return [];
 
   const cleaned = cleanContent(content);
@@ -63,9 +63,9 @@ function buildPagesByHeight(content, pageWidth, pageHeight) {
   const sidePad = isMobile ? 16 : Math.min(44, Math.max(24, vw * 0.038));
   const fontSize = isMobile ? 15 : Math.min(16, Math.max(14, vw * 0.016));
   const contentW = Math.max(1, pageWidth - sidePad * 2);
-  // PAGE_NUM_HEIGHT를 명시적으로 빼 하드코딩 제거 — CSS 변경 시 이 변수만 수정하면 됨
+  // 실제 측정된 pageNumHeight 사용 (측정 실패 시 PAGE_NUM_HEIGHT 상수로 fallback)
   // 모바일은 안전 마진 40px 추가 — 마지막 줄 경계 잘림 방지
-  const contentH = Math.max(80, pageHeight - topPad - botPad - PAGE_NUM_HEIGHT - (isMobile ? 40 : 0));
+  const contentH = Math.max(80, pageHeight - topPad - botPad - pageNumHeight - (isMobile ? 40 : 0));
 
   // probe: flip-page-content와 동일한 width/font/box-sizing 환경
   // padding·box-sizing 포함해 실제 렌더 폭과 정확히 일치시킴
@@ -187,6 +187,7 @@ const ReadPage = () => {
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
   const totalPagesRef = useRef(0);
+  const pageNumBarRef = useRef(null);
   const loggedIn = isLoggedIn();
   const userEmail = getUser()?.email ?? null;
 
@@ -198,7 +199,8 @@ const ReadPage = () => {
         const response = await getBookById(id);
         const data = response.data;
         setBook(data);
-        const built = buildPagesByHeight(data.content, dim.width, dim.height);
+        const measuredNumH = pageNumBarRef.current?.offsetHeight || PAGE_NUM_HEIGHT;
+        const built = buildPagesByHeight(data.content, dim.width, dim.height, measuredNumH);
         setPages(built);
         totalPagesRef.current = built.length;
 
@@ -268,7 +270,8 @@ const ReadPage = () => {
   // dim 변경(resize) 시 페이지 재계산 — 현재 읽던 위치를 새 페이지 수 범위 내로 보정
   useEffect(() => {
     if (!book) return;
-    const built = buildPagesByHeight(book.content, dim.width, dim.height);
+    const measuredNumH = pageNumBarRef.current?.offsetHeight || PAGE_NUM_HEIGHT;
+    const built = buildPagesByHeight(book.content, dim.width, dim.height, measuredNumH);
     setPages(built);
     totalPagesRef.current = built.length;
     // resize 후 페이지 수가 줄어도 마지막 페이지를 넘지 않도록 보정
@@ -315,6 +318,15 @@ const ReadPage = () => {
 
   return (
     <div className="read-container">
+      {/* 페이지 번호 바 실제 높이 측정용 프로브 — 화면에 표시되지 않음 */}
+      <span
+        ref={pageNumBarRef}
+        className="flip-page-num"
+        style={{ visibility: "hidden", position: "absolute", pointerEvents: "none" }}
+        aria-hidden="true"
+      >
+        1 / 1
+      </span>
       <div className="read-header">
         <button
           className="read-back-btn"
