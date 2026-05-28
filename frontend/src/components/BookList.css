@@ -1,6 +1,6 @@
 .booklist-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
@@ -86,4 +86,10 @@
 .skeleton-rating {
   height: 12px;
   width: 40%;
+}
+
+@media (max-width: 640px) {
+  .booklist-grid {
+    justify-items: center;
+  }
 }

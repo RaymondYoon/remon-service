@@ -58,9 +58,9 @@ function buildPagesByHeight(content, pageWidth, pageHeight) {
 
   const vw = window.innerWidth;
   const isMobile = vw <= 640;
-  const topPad  = isMobile ? 32 : Math.min(52, Math.max(28, vw * 0.045));
+  const topPad  = isMobile ? 20 : Math.min(52, Math.max(28, vw * 0.045));
   const botPad  = 8;  // CSS .flip-page-inner bottom padding과 동일
-  const sidePad = isMobile ? 24 : Math.min(44, Math.max(24, vw * 0.038));
+  const sidePad = isMobile ? 16 : Math.min(44, Math.max(24, vw * 0.038));
   const fontSize = isMobile ? 15 : Math.min(16, Math.max(14, vw * 0.016));
   const contentW = Math.max(1, pageWidth - sidePad * 2);
   // PAGE_NUM_HEIGHT를 명시적으로 빼 하드코딩 제거 — CSS 변경 시 이 변수만 수정하면 됨
@@ -161,8 +161,9 @@ function getPageDimensions() {
   const vh = window.innerHeight;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
-    const w = Math.min(vw - 32, 360);
-    return { width: w, height: Math.max(Math.min(Math.round(w * 1.52), maxH), MIN_PAGE_HEIGHT), isMobile: true };
+    const w = vw - 32;
+    const h = Math.max(vh - 150, MIN_PAGE_HEIGHT);
+    return { width: w, height: h, isMobile: true };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
   return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
@@ -339,7 +340,7 @@ const ReadPage = () => {
           width={dim.width}
           height={dim.height}
           size="fixed"
-          usePortrait={false}
+          usePortrait={dim.isMobile}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
