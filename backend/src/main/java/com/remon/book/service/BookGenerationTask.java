@@ -65,7 +65,7 @@ public class BookGenerationTask {
 
     @Async
     public void generateMissingCoversAsync() {
-        List<Book> books = bookRepository.findByStatusAndCoverImageUrlIsNull(BookStatus.DONE);
+        List<Book> books = bookRepository.findByStatusAndNoCover(BookStatus.DONE);
         log.info("표지 일괄 생성 시작 - 대상 책 수: {}", books.size());
         AtomicInteger success = new AtomicInteger(0);
         AtomicInteger failed = new AtomicInteger(0);
