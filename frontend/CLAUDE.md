@@ -235,12 +235,19 @@ src/
 - [x] `Home.jsx` 스켈레톤 로딩 UI 추가 (로딩 중 카드 형태 플레이스홀더)
 - [x] `Home.jsx` 서버 다운 에러 화면 추가 (API 연결 실패 시 안내 화면)
 
+### 2026-05-28
+- [x] `BookDetail.jsx` `book.coverImage` → `book.coverImageUrl` 필드명 수정
+- [x] `MyLibrary.jsx` 탭 순서 변경 (ALL → READING → SAVED → DONE) + SAVED 레이블 "담은 책" → "읽고 싶어요"
+- [x] `useInfiniteBooks.js` 페이지 기반 → 커서 기반으로 전환 (`getBooksCursor`, `cursorRef`, `isResetRef` 사용, stale closure 방지)
+- [x] `bookApi.js` `getBooksCursor(params)` 함수 추가 (`GET /api/books/cursor`)
+
 ---
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD
 - [ ] 광고 보고 레몬 추가 획득
-- [ ] 무한 스크롤 (useInfiniteBooks 연동 완성)
+- [ ] 책 공유 버튼 (URL 복사 / SNS 공유)
+- [ ] 서비스 스크린샷 촬영 및 `docs/screenshots/` 추가
 - [ ] 테스트 코드 작성 (Jest)
 
 ---

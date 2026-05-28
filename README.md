@@ -128,7 +128,15 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ### 소셜 기능
 - 팔로우/언팔로우, 팔로잉 유저의 책 피드
 - 별점(1~5점) + 리뷰 작성 (유저당 1개 제한, 중복 방지)
-- 리뷰/팔로우 이벤트 실시간 알림 + 헤더 미읽음 뱃지
+- 리뷰/팔로우/책 생성 완료 이벤트 알림 + 헤더 미읽음 뱃지
+
+### 커서 기반 무한 스크롤
+- `GET /api/books/cursor?cursor=&keyword=&size=12` — 마지막 book ID를 커서로 사용
+- 프론트엔드 `useInfiniteBooks` 훅에서 `nextCursor` / `hasMore` 파싱, IntersectionObserver로 자동 loadMore
+
+### 동시성 처리
+- 레몬 차감 시 `@Lock(LockModeType.PESSIMISTIC_WRITE)` 적용 — 동시 요청에서 중복 차감 방지
+- 차감 전 잔량 재확인 (`< 1` 시 예외) + `@Transactional` 보장
 
 ### 인증
 - 이메일 회원가입/로그인 + 카카오 OAuth 2.0
@@ -291,6 +299,8 @@ remon-service/
 | gpt-image-1 `400 Bad Request` | 구 DALL-E 3 파라미터(`style`, `response_format`) 포함 전송 | gpt-image-1 스펙에 맞게 `size`, `quality`, `n`만 전달 |
 | Gemini 간헐적 500/503 | Google 측 일시 과부하 | `HttpServerErrorException` catch → 3초 대기 후 최대 3회 재시도 |
 | `coverImageUrl` DB 미저장 | `Book` 엔티티 및 `BookResponse` DTO에 `coverImageUrl` 필드 누락 | 엔티티·DTO 양쪽에 필드 추가 및 로그 확인 |
+| 표지 일괄 생성 curl 타임아웃 | 책 수 × OpenAI 호출(30~60초)이 Railway HTTP 타임아웃 초과 | 컨트롤러 즉시 202 반환 + `@Async` 백그라운드 처리로 분리 |
+| 커서 쿼리 결과 항상 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate가 enum 필드와 비교 시 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
 
 ---
 
@@ -357,12 +367,12 @@ remon-service/
 │   ├── lemon/         레몬 경제 시스템 (1/day 자동 충전, 3/day 생성 제한)
 │   ├── review/        별점·리뷰 CRUD (유저당 1개 제한, averageRating 포함)
 │   ├── follow/        팔로우/언팔로우, 팔로워·팔로잉 목록
-│   ├── notification/  알림 (REVIEW/FOLLOW 이벤트 자동 생성)
+│   ├── notification/  알림 (REVIEW/FOLLOW/BOOK_GENERATED 이벤트, bookId 포함)
 │   ├── security/      JwtTokenProvider, JwtAuthenticationFilter
 │   ├── ratelimit/     bucket4j Rate Limiting (RateLimitFilter)
-│   ├── admin/         관리자 전용 (책/리뷰 삭제)
+│   ├── admin/         관리자 전용 (책/리뷰 삭제, 표지 일괄 생성)
 │   ├── logging/       로그 마스킹 (MaskingMessageConverter)
-│   └── config/        SecurityConfig, AsyncConfig, SwaggerConfig, DataInitializer
+│   └── config/        SecurityConfig, AsyncConfig, SwaggerConfig, CloudinaryConfig, DataInitializer
 │
 ├── frontend/src/
 │   ├── api/           axiosInstance, bookApi, userApi, followApi, reviewApi, notificationApi

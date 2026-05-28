@@ -118,9 +118,14 @@ remon-service/
 | 성능 최적화 | React.memo, lazy loading, code splitting, SEO 메타 태그 |
 | 기본 표지 통일 | 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경 |
 | AI 표지 이미지 | gpt-image-1으로 책 생성 시 Studio Ghibli 스타일 표지 자동 생성 → Cloudinary CDN 저장 |
+| 표지 일괄 생성 | 관리자 API (`POST /api/admin/books/generate-covers`) — 표지 없는 DONE 책 전체 백그라운드 생성 |
 | 홈 스켈레톤 로딩 | 홈 화면 로딩 중 카드 형태 플레이스홀더 + 서버 다운 에러 화면 |
 | BookCard 개선 | 그리드 레이아웃, 장르 배지, hover 효과, coverImageUrl 표지 |
 | 홈 읽기 배지 | 읽기 시작한 책(READING+DONE)에 ✓ 배지 표시 |
+| 레몬 동시성 처리 | 레몬 차감에 비관적 락(`PESSIMISTIC_WRITE`) 적용 — 동시 요청 시 중복 차감 방지 |
+| 커서 기반 무한 스크롤 | `GET /api/books/cursor` — nextCursor/hasMore 기반 페이지네이션, 프론트 useInfiniteBooks 연동 |
+| 책 생성 완료 알림 | 책 생성 DONE 시 `BOOK_GENERATED` 알림 자동 발송 (알림 타입 + bookId 포함) |
+| 서재 탭 필터 | 전체/읽는 중/읽고 싶어요/완독 탭 필터 (프론트에서 즉시 처리) |
 | 모바일 앱 | React Native (Expo SDK 54) — 10개 화면, 로그인/회원가입/홈/탐색/생성/읽기/서재/마이페이지 |
 
 ---
@@ -158,11 +163,17 @@ npx expo start --clear    # 캐시 초기화 후 실행
 ## 앞으로 할 작업
 - [ ] 앱 EAS Build 설정 및 스토어 배포 (iOS/Android)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
-- [ ] 앱 팔로우/알림 기능 연동
+- [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
+- [ ] 앱 BookDetailScreen 표지 이미지 연동 (coverImageUrl → Image 컴포넌트)
+- [ ] 앱 서재 탭 필터 연동 (LibraryScreen)
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] 무한 스크롤 (커서 기반 페이지네이션)
+- [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답)
+- [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
+- [ ] 책 공유 버튼 (URL 복사 / SNS 공유)
+- [ ] 서비스 스크린샷 촬영 및 README 갱신
 - [ ] 테스트 코드 작성 (백엔드 JUnit, 프론트엔드 Jest)
+- [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 
 ---

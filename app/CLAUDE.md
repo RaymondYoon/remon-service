@@ -119,8 +119,9 @@ NavigationContainer
 
 ---
 
-## 완료된 작업 (2026-05-12)
+## 완료된 작업
 
+### 2026-05-12
 | 작업 | 내용 |
 |------|------|
 | 회원가입 화면 | SignupScreen — 이메일/비밀번호 8자+/닉네임, 비밀번호 조건 실시간 표시 |
@@ -136,15 +137,23 @@ NavigationContainer
 | 오류 메시지 수정 | `data.message` → `data.error` (백엔드 응답 형식 맞춤) |
 | 닉네임 저장 수정 | 로그인 시 `data.email + data.nickname` 정상 저장 |
 
+### 2026-05-28
+| 작업 | 내용 |
+|------|------|
+| coverImageUrl 필드 확인 | HomeScreen, LibraryScreen, ExploreScreen 모두 `coverImageUrl` 정상 사용 확인 |
+| BookDetailScreen 표지 | 현재 🍋 이모지 하드코딩 — `coverImageUrl` 필드 연동은 미구현 (앞으로 할 작업) |
+
 ---
 
 ## 앞으로 할 작업
+- [ ] BookDetailScreen 표지 이미지 연동 (`coverImageUrl` → `<Image>` 컴포넌트로 표시)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] EAS Build 설정 및 내 폰에 직접 설치
 - [ ] 플레이스토어 / 앱스토어 배포 검토
 - [ ] 팔로우/언팔로우 기능 앱에 연동 (followApi 추가)
-- [ ] 알림 기능 앱에 연동
+- [ ] 알림 기능 앱에 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] 카카오 OAuth 앱 지원 (딥링크 설정)
+- [ ] 서재 탭 필터 (LibraryScreen — 읽는 중 / 읽고 싶어요 / 완독)
 
 ---
 

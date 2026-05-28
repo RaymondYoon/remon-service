@@ -293,6 +293,13 @@ CLOUDINARY_API_SECRET=...
 - [x] gpt-image-1 모델: size `"1024x1536"`, quality `"auto"`, 응답 형식 `b64_json` → `Base64.getDecoder().decode()`
 - [x] `OpenAiService` Gemini 500/503 재시도 로직 추가 (maxAttempts=3, 3초 대기 후 재시도)
 
+### 2026-05-28
+- [x] 레몬 차감 비관적 락 적용 (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) — `findByUserIdWithLock` 추가, 차감 전 잔량 재확인(`< 1` 시 예외), `consumeLemon` `@Transactional` 명시
+- [x] 관리자 API 표지 일괄 생성 (`POST /api/admin/books/generate-covers`) — 표지 없는 DONE 책 전체 대상, 즉시 202 반환 후 `@Async` 백그라운드 처리
+- [x] 커서 기반 페이지네이션 (`GET /api/books/cursor?cursor=&keyword=&size=`) — `findBooksWithCursor` JPQL, `{ books, nextCursor, hasMore }` 응답
+- [x] 책 생성 완료 알림 (`NotificationType.BOOK_GENERATED`) — `createBookNotification(userId, type, message, bookId)` 자기 자신 알림 허용, `Notification` 엔티티 `bookId` nullable 필드 추가, `NotificationResponse` `bookId` 포함
+- [x] `BookGenerationTask.run`: DONE 직후 알림 발송 + `book` 조회를 알림·표지 이미지 공유하여 중복 쿼리 제거
+
 ---
 
 ## 트러블슈팅 이력
@@ -307,16 +314,20 @@ CLOUDINARY_API_SECRET=...
 | 카카오 로그인 500 오류 | `deleteByEmail` 후 flush 없이 save 시 같은 트랜잭션에서 duplicate key | `deleteByEmail()` 직후 `entityManager.flush()` 추가 |
 | Gemini JSON parse error 빈발 | 소설 본문의 따옴표·쉼표·줄바꿈이 JSON 파싱 오류 유발 | JSON 대신 `[TITLE]`/`[CONTENT]` 구분자 방식으로 변경 |
 | Railway nixpacks JAVA_HOME 미설정 | Railway 기본 빌드 시 JDK가 PATH 없어 Gradle 실패 | `nixpacks.toml`에 `nixPkgs = ["jdk17_headless"]` 추가 |
+| 표지 일괄 생성 curl 타임아웃 | 책 수 × OpenAI API 호출(30~60초)이 Railway HTTP 타임아웃 초과 | 컨트롤러는 즉시 202 반환, 실제 처리는 `@Async` 백그라운드 실행으로 분리 |
+| `findDoneBooksWithoutCover` 결과 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate enum 비교에서 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
 
 ---
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] 무한 스크롤 (커서 기반 페이지네이션)
+- [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답 캐시)
+- [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득 API
-- [ ] 테스트 코드 작성 (JUnit)
+- [ ] 테스트 코드 작성 (JUnit — LemonService 동시성, BookGenerationTask, NotificationService)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 - [ ] 앱 EAS Build 배포를 위한 카카오 OAuth 앱 도메인 추가
+- [ ] Python 분석 스크립트 (생성된 책 장르·분위기 분포, 사용자 활동 통계)
 
 ---
 
