@@ -41,8 +41,8 @@ public class BookGenerationTask {
                 bookId, keywords, genre, tone, ending);
         try {
             String[] result = openAiService.generate(keywords, genre, tone, ending, protagonistName);
-            bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.DONE);
-            log.info("책 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
+            bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.GENERATING);
+            log.info("텍스트 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
                     bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);
 
             Book book = bookRepository.findById(bookId).orElse(null);
@@ -61,6 +61,10 @@ public class BookGenerationTask {
             } catch (Exception e) {
                 log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
             }
+
+            // 이미지 처리 완료 후 DONE으로 변경
+            bookRepository.updateStatus(bookId, BookStatus.DONE);
+            log.info("책 생성 완료(DONE) - bookId: {}", bookId);
 
             // 책 생성 완료 알림 (이미지 처리 완료 후 발송)
             if (book != null && book.getPublishedBy() != null) {
