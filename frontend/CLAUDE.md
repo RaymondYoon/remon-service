@@ -44,7 +44,7 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ```
 /                → Home.jsx            책 목록 + 검색 + 장르 필터 (debounce 300ms)
 /book/:id        → BookDetail.jsx      책 상세 + 서재 담기 + 별점/리뷰
-/book/:id/read   → ReadPage.jsx        react-pageflip 책 본문 뷰어 (두 페이지 고정)
+/book/:id/read   → ReadPage.jsx        react-pageflip 책 본문 뷰어 (데스크톱 두 페이지 / 모바일 단일 페이지)
 /login           → Login.jsx           이메일 로그인 + 카카오 로그인 버튼
 /signup          → Signup.jsx          회원가입
 /library         → MyLibrary.jsx       내 서재 (ProtectedRoute)
@@ -142,8 +142,11 @@ src/
 ---
 
 ## 책 뷰어 (ReadPage)
-- react-pageflip으로 두 페이지 모드 고정 (usePortrait=false)
+- `usePortrait={dim.isMobile}` — 모바일(≤640px) 단일 페이지, 데스크톱 두 페이지
 - DOM 높이 기반 페이지 분할 (`buildPagesByHeight` 함수) — binary search로 단락 잘림 방지
+- 모바일: `contentH`에 40px 안전 마진 추가 — 마지막 줄 경계 잘림 방지
+- 모바일: `pageNumBarRef`로 페이지 번호 바 실제 DOM 높이 측정 (측정 실패 시 `PAGE_NUM_HEIGHT=36` fallback)
+- 모바일: 페이지 너비 `vw-32`, 높이 `Math.max(vh-200, 450)` 보장
 - 키보드 방향키 지원 (← →)
 - 읽은 페이지 localStorage + 서버 양쪽 저장 (debounce 1500ms)
 - 완독 시 자동으로 DONE 상태 처리
@@ -240,6 +243,10 @@ src/
 - [x] `MyLibrary.jsx` 탭 순서 변경 (ALL → READING → SAVED → DONE) + SAVED 레이블 "담은 책" → "읽고 싶어요"
 - [x] `useInfiniteBooks.js` 페이지 기반 → 커서 기반으로 전환 (`getBooksCursor`, `cursorRef`, `isResetRef` 사용, stale closure 방지)
 - [x] `bookApi.js` `getBooksCursor(params)` 함수 추가 (`GET /api/books/cursor`)
+
+### 2026-05-30
+- [x] `ReadPage.jsx` 모바일 반응형 개선 — 단일 페이지 모드(`usePortrait={dim.isMobile}`), `contentH` 40px 안전 마진, `pageNumBarRef` DOM 높이 측정, 모바일 너비/높이 최적화 (아이폰 14 Pro 하단 잘림 해결)
+- [x] `BookList.jsx` 모바일 그리드 중앙정렬 개선
 
 ---
 

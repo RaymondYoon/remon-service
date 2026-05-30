@@ -212,8 +212,9 @@ remon-service/
 
 **Action**:
 - `POST /api/books/generate`에서 Book을 PENDING 상태로 즉시 DB 저장, `202 Accepted + { id }` 반환
-- Spring `@Async`로 별도 스레드(`BookGenerationTask`)에서 Gemini API 호출 → 완료 시 DONE, 실패 시 FAILED 업데이트
-- 프론트엔드에서 `GET /api/books/{id}/status`를 3초 간격(최대 60회)으로 폴링하여 DONE 감지 → 뷰어로 자동 이동
+- Spring `@Async`로 별도 스레드(`BookGenerationTask`)에서 Gemini API 호출 → 텍스트 완료 시 GENERATING 유지 → 표지 이미지 저장 완료 후 DONE, 실패 시 FAILED 업데이트
+- 상태 흐름: `PENDING → GENERATING(시작) → GENERATING(텍스트 완료) → DONE(표지 포함)/FAILED`
+- 프론트엔드에서 `GET /api/books/{id}/status`를 3초 간격(최대 60회)으로 폴링하여 DONE 감지 → 뷰어로 자동 이동 (DONE 수신 시 `coverImageUrl` 포함된 완성 책 보장)
 - 레몬 소모도 서버측에서 처리하여 클라이언트 조작 불가
 
 **Result**: 30초 생성 대기 중에도 UI 블로킹 없음. FAILED 상태로 사용자에게 명확한 피드백 제공, 레몬 차감은 서버 신뢰 보장
@@ -301,6 +302,9 @@ remon-service/
 | `coverImageUrl` DB 미저장 | `Book` 엔티티 및 `BookResponse` DTO에 `coverImageUrl` 필드 누락 | 엔티티·DTO 양쪽에 필드 추가 및 로그 확인 |
 | 표지 일괄 생성 curl 타임아웃 | 책 수 × OpenAI 호출(30~60초)이 Railway HTTP 타임아웃 초과 | 컨트롤러 즉시 202 반환 + `@Async` 백그라운드 처리로 분리 |
 | 커서 쿼리 결과 항상 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate가 enum 필드와 비교 시 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
+| 모바일 ReadPage 하단 텍스트 잘림 | `contentH` 계산 시 페이지 번호 바 높이를 하드코딩(48px)으로 고정해 실제보다 낮은 높이 반영 + 마지막 줄 경계 잘림 | `pageNumBarRef`로 실제 DOM 높이 측정, 모바일 `contentH`에 40px 안전 마진 추가 |
+| 책 생성 DONE 수신 시 표지 없음 | 텍스트 완료 직후 DONE으로 상태 변경 → 클라이언트가 DONE 감지 시 아직 이미지 업로드 전 | 상태 흐름 변경: 텍스트 완료 후 GENERATING 유지 → 이미지 저장 완료 후 `updateStatus(DONE)` 호출 |
+| `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → Hibernate DDL-auto=update로 컬럼 자동 확장 |
 
 ---
 

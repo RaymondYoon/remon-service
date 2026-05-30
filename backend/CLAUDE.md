@@ -184,8 +184,10 @@ Authorization: Bearer <token>
 }
 → 202 Accepted + { "id": 123 }
 ```
-- Book을 PENDING 상태로 즉시 저장 → `@Async`로 Gemini API 호출 → DONE/FAILED 업데이트
-- 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지
+- Book을 PENDING 상태로 즉시 저장 → `@Async`로 Gemini API 호출 → 텍스트 완료 시 GENERATING 유지 → 이미지 저장 완료 후 DONE, 실패 시 FAILED
+- 상태 흐름: `PENDING → GENERATING(시작) → GENERATING(텍스트 완료) → DONE(이미지 포함)/FAILED`
+- 알림(`BOOK_GENERATED`)은 이미지 처리 완료 후 발송 (이미지 실패 시에도 발송, 책 자체는 완성)
+- 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지 — DONE 수신 시 coverImageUrl 포함된 완성 책
 - AI 모델: `gemini-2.5-flash` (30초 타임아웃)
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
 - 분량: 항상 3000자 내외 고정
@@ -300,6 +302,11 @@ CLOUDINARY_API_SECRET=...
 - [x] 책 생성 완료 알림 (`NotificationType.BOOK_GENERATED`) — `createBookNotification(userId, type, message, bookId)` 자기 자신 알림 허용, `Notification` 엔티티 `bookId` nullable 필드 추가, `NotificationResponse` `bookId` 포함
 - [x] `BookGenerationTask.run`: DONE 직후 알림 발송 + `book` 조회를 알림·표지 이미지 공유하여 중복 쿼리 제거
 
+### 2026-05-30
+- [x] `BookGenerationTask.run`: 알림 발송 위치 변경 — 텍스트 완료 직후 → 이미지 저장 완료 후 발송 (이미지 실패 시에도 알림 발송)
+- [x] `BookGenerationTask.run`: 상태 흐름 변경 — 텍스트 완료 후 GENERATING 유지 → 이미지 처리 완료 후 `updateStatus(DONE)` (폴링 클라이언트가 coverImageUrl 포함된 완성 책 수신)
+- [x] `Notification` 엔티티 `type` 컬럼 `length = 20` 명시 — `BOOK_GENERATED`(14자) DB truncation 방지
+
 ---
 
 ## 트러블슈팅 이력
@@ -316,6 +323,7 @@ CLOUDINARY_API_SECRET=...
 | Railway nixpacks JAVA_HOME 미설정 | Railway 기본 빌드 시 JDK가 PATH 없어 Gradle 실패 | `nixpacks.toml`에 `nixPkgs = ["jdk17_headless"]` 추가 |
 | 표지 일괄 생성 curl 타임아웃 | 책 수 × OpenAI API 호출(30~60초)이 Railway HTTP 타임아웃 초과 | 컨트롤러는 즉시 202 반환, 실제 처리는 `@Async` 백그라운드 실행으로 분리 |
 | `findDoneBooksWithoutCover` 결과 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate enum 비교에서 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
+| `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → DDL-auto=update로 컬럼 자동 확장 |
 
 ---
 
