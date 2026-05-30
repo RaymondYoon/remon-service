@@ -30,7 +30,7 @@ public class Notification {
     private Long senderId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private NotificationType type;
 
     @Column(nullable = false)

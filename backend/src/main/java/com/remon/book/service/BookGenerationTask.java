@@ -47,20 +47,6 @@ public class BookGenerationTask {
 
             Book book = bookRepository.findById(bookId).orElse(null);
 
-            // 책 생성 완료 알림
-            if (book != null && book.getPublishedBy() != null) {
-                try {
-                    notificationService.createBookNotification(
-                            book.getPublishedBy(),
-                            NotificationType.BOOK_GENERATED,
-                            "이야기가 완성됐어요! 지금 바로 읽어보세요.",
-                            bookId
-                    );
-                } catch (Exception e) {
-                    log.warn("책 생성 알림 발송 실패 - bookId: {}", bookId);
-                }
-            }
-
             try {
                 byte[] imageBytes = imagenService.generateCoverImage(result[0], genre, result[1]);
                 if (imageBytes != null) {
@@ -74,6 +60,20 @@ public class BookGenerationTask {
                 }
             } catch (Exception e) {
                 log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
+            }
+
+            // 책 생성 완료 알림 (이미지 처리 완료 후 발송)
+            if (book != null && book.getPublishedBy() != null) {
+                try {
+                    notificationService.createBookNotification(
+                            book.getPublishedBy(),
+                            NotificationType.BOOK_GENERATED,
+                            "이야기가 완성됐어요! 지금 바로 읽어보세요.",
+                            bookId
+                    );
+                } catch (Exception e) {
+                    log.warn("책 생성 알림 발송 실패 - bookId: {}, message: {}", bookId, e.getMessage());
+                }
             }
         } catch (Exception e) {
             bookRepository.updateStatus(bookId, BookStatus.FAILED);
