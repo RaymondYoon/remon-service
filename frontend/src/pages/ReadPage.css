@@ -9,6 +9,7 @@
   padding: 16px 24px;
   box-sizing: border-box;
   transition: background-color 0.3s;
+  touch-action: pan-y;
 }
 
 /* ─── 상단 헤더 (뒤로가기 + 제목) ─── */
@@ -83,6 +84,11 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   min-height: 500px;
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .html-flipbook .stf__parent {
@@ -94,6 +100,11 @@
   background: var(--color-read-page);
   overflow: hidden;
   height: 100%;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .flip-page-inner {
@@ -104,6 +115,11 @@
   padding: clamp(28px, 4.5vw, 52px) clamp(24px, 3.8vw, 44px) 8px;
   box-sizing: border-box;
   position: relative;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* 홀수 페이지(왼쪽): 오른쪽 경계선 */
