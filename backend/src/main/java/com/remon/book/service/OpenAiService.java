@@ -41,8 +41,9 @@ public class OpenAiService {
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
-    public String[] generate(List<String> keywords, String genre, String tone, String ending, String protagonistName) {
-        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName);
+    public String[] generate(List<String> keywords, String genre, String tone, String ending,
+                             String protagonistName, String protagonistTrait, String viewpoint) {
+        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -91,7 +92,8 @@ public class OpenAiService {
 
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
-    private String buildPrompt(List<String> keywords, String genre, String tone, String ending, String protagonistName) {
+    private String buildPrompt(List<String> keywords, String genre, String tone, String ending,
+                               String protagonistName, String protagonistTrait, String viewpoint) {
         String toneDesc = switch (tone != null ? tone.toUpperCase() : "WARM") {
             case "DARK"      -> "어둡고 긴장감 있게";
             case "HUMOROUS"  -> "유쾌하고 재미있게";
@@ -107,6 +109,14 @@ public class OpenAiService {
         String protagonistLine = (protagonistName != null && !protagonistName.isBlank())
                 ? "주인공 이름: " + protagonistName
                 : "주인공 이름: AI가 자유롭게 결정";
+
+        String viewpointDesc = "1인칭".equals(viewpoint)
+                ? "1인칭 주인공 시점으로 서술 ('나'가 직접 겪는 방식)"
+                : "3인칭 전지적 시점으로 서술";
+
+        String protagonistTraitLine = (protagonistTrait != null && !protagonistTrait.isBlank())
+                ? "주인공 성격/특징: " + protagonistTrait + " — 이 특징이 이야기 전반에 자연스럽게 드러나도록 할 것"
+                : "";
 
         return String.format(
                 """
@@ -139,7 +149,7 @@ public class OpenAiService {
                 - 시각, 청각, 후각, 촉각, 미각 등 오감을 적극 활용하여 배경을 묘사
 
                 === 문체 ===
-                - 3인칭 전지적 시점으로 서술
+                - %s
                 - 문단은 반드시 3~5문장 단위로 나누고 빈 줄로 구분
                 - 문장은 간결하되 여운이 남는 표현 사용
                 - 중복 표현, 과도한 수식어 지양
@@ -154,12 +164,16 @@ public class OpenAiService {
                 분량: 2500자 내외
                 결말: %s
                 %s
+                %s
                 키워드: %s
+                타겟 독자: 성인 / 책을 잘 읽지 않는 독자도 몰입할 수 있도록 첫 문장부터 강렬하게, 문체는 간결하고 세련되게
                 """,
+                viewpointDesc,
                 genre != null ? genre : "일상",
                 toneDesc,
                 endingDesc,
                 protagonistLine,
+                protagonistTraitLine,
                 String.join(", ", keywords)
         );
     }

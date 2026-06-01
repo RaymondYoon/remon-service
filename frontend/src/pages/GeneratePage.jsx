@@ -17,6 +17,11 @@ const ENDINGS = [
   { value: "SAD",   label: "새드엔딩" },
   { value: "OPEN",  label: "열린결말" },
 ];
+const VIEWPOINTS = [
+  { value: "3인칭", label: "3인칭 (전지적 시점)" },
+  { value: "1인칭", label: "1인칭 (내가 주인공)" },
+];
+const PROTAGONIST_TRAITS = ["소심한", "까칠한", "비밀이 있는", "천재적인", "상처받은", "엉뚱한"];
 
 const GeneratePage = () => {
   const navigate = useNavigate();
@@ -27,6 +32,8 @@ const GeneratePage = () => {
   const [tone, setTone]                 = useState("WARM");
   const [ending, setEnding]             = useState("HAPPY");
   const [protagonistName, setProtagonistName] = useState("");
+  const [viewpoint, setViewpoint]             = useState("3인칭");
+  const [protagonistTrait, setProtagonistTrait] = useState(null);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
   const [generatingBookId, setGeneratingBookId] = useState(null);
@@ -120,6 +127,8 @@ const GeneratePage = () => {
         tone,
         ending,
         protagonistName: nameValue,
+        viewpoint,
+        protagonistTrait: protagonistTrait || null,
       });
       // 생성 성공 시 레몬 정보 갱신
       getLemonInfo()
@@ -204,7 +213,7 @@ const GeneratePage = () => {
               <input
                 type="text"
                 className="keyword-input"
-                placeholder={keywords.length === 0 ? "예: 우주, 고양이, 시간여행" : ""}
+                placeholder={keywords.length === 0 ? "예: 우주, 고양이, 우주선 탈출 / 지우, 하늘, 까칠한 천재" : ""}
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
                 onKeyDown={handleKeywordKeyDown}
@@ -278,6 +287,42 @@ const GeneratePage = () => {
             onChange={(e) => setProtagonistName(e.target.value)}
             maxLength={20}
           />
+        </div>
+
+        {/* 서술 시점 */}
+        <div className="generate-field">
+          <label className="generate-label">서술 시점</label>
+          <div className="chip-group">
+            {VIEWPOINTS.map((vp) => (
+              <button
+                key={vp.value}
+                type="button"
+                className={`chip ${viewpoint === vp.value ? "chip--active" : ""}`}
+                onClick={() => setViewpoint(vp.value)}
+              >
+                {vp.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 주인공 성격 */}
+        <div className="generate-field">
+          <label className="generate-label">
+            주인공 성격 <span className="generate-label-hint">선택사항 · 다시 누르면 해제</span>
+          </label>
+          <div className="chip-group">
+            {PROTAGONIST_TRAITS.map((trait) => (
+              <button
+                key={trait}
+                type="button"
+                className={`chip ${protagonistTrait === trait ? "chip--active" : ""}`}
+                onClick={() => setProtagonistTrait(protagonistTrait === trait ? null : trait)}
+              >
+                {trait}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && <p className="generate-error">{error}</p>}

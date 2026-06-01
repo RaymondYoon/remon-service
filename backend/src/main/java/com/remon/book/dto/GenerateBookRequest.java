@@ -22,5 +22,9 @@ public class GenerateBookRequest {
 
     private String ending;          // "HAPPY" | "SAD" | "OPEN" (선택, 기본값 HAPPY)
 
-    private String protagonistName; // 주인공 이름 (선택, null이면 AI가 결정)
+    private String protagonistName;  // 주인공 이름 (선택, null이면 AI가 결정)
+
+    private String protagonistTrait; // 주인공 성격 특징 (선택)
+
+    private String viewpoint;        // 서술 시점 ("1인칭" | "3인칭", 기본값 "3인칭")
 }
