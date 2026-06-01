@@ -33,7 +33,7 @@
 
 Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책 생성 플랫폼입니다.
 
-- 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름을 입력하면 Google Gemini가 3,000자 내외의 단편 소설을 비동기로 생성합니다.
+- 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름·성격·서술 시점을 입력하면 Google Gemini가 2,500자 내외의 단편 소설을 비동기로 생성합니다.
 - 생성된 책은 **웹**에서는 react-pageflip 기반 책 넘기기 뷰어로, **앱**에서는 PanGestureHandler 스와이프 애니메이션으로 읽을 수 있습니다.
 - 레몬 경제 시스템(하루 1개 자동 충전, 1일 3회 생성 제한)으로 생성 횟수를 관리합니다.
 - 팔로우, 별점·리뷰, 피드, 알림 등 소셜 기능으로 다른 사용자의 책도 탐색할 수 있습니다.
@@ -112,7 +112,8 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ## 주요 기능
 
 ### AI 책 생성
-- 키워드(최대 4개), 장르(SF/판타지/로맨스/일상/공포), 분위기(따뜻/긴장감/유쾌), 결말(해피/새드/열린결말), 주인공 이름 → Google Gemini API로 3,000자 소설 자동 생성
+- 키워드(최대 4개), 장르(SF/판타지/로맨스/일상/공포), 분위기(따뜻/긴장감/유쾌), 결말(해피/새드/열린결말), 주인공 이름·성격(6종 칩), 서술 시점(1인칭/3인칭) → Google Gemini API로 2,500자 소설 자동 생성
+- 프롬프트 엔지니어링: 서사구조(강렬한 훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 내부 구상 단계 포함
 - `202 Accepted` + 폴링 방식 비동기 처리 — UI 블로킹 없이 생성 진행 상태 실시간 확인
 
 ### 책 뷰어
@@ -269,7 +270,25 @@ remon-service/
 
 ---
 
-### 5. 읽기 시작 upsert — 서재 없이도 독서 상태 등록
+### 5. Gemini 프롬프트 엔지니어링 — 소설 품질 향상
+
+**Situation**: 초기 프롬프트는 단순 조건 나열 방식이라 AI가 직접 서술(Telling), 평이한 도입부, 단조로운 문체의 소설을 생성함
+
+**Task**: 독자가 처음부터 몰입할 수 있는 문학적 완성도 높은 소설을 안정적으로 생성
+
+**Action**:
+- 서사구조 강제: 첫 문장을 강렬한 훅(Hook)으로 시작, 기승전결 구조 명시
+- Showing > Telling: "그는 화가 났다" 같은 직접 서술 금지, 행동·감각 묘사만 허용
+- 오감 활용: 시각·청각·후각·촉각·미각을 적극 활용하는 배경 묘사 지시
+- 서술 시점 선택: 사용자가 1인칭(나 시점) / 3인칭(전지적 시점) 선택 → 프롬프트에 반영
+- 주인공 성격 옵션: 6가지 칩 중 선택 시 "이 특징이 이야기 전반에 자연스럽게 드러나도록"으로 프롬프트에 삽입
+- CoT(Chain-of-Thought) 집필 구상: 출력 금지 내부 단계("주인공 비밀/결핍 → 갈등·반전 → 클라이맥스 오감 요소") 추가 — AI가 구조를 계획한 뒤 본문을 작성하도록 유도
+
+**Result**: 훅이 있는 도입부, 감각적 묘사, 일관된 시점의 소설 생성. 사용자 선택 옵션이 실제 서사에 반영됨
+
+---
+
+### 6. 읽기 시작 upsert — 서재 없이도 독서 상태 등록
 
 **Situation**: ReadPage 방문 시 서재에 책이 없으면 독서 상태(READING)를 등록할 수 없어 홈의 ✓ 배지가 표시되지 않음
 
@@ -305,6 +324,9 @@ remon-service/
 | 모바일 ReadPage 하단 텍스트 잘림 | `contentH` 계산 시 페이지 번호 바 높이를 하드코딩(48px)으로 고정해 실제보다 낮은 높이 반영 + 마지막 줄 경계 잘림 | `pageNumBarRef`로 실제 DOM 높이 측정, 모바일 `contentH`에 40px 안전 마진 추가 |
 | 책 생성 DONE 수신 시 표지 없음 | 텍스트 완료 직후 DONE으로 상태 변경 → 클라이언트가 DONE 감지 시 아직 이미지 업로드 전 | 상태 흐름 변경: 텍스트 완료 후 GENERATING 유지 → 이미지 저장 완료 후 `updateStatus(DONE)` 호출 |
 | `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → Hibernate DDL-auto=update로 컬럼 자동 확장 |
+| OpenAI API `429 / insufficient_quota` — 표지 이미지 전체 실패 | OpenAI 계정 크레딧 소진 (billing limit 초과) — gpt-image-1 호출 시 429 반환 | `BookGenerationTask`의 이미지 예외 `catch` 블록이 작동하여 책은 DONE 유지됨. 크레딧 충전으로 해결 |
+| 안드로이드 모바일 책 넘김 버벅임 | 브라우저가 CSS transform 애니메이션을 CPU로 처리 — 60fps 미달 | `ReadPage.css`에 `will-change: transform`, `translateZ(0)`, `backface-visibility: hidden` 추가로 GPU 합성 레이어 강제 활성화 |
+| Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
 
 ---
 

@@ -137,7 +137,9 @@ src/
 - **분위기**: 따뜻하게(WARM) / 긴장감 있게(DARK) / 유쾌하게(HUMOROUS)
 - **결말**: 해피엔딩(HAPPY) / 새드엔딩(SAD) / 열린결말(OPEN)
 - **주인공 이름**: 텍스트 입력 (선택사항, 비워두면 AI가 결정)
-- 분량은 3000자 내외로 고정
+- **서술 시점**: 3인칭(전지적 시점) / 1인칭(내가 주인공) — 칩 형식 단일 선택, 기본 3인칭
+- **주인공 성격**: 소심한 / 까칠한 / 비밀이 있는 / 천재적인 / 상처받은 / 엉뚱한 — 칩 형식 단일 선택, 선택 해제 가능 (다시 누르면 null)
+- 분량은 2500자 내외로 고정
 
 ---
 
@@ -151,6 +153,7 @@ src/
 - 읽은 페이지 localStorage + 서버 양쪽 저장 (debounce 1500ms)
 - 완독 시 자동으로 DONE 상태 처리
 - **ReadPage 방문 시 `startReading` 자동 호출** — 서재에 없는 책도 READING으로 자동 등록
+- **GPU 가속 강제 활성화** (`ReadPage.css`) — `.read-container`, `.html-flipbook`, `.flip-page`, `.flip-page-inner`에 `will-change: transform`, `transform: translateZ(0)`, `backface-visibility: hidden` 적용 → 안드로이드 모바일 책 넘김 버벅임 해소
 
 ---
 
@@ -247,6 +250,13 @@ src/
 ### 2026-05-30
 - [x] `ReadPage.jsx` 모바일 반응형 개선 — 단일 페이지 모드(`usePortrait={dim.isMobile}`), `contentH` 40px 안전 마진, `pageNumBarRef` DOM 높이 측정, 모바일 너비/높이 최적화 (아이폰 14 Pro 하단 잘림 해결)
 - [x] `BookList.jsx` 모바일 그리드 중앙정렬 개선
+
+### 2026-06-01
+- [x] `ReadPage.css` GPU 가속 강제 활성화 — `will-change: transform`, `translateZ(0)`, `backface-visibility: hidden` 추가 → 안드로이드 모바일 책 넘김 버벅임 해소
+- [x] `GeneratePage.jsx` 서술 시점 칩 UI 추가 (`VIEWPOINTS`: 3인칭/1인칭, 기본 3인칭)
+- [x] `GeneratePage.jsx` 주인공 성격 칩 UI 추가 (`PROTAGONIST_TRAITS`: 6가지, 단일 선택, 재클릭 시 해제)
+- [x] `generateBook` API 호출 시 `viewpoint`, `protagonistTrait` 필드 전송
+- [x] 키워드 placeholder 예시 문구 개선 (`"예: 우주, 고양이, 우주선 탈출 / 지우, 하늘, 까칠한 천재"`)
 
 ---
 

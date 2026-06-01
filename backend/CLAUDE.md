@@ -179,8 +179,10 @@ Authorization: Bearer <token>
   "keywords": ["우주", "고양이", "모험", "시간여행"],  // 최대 4개
   "genre": "SF",
   "tone": "WARM",
-  "ending": "HAPPY",           // HAPPY | SAD | OPEN (선택, 기본 HAPPY)
-  "protagonistName": "지우"    // 선택, null이면 AI가 결정
+  "ending": "HAPPY",               // HAPPY | SAD | OPEN (선택, 기본 HAPPY)
+  "protagonistName": "지우",       // 선택, null이면 AI가 결정
+  "protagonistTrait": "비밀이 있는", // 선택, null이면 미반영 (6가지 중 택1)
+  "viewpoint": "1인칭"             // "1인칭" | "3인칭" (선택, 기본 "3인칭")
 }
 → 202 Accepted + { "id": 123 }
 ```
@@ -190,8 +192,9 @@ Authorization: Bearer <token>
 - 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지 — DONE 수신 시 coverImageUrl 포함된 완성 책
 - AI 모델: `gemini-2.5-flash` (30초 타임아웃)
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
-- 분량: 항상 3000자 내외 고정
+- 분량: 항상 2500자 내외 고정
 - 생성 시 레몬 1개 소모 (서버측 처리)
+- **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 포함
 
 ---
 
@@ -307,6 +310,13 @@ CLOUDINARY_API_SECRET=...
 - [x] `BookGenerationTask.run`: 상태 흐름 변경 — 텍스트 완료 후 GENERATING 유지 → 이미지 처리 완료 후 `updateStatus(DONE)` (폴링 클라이언트가 coverImageUrl 포함된 완성 책 수신)
 - [x] `Notification` 엔티티 `type` 컬럼 `length = 20` 명시 — `BOOK_GENERATED`(14자) DB truncation 방지
 
+### 2026-06-01
+- [x] `OpenAiService.buildPrompt` 프롬프트 전면 개선 — 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 서술 시점 적용 / 타겟독자(성인) / 분량 3000자→2500자
+- [x] `GenerateBookRequest` DTO에 `protagonistTrait`(주인공 성격), `viewpoint`(서술 시점) 필드 추가
+- [x] `OpenAiService.generate()` / `BookGenerationTask.run()` / `BookService.generateBook()` 메서드 시그니처 확장 (7개 파라미터로)
+- [x] `buildPrompt`에 CoT(Chain-of-Thought) 집필 구상 단계 추가 — 출력 금지 내부 구상(주인공 비밀·갈등·오감 묘사 요소)으로 소설 품질 향상
+- [x] `ReadPage.css` GPU 가속 강제 활성화 — 안드로이드 모바일 책 넘김 버벅임 수정 (`will-change: transform`, `translateZ(0)`, `backface-visibility: hidden`)
+
 ---
 
 ## 트러블슈팅 이력
@@ -324,6 +334,7 @@ CLOUDINARY_API_SECRET=...
 | 표지 일괄 생성 curl 타임아웃 | 책 수 × OpenAI API 호출(30~60초)이 Railway HTTP 타임아웃 초과 | 컨트롤러는 즉시 202 반환, 실제 처리는 `@Async` 백그라운드 실행으로 분리 |
 | `findDoneBooksWithoutCover` 결과 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate enum 비교에서 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
 | `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → DDL-auto=update로 컬럼 자동 확장 |
+| OpenAI API `429 / insufficient_quota` | OpenAI 계정 크레딧 소진 (billing limit 초과) — gpt-image-1 표지 생성 전체 실패 | `ImagenService` 예외 `catch`로 표지 실패해도 책은 DONE 유지됨. 크레딧 충전 또는 `ImagenService` 비활성화로 대응 |
 
 ---
 

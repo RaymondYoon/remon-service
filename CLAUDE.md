@@ -2,7 +2,7 @@
 
 ## 프로젝트 개요
 **Remon**은 AI가 전자책/소설을 자동 생성해주는 웹 서비스다.
-사용자가 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름(선택)을 입력하면
+사용자가 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름·성격·서술 시점(선택)을 입력하면
 Google Gemini(gemini-2.5-flash)가 단편 소설을 생성한다.
 레몬 경제 시스템(하루 3회 제한)과 소셜 기능(팔로우, 리뷰, 피드)을 갖추고 있다.
 
@@ -103,7 +103,8 @@ remon-service/
 |------|------|
 | 회원가입/로그인 | 이메일 + 카카오 OAuth 2.0 |
 | JWT 인증 | Access Token 15분 + Refresh Token 7일 자동 재발급 |
-| AI 책 생성 | 키워드·장르·분위기·결말·주인공 이름 → Gemini 비동기 생성 (폴링) |
+| AI 책 생성 | 키워드·장르·분위기·결말·주인공 이름·성격·서술 시점 → Gemini 비동기 생성 (폴링) |
+| AI 소설 품질 향상 | 서사구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상 내부 단계 / 2500자 고정 |
 | 레몬 시스템 | 하루 1개 자동 충전, 책 생성 시 소모, 1일 3회 제한 |
 | 레몬트리 UI | 레몬 개수별 나무 시각화, 소모 시 낙하 애니메이션 |
 | 내 서재 | 책 저장, 독서 상태(SAVED/READING/DONE), 페이지 저장 |
@@ -166,6 +167,7 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] 앱 BookDetailScreen 표지 이미지 연동 (coverImageUrl → Image 컴포넌트)
 - [ ] 앱 서재 탭 필터 연동 (LibraryScreen)
+- [ ] 앱 GenerateScreen 시점/성격 옵션 UI 추가 (웹 GeneratePage와 동일하게)
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답)
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
