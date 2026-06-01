@@ -95,6 +95,26 @@
   min-height: 500px;
 }
 
+/* ─── 페이지 분할용 측정 프레임 (화면 밖, 실제 책과 동일 flex 레이아웃) ─── */
+.read-page-measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.read-page-measure .flip-page {
+  width: 100%;
+  height: 100%;
+}
+
+.read-page-probe {
+  box-sizing: border-box;
+}
+
 /* ─── 플립 페이지 (BookPage 컴포넌트) ─── */
 .flip-page {
   background: var(--color-read-page);
