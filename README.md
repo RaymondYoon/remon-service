@@ -46,7 +46,7 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 
 | 홈 화면 | AI 책 생성 | 책 뷰어 |
 |--------|-----------|--------|
-| ![홈](docs/screenshots/web-home.png) | ![생성](docs/screenshots/web-generate.png) | ![뷰어](docs/screenshots/web-reader.png) |
+| ![홈](<img width="1986" height="1236" alt="web-home" src="https://github.com/user-attachments/assets/795b5cf2-2185-46e7-bc62-63639a4079fc" />) | ![생성](docs/screenshots/web-generate.png) | ![뷰어](docs/screenshots/web-reader.png) |
 
 | 책 상세 | 내 서재 | 마이페이지 |
 |--------|--------|-----------|
