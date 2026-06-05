@@ -128,6 +128,11 @@ remon-service/
 | 책 생성 완료 알림 | 이미지 저장 완료 후 `BOOK_GENERATED` 알림 자동 발송 (이미지 실패 시에도 발송, bookId 포함) |
 | 서재 탭 필터 | 전체/읽는 중/읽고 싶어요/완독 탭 필터 (프론트에서 즉시 처리) |
 | 모바일 앱 | React Native (Expo SDK 54) — 10개 화면, 로그인/회원가입/홈/탐색/생성/읽기/서재/마이페이지 |
+| 홈 DONE 책만 노출 | `GET /api/books`, `GET /api/books/cursor` — AI 생성 책 중 DONE 상태만 반환 (PENDING/GENERATING 제외) |
+| 생성 진행도 바 | 생성 중 단계별 프로그레스 바 (TEXT 10→50% / IMAGE 50→90% / 완료 100%) + 단계 메시지 |
+| 생성 상태 step 필드 | `GET /api/books/{id}/status` 응답에 `step` 추가 (TEXT/IMAGE/DONE/FAILED) |
+| 책 공유 버튼 | BookDetail "본문 보기" 옆 📤 공유 버튼 — Web Share API / 미지원 시 URL 클립보드 복사 |
+| 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 |
 
 ---
 
@@ -172,7 +177,6 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답)
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
-- [ ] 책 공유 버튼 (URL 복사 / SNS 공유)
 - [ ] 서비스 스크린샷 촬영 및 README 갱신
 - [ ] 테스트 코드 작성 (백엔드 JUnit, 프론트엔드 Jest)
 - [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)

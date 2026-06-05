@@ -113,8 +113,9 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 
 ### AI 책 생성
 - 키워드(최대 4개), 장르(SF/판타지/로맨스/일상/공포), 분위기(따뜻/긴장감/유쾌), 결말(해피/새드/열린결말), 주인공 이름·성격(6종 칩), 서술 시점(1인칭/3인칭) → Google Gemini API로 2,500자 소설 자동 생성
-- 프롬프트 엔지니어링: 서사구조(강렬한 훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 내부 구상 단계 포함
+- 프롬프트 엔지니어링: 서사구조(강렬한 훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 내부 구상 단계 / 장르별 문학적 제목 생성 가이드 포함
 - `202 Accepted` + 폴링 방식 비동기 처리 — UI 블로킹 없이 생성 진행 상태 실시간 확인
+- 생성 진행도 프로그레스 바: `step` 필드(TEXT/IMAGE/DONE) 기반 단계별 메시지 + 퍼센티지 표시 (✍️ 10→50% / 🎨 50→90% / ✨ 100%)
 
 ### 책 뷰어
 - **웹**: react-pageflip 두 페이지 모드 고정, DOM 높이 기반 자동 페이지 분할, 키보드 방향키(←→) 지원
@@ -138,6 +139,10 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ### 동시성 처리
 - 레몬 차감 시 `@Lock(LockModeType.PESSIMISTIC_WRITE)` 적용 — 동시 요청에서 중복 차감 방지
 - 차감 전 잔량 재확인 (`< 1` 시 예외) + `@Transactional` 보장
+
+### 책 공유
+- BookDetail 페이지 📤 공유 버튼 — `navigator.share()` (Web Share API) 호출
+- 미지원 브라우저(데스크톱 Chrome 등)는 URL을 클립보드에 복사 후 "링크가 복사됐어요!" 토스트 표시
 
 ### 인증
 - 이메일 회원가입/로그인 + 카카오 OAuth 2.0
@@ -327,6 +332,7 @@ remon-service/
 | OpenAI API `429 / insufficient_quota` — 표지 이미지 전체 실패 | OpenAI 계정 크레딧 소진 (billing limit 초과) — gpt-image-1 호출 시 429 반환 | `BookGenerationTask`의 이미지 예외 `catch` 블록이 작동하여 책은 DONE 유지됨. 크레딧 충전으로 해결 |
 | 안드로이드 모바일 책 넘김 버벅임 | 브라우저가 CSS transform 애니메이션을 CPU로 처리 — 60fps 미달 | `ReadPage.css`에 `will-change: transform`, `translateZ(0)`, `backface-visibility: hidden` 추가로 GPU 합성 레이어 강제 활성화 |
 | Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
+| 홈에 생성 중인 AI 책(PENDING/GENERATING)이 노출 | `GET /api/books`와 `GET /api/books/cursor`가 status 구분 없이 모든 AI 생성 책을 반환 | `BookRepository`에 DONE 필터 쿼리 추가 (`isAiGenerated = false OR status = DONE`), `BookService`에서 해당 쿼리 사용으로 교체 |
 
 ---
 

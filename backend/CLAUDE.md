@@ -317,6 +317,17 @@ CLOUDINARY_API_SECRET=...
 - [x] `buildPrompt`에 CoT(Chain-of-Thought) 집필 구상 단계 추가 — 출력 금지 내부 구상(주인공 비밀·갈등·오감 묘사 요소)으로 소설 품질 향상
 - [x] `ReadPage.css` GPU 가속 강제 활성화 — 안드로이드 모바일 책 넘김 버벅임 수정 (`will-change: transform`, `translateZ(0)`, `backface-visibility: hidden`)
 
+### 2026-06-05
+- [x] `OpenAiService.buildPrompt` 제목 생성 지침 개선 — 본문 기반 장르별 문학적 제목 스타일 가이드 추가 (SF/판타지/로맨스/일상/공포 각 예시 포함, 10자 내외)
+- [x] `BookRepository` DONE 필터 쿼리 추가 — `findBooksWithCursor`에 `doneStatus` 파라미터 추가, `searchByKeywordAndDone` / `searchByKeywordPageableAndDone` / `findAllDone` / `findAllDonePageable` 신규 메서드
+- [x] `BookService.getAllBooks` / `getAllBooksPageable` — DONE 필터 쿼리로 교체 (PENDING/GENERATING AI 책 제외)
+- [x] `BookService.getBooksCursor` — `findBooksWithCursor`에 `BookStatus.DONE` 파라미터 추가
+- [x] `BookService.getBookStatus` 반환 타입 `String` → `Map<String, String>` 변경 + `step` 필드 추가
+  - GENERATING + content 없음 → `step: "TEXT"` (텍스트 생성 중)
+  - GENERATING + content 있음 → `step: "IMAGE"` (이미지 생성 중)
+  - DONE → `step: "DONE"` / FAILED → `step: "FAILED"`
+- [x] `BookController.getBookStatus` — `bookService.getBookStatus(id)` 반환값 그대로 전달 (Map)
+
 ---
 
 ## 트러블슈팅 이력

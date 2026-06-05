@@ -258,12 +258,24 @@ src/
 - [x] `generateBook` API 호출 시 `viewpoint`, `protagonistTrait` 필드 전송
 - [x] 키워드 placeholder 예시 문구 개선 (`"예: 우주, 고양이, 우주선 탈출 / 지우, 하늘, 까칠한 천재"`)
 
+### 2026-06-05
+- [x] `GeneratePage.jsx` 생성 진행도 표시 — `progress` state + `stepRef` + `progressIntervalRef` 추가
+  - 생성 요청 직후 10% 설정, 200ms 인터벌로 부드럽게 증가
+  - `step="TEXT"` 구간: 10→50% (최대 50%에서 멈춤)
+  - `step="IMAGE"` 감지 시 50%로 점프 후 50→90% (최대 90%에서 멈춤)
+  - DONE 수신 시 100% → 800ms 후 navigate
+  - 단계별 메시지: "✍️ 이야기를 쓰고 있어요..." / "🎨 표지를 그리고 있어요..." / "✨ 완성됐어요!"
+- [x] `GeneratePage.css` 프로그레스 바 스타일 추가 — `.generate-progress-wrap` / `.generate-progress-fill` / `.generate-progress-pct` / `.generate-progress-msg`
+- [x] `BookDetail.jsx` 공유 버튼 추가 — "본문 보기" 옆 📤 공유 버튼
+  - `handleShare`: `navigator.share()` 호출 (Web Share API)
+  - 미지원 브라우저: `navigator.clipboard.writeText(url)` + "링크가 복사됐어요!" 토스트
+- [x] `BookDetail.css` `.share-btn` 스타일 추가 (테두리형, hover 시 primary 색상)
+
 ---
 
 ## 앞으로 할 작업
 - [ ] GitHub Actions CI/CD
 - [ ] 광고 보고 레몬 추가 획득
-- [ ] 책 공유 버튼 (URL 복사 / SNS 공유)
 - [ ] 서비스 스크린샷 촬영 및 `docs/screenshots/` 추가
 - [ ] 테스트 코드 작성 (Jest)
 
