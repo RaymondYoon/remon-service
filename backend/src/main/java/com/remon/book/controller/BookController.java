@@ -61,7 +61,7 @@ public class BookController {
 
     @GetMapping("/{id}/status")
     public Map<String, String> getBookStatus(@PathVariable Long id) {
-        return Map.of("status", bookService.getBookStatus(id));
+        return bookService.getBookStatus(id);
     }
 
     @DeleteMapping("/{id}")

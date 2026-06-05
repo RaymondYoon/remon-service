@@ -453,6 +453,23 @@
   }
 }
 
+.share-btn {
+  padding: 12px 20px;
+  background: var(--color-card);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border-input);
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.share-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 .admin-delete-book-btn {
   margin-top: 12px;
   padding: 8px 18px;

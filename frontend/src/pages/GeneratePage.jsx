@@ -40,7 +40,10 @@ const GeneratePage = () => {
   const [displayKeywords, setDisplayKeywords]   = useState([]);
   const [lemonTrigger, setLemonTrigger] = useState(0);
   const [lemonInfo, setLemonInfo] = useState({ lemonCount: 3, maxDaily: 3, usedToday: 0 });
+  const [progress, setProgress] = useState(0);
   const intervalRef = useRef(null);
+  const stepRef = useRef("TEXT");
+  const progressIntervalRef = useRef(null);
 
   useEffect(() => {
     getLemonInfo()
@@ -54,15 +57,23 @@ const GeneratePage = () => {
     intervalRef.current = setInterval(async () => {
       try {
         const res = await getBookGenerationStatus(generatingBookId);
-        const status = res.data.status;
+        const { status, step } = res.data;
         if (status === "DONE") {
           clearInterval(intervalRef.current);
-          navigate(`/book/${generatingBookId}`, { state: { fromGenerate: true } });
+          clearInterval(progressIntervalRef.current);
+          setProgress(100);
+          setTimeout(() => {
+            navigate(`/book/${generatingBookId}`, { state: { fromGenerate: true } });
+          }, 800);
         } else if (status === "FAILED") {
           clearInterval(intervalRef.current);
+          clearInterval(progressIntervalRef.current);
           setError("책 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
           setLoading(false);
           setGeneratingBookId(null);
+        } else if (step === "IMAGE" && stepRef.current !== "IMAGE") {
+          stepRef.current = "IMAGE";
+          setProgress((prev) => Math.max(prev, 50));
         }
       } catch (err) {
         // 폴링 중 네트워크 오류는 무시하고 계속 시도
@@ -71,6 +82,21 @@ const GeneratePage = () => {
 
     return () => clearInterval(intervalRef.current);
   }, [generatingBookId, navigate]);
+
+  useEffect(() => {
+    if (!generatingBookId) return;
+
+    progressIntervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        const s = stepRef.current;
+        if (s === "TEXT" && prev < 50) return Math.min(prev + 0.4, 50);
+        if (s === "IMAGE" && prev < 90) return Math.min(prev + 0.4, 90);
+        return prev;
+      });
+    }, 200);
+
+    return () => clearInterval(progressIntervalRef.current);
+  }, [generatingBookId]);
 
   const handleKeywordKeyDown = (e) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -135,6 +161,8 @@ const GeneratePage = () => {
         .then((res) => setLemonInfo(res.data))
         .catch(() => {});
       const bookId = response.data.id;
+      setProgress(10);
+      stepRef.current = "TEXT";
       setGeneratingBookId(bookId);
     } catch (err) {
       const msg = err.response?.data?.error || "책 생성 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
@@ -144,6 +172,10 @@ const GeneratePage = () => {
   };
 
   if (loading) {
+    const pct = Math.round(progress);
+    const stepMsg = pct >= 100 ? "✨ 완성됐어요!"
+                  : pct >= 50  ? "🎨 표지를 그리고 있어요..."
+                  :              "✍️ 이야기를 쓰고 있어요...";
     return (
       <div className="generate-loading">
         <div className="generate-book-animation">
@@ -156,9 +188,11 @@ const GeneratePage = () => {
         <p className="generate-loading-sub">
           키워드: {displayKeywords.join(", ")}
         </p>
-        <div className="generate-dots">
-          <span /><span /><span />
+        <p className="generate-progress-msg">{stepMsg}</p>
+        <div className="generate-progress-wrap">
+          <div className="generate-progress-fill" style={{ width: `${pct}%` }} />
         </div>
+        <p className="generate-progress-pct">{pct}%</p>
         <p className="generate-loading-hint">보통 10~60초 정도 걸려요. 페이지를 닫지 마세요.</p>
       </div>
     );

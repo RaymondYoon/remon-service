@@ -102,10 +102,24 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public String getBookStatus(Long id) {
+    public Map<String, String> getBookStatus(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
-        return book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name();
+        String status = book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name();
+        String step;
+        if ("DONE".equals(status)) {
+            step = "DONE";
+        } else if ("FAILED".equals(status)) {
+            step = "FAILED";
+        } else if ("GENERATING".equals(status)) {
+            step = (book.getContent() != null && !book.getContent().isBlank()) ? "IMAGE" : "TEXT";
+        } else {
+            step = "TEXT";
+        }
+        Map<String, String> result = new HashMap<>();
+        result.put("status", status);
+        result.put("step", step);
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -141,8 +155,8 @@ public class BookService {
 
     public List<BookResponse> getAllBooks(String keyword) {
         List<Book> books = (keyword != null && !keyword.isBlank())
-                ? bookRepository.searchByKeyword(keyword)
-                : bookRepository.findAll();
+                ? bookRepository.searchByKeywordAndDone(keyword, BookStatus.DONE)
+                : bookRepository.findAllDone(BookStatus.DONE);
         Map<Long, Double> ratingCache = buildRatingCache(books);
         return books.stream()
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
@@ -152,8 +166,8 @@ public class BookService {
     @Transactional(readOnly = true)
     public Page<BookResponse> getAllBooksPageable(String keyword, Pageable pageable) {
         Page<Book> page = (keyword != null && !keyword.isBlank())
-                ? bookRepository.searchByKeywordPageable(keyword, pageable)
-                : bookRepository.findAll(pageable);
+                ? bookRepository.searchByKeywordPageableAndDone(keyword, BookStatus.DONE, pageable)
+                : bookRepository.findAllDonePageable(BookStatus.DONE, pageable);
         Map<Long, Double> ratingCache = buildRatingCache(page.getContent());
         List<BookResponse> content = page.getContent().stream()
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
@@ -164,7 +178,7 @@ public class BookService {
     @Transactional(readOnly = true)
     public Map<String, Object> getBooksCursor(String keyword, Long cursor, int size) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
-        List<Book> books = bookRepository.findBooksWithCursor(cursor, kw, PageRequest.of(0, size));
+        List<Book> books = bookRepository.findBooksWithCursor(cursor, kw, BookStatus.DONE, PageRequest.of(0, size));
         Map<Long, Double> ratingCache = buildRatingCache(books);
         List<BookResponse> content = books.stream()
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))

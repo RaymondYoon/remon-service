@@ -100,6 +100,27 @@ const BookDetail = () => {
     }
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: book.title,
+          text: `"${book.title}" - Remon에서 AI가 생성한 단편소설`,
+          url: window.location.href,
+        });
+      } catch {
+        // 사용자가 취소한 경우 무시
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast("링크가 복사됐어요!", "success");
+      } catch {
+        showToast("링크 복사에 실패했습니다.", "error");
+      }
+    }
+  };
+
   const handleAddToLibrary = async () => {
     if (!isLoggedIn()) {
       navigate("/login");
@@ -198,6 +219,9 @@ const BookDetail = () => {
                 본문 보기
               </button>
             )}
+            <button className="share-btn" onClick={handleShare}>
+              📤 공유
+            </button>
             <button
               className="add-library-btn"
               onClick={handleAddToLibrary}

@@ -335,3 +335,32 @@
   color: var(--color-text-muted);
   margin: 0;
 }
+
+/* 진행도 바 */
+.generate-progress-msg {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.generate-progress-wrap {
+  width: 260px;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.generate-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.generate-progress-pct {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: -8px 0 0;
+}

@@ -63,6 +63,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("""
             SELECT b FROM Book b
             WHERE (:cursor IS NULL OR b.id < :cursor)
+              AND (b.isAiGenerated = false OR b.status = :doneStatus)
               AND (:keyword IS NULL
                    OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
                    OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -72,6 +73,33 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findBooksWithCursor(
             @Param("cursor") Long cursor,
             @Param("keyword") String keyword,
+            @Param("doneStatus") BookStatus doneStatus,
             Pageable pageable
     );
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
+              AND (LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            """)
+    List<Book> searchByKeywordAndDone(@Param("keyword") String keyword, @Param("doneStatus") BookStatus doneStatus);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
+              AND (LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            """)
+    Page<Book> searchByKeywordPageableAndDone(@Param("keyword") String keyword,
+                                              @Param("doneStatus") BookStatus doneStatus,
+                                              Pageable pageable);
+
+    @Query("SELECT b FROM Book b WHERE b.isAiGenerated = false OR b.status = :doneStatus")
+    List<Book> findAllDone(@Param("doneStatus") BookStatus doneStatus);
+
+    @Query("SELECT b FROM Book b WHERE b.isAiGenerated = false OR b.status = :doneStatus")
+    Page<Book> findAllDonePageable(@Param("doneStatus") BookStatus doneStatus, Pageable pageable);
 }
