@@ -92,11 +92,19 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 분류 | 기술 |
 |------|------|
 | 플랫폼 | React Native 0.81.5 (Expo SDK 54) |
-| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs 5탭) |
+| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs 5탭, 중앙 FAB 버튼) |
 | HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급) |
 | 제스처 | react-native-gesture-handler (PanGestureHandler 스와이프) |
 | 저장소 | @react-native-async-storage/async-storage (토큰 관리) |
 | 배포 | Expo Go (개발) / EAS Build (예정) |
+
+#### 앱 주요 기능
+- 10개 화면: 로그인/회원가입/홈/둘러보기/AI책생성/책읽기/서재/마이페이지
+- 탭바 중앙 만들기(🍋) 버튼 — 원형 FAB (top:-20, `tabBarButton` prop)
+- BookDetailScreen: `coverImageUrl` 표지 이미지 + 별점·리뷰 작성 폼 (로그인 시 노출)
+- GenerateScreen: 서술 시점(1인칭/3인칭) + 주인공 성격(6종 칩) 옵션 — 웹과 동일한 세트
+- LibraryScreen: 독서 상태별 필터 탭 (전체/읽는 중/완독/저장됨)
+- Toast 피드백: 서재 담기·리뷰 등록 결과 비차단(non-blocking) 토스트 메시지
 
 ### Infra
 | 분류 | 기술 |

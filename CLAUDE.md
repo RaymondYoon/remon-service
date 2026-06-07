@@ -135,6 +135,10 @@ remon-service/
 | 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 |
 | 조회수 카운트 | `GET /api/books/{id}` 호출 시 `viewCount` 1 증가, `BookResponse`에 viewCount 포함 |
 | 홈 정렬 탭 | "추천 전자책" 섹션에 최신순/평점순/조회수순 탭 — 정렬 변경 시 목록 초기화 후 재조회 |
+| 앱 탭바 FAB | 중앙 만들기 버튼 원형 FAB 스타일 (🍋, #5B7E5A, top:-20, 60px) — `tabBarButton` prop |
+| 앱 리뷰 작성 | BookDetailScreen 별점+텍스트 리뷰 작성 폼 (로그인 시 노출), `addReview` API 연동 |
+| 앱 UI 버그 수정 | 카드 이미지 height 고정(Android), 서재 탭 높이, 장르 필터 빈공간, coverImageUrl 표시 |
+| 앱 GenerateScreen 옵션 | 서술 시점(1인칭/3인칭) + 주인공 성격(6종 칩) 선택 — 웹과 동일한 옵션 세트 |
 
 ---
 
@@ -172,9 +176,6 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] 앱 EAS Build 설정 및 스토어 배포 (iOS/Android)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
-- [ ] 앱 BookDetailScreen 표지 이미지 연동 (coverImageUrl → Image 컴포넌트)
-- [ ] 앱 서재 탭 필터 연동 (LibraryScreen)
-- [ ] 앱 GenerateScreen 시점/성격 옵션 UI 추가 (웹 GeneratePage와 동일하게)
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답)
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)

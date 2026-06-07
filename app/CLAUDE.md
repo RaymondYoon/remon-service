@@ -79,6 +79,7 @@ NavigationContainer
 | `getExploreBooks` | GET | `/api/books/explore` | 공개 책 전체 |
 | `getFeedBooks` | GET | `/api/books/feed` | 팔로우 피드 |
 | `getReviews` | GET | `/api/books/:id/reviews` | 책 리뷰 목록 |
+| `addReview` | POST | `/api/books/:id/reviews` | 리뷰 작성 (rating, content) |
 | `addToLibrary` | POST | `/api/library` | 서재에 담기 |
 | `getMyLibrary` | GET | `/api/library` | 내 서재 |
 | `startReading` | PATCH | `/api/library/:id/start-reading` | 읽기 시작 |
@@ -108,7 +109,7 @@ NavigationContainer
 - 단락 렌더링: `\n\n` 기준 분리 → 단락별 `<Text>` + `marginBottom: 16` + 들여쓰기
 
 ### GenerateScreen (AI 책 생성)
-- 키워드(최대 4개) / 장르 / 분위기 / 결말 / 주인공 이름(선택) 입력
+- 키워드(최대 4개) / 장르 / 분위기 / 결말 / 주인공 이름(선택) / 서술 시점(1인칭/3인칭) / 주인공 성격(6종 칩 토글) 입력
 - `POST /api/books/generate` → 202 Accepted + `{ id }`
 - `GET /api/books/:id/status` 폴링 (3초 간격, 최대 60회)
 - 오류 메시지: `e.response?.data?.error` (백엔드 GlobalExceptionHandler 형식)
@@ -143,17 +144,31 @@ NavigationContainer
 | coverImageUrl 필드 확인 | HomeScreen, LibraryScreen, ExploreScreen 모두 `coverImageUrl` 정상 사용 확인 |
 | BookDetailScreen 표지 | 현재 🍋 이모지 하드코딩 — `coverImageUrl` 필드 연동은 미구현 (앞으로 할 작업) |
 
+### 2026-06-07
+| 작업 | 내용 |
+|------|------|
+| GenerateScreen 시점/성격 옵션 | 서술 시점(3인칭/1인칭 선택), 주인공 성격(6종 칩 토글), `viewpoint`·`protagonistTrait` API 전송 |
+| 탭바 FAB 스타일 | 중앙 만들기 버튼 → 원형 FAB (🍋, #5B7E5A, top:-20, 60px, 그림자) — `tabBarButton` prop 사용 |
+| 전체 배경색 흰색 | theme.js `background: '#FFF9E6'` → `'#FFFFFF'` |
+| 카드 이미지 height 고정 | `coverImg height:'100%'` → `120`(홈/탐색), `110`(서재) — Android 0px 렌더 버그 수정 |
+| 서재 title/author fallback | `item.book?.title ?? item.title`, `item.book?.author ?? item.author` |
+| BookDetail coverImageUrl | `coverImageUrl` 있으면 `<Image>` 렌더링, 없으면 🍋 이모지 유지 |
+| 서재 담기 Alert → Toast | `Alert.alert` 제거, `showToast()` 시스템 도입 (2.2초 자동 사라짐) |
+| 서재 탭 버튼 height 고정 | `filterContainer height:52`, `filterChip height:36`, `alignItems`/`justifyContent: center` |
+| LibraryScreen coverImageUrl | `width:80, height:110, borderRadius:8` Image 표시 |
+| BookDetail 리뷰 작성 폼 | 별점(☆/⭐ 터치), TextInput, 등록 버튼 — 로그인 시에만 표시, `addReview` API 연동 |
+| HomeScreen 장르 필터 빈 공간 | `contentContainerStyle flexGrow:1`, ListEmptyComponent 중앙 정렬 |
+| addReview API 추가 | `bookApi.js`: `POST /api/books/:id/reviews { rating, content }` |
+
 ---
 
 ## 앞으로 할 작업
-- [ ] BookDetailScreen 표지 이미지 연동 (`coverImageUrl` → `<Image>` 컴포넌트로 표시)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] EAS Build 설정 및 내 폰에 직접 설치
 - [ ] 플레이스토어 / 앱스토어 배포 검토
 - [ ] 팔로우/언팔로우 기능 앱에 연동 (followApi 추가)
 - [ ] 알림 기능 앱에 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] 카카오 OAuth 앱 지원 (딥링크 설정)
-- [ ] 서재 탭 필터 (LibraryScreen — 읽는 중 / 읽고 싶어요 / 완독)
 
 ---
 
