@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet, Platform } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { colors } from '../theme';
 
 import HomeScreen from '../screens/HomeScreen';
@@ -20,9 +20,15 @@ const Tab = createBottomTabNavigator();
 
 function TabIcon({ icon, focused }) {
   return (
-    <View style={[tabStyles.iconWrap, focused && tabStyles.iconWrapActive]}>
-      <Text style={[tabStyles.icon, focused && tabStyles.iconActive]}>{icon}</Text>
-    </View>
+    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>{icon}</Text>
+  );
+}
+
+function FabButton({ onPress }) {
+  return (
+    <TouchableOpacity style={tabStyles.fab} onPress={onPress} activeOpacity={0.85}>
+      <Text style={tabStyles.fabIcon}>🍋</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -32,20 +38,21 @@ function MainTabs({ onLogout }) {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.card,
+          backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
-          borderTopColor: colors.border,
-          paddingBottom: Platform.OS === 'ios' ? 0 : 8,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 80 : 68,
+          borderTopColor: '#EEEEEE',
+          paddingBottom: Platform.OS === 'ios' ? 0 : 6,
+          paddingTop: 6,
+          height: Platform.OS === 'ios' ? 80 : 64,
+          overflow: 'visible',
           ...Platform.select({
             ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.06, shadowRadius: 8 },
             android: { elevation: 8 },
           }),
         },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 2 },
+        tabBarActiveTintColor: '#5B7E5A',
+        tabBarInactiveTintColor: '#AAAAAA',
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
       }}
     >
       <Tab.Screen
@@ -68,8 +75,9 @@ function MainTabs({ onLogout }) {
         name="Generate"
         component={GenerateScreen}
         options={{
-          tabBarLabel: '만들기',
-          tabBarIcon: ({ focused }) => <TabIcon icon="✨" focused={focused} />,
+          tabBarLabel: '',
+          tabBarIcon: () => null,
+          tabBarButton: (props) => <FabButton onPress={props.onPress} />,
         }}
       />
       <Tab.Screen
@@ -94,16 +102,25 @@ function MainTabs({ onLogout }) {
 }
 
 const tabStyles = StyleSheet.create({
-  iconWrap: {
-    width: 40,
-    height: 28,
+  fab: {
+    top: -20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#5B7E5A',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: { elevation: 10 },
+    }),
   },
-  iconWrapActive: { backgroundColor: '#EEF5E8' },
-  icon: { fontSize: 18, opacity: 0.45 },
-  iconActive: { opacity: 1 },
+  fabIcon: { fontSize: 28 },
 });
 
 export default function AppNavigator({ isLoggedIn, onLogin, onLogout }) {

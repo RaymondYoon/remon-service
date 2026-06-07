@@ -30,9 +30,9 @@ function LibraryCard({ item, onPress }) {
         <View style={[styles.statusBadge, { backgroundColor: st.color + '22' }]}>
           <Text style={[styles.statusText, { color: st.color }]}>{st.label}</Text>
         </View>
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.book?.title ?? '제목 없음'}</Text>
+        <Text style={styles.cardTitle} numberOfLines={2}>{item.book?.title ?? item.title ?? '제목 없음'}</Text>
         <Text style={styles.cardAuthor} numberOfLines={1}>
-          ✍️ {item.book?.author ?? item.book?.publishedBy ?? '익명'}
+          ✍️ {item.book?.author ?? item.author ?? item.book?.publishedBy ?? '익명'}
         </Text>
         {item.lastReadPage > 0 && (
           <Text style={styles.pageInfo}>마지막 {item.lastReadPage + 1}페이지</Text>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 110,
   },
-  coverImg: { width: 90, height: '100%', resizeMode: 'cover' },
+  coverImg: { width: 90, height: 110, resizeMode: 'cover' },
   coverEmoji: { fontSize: 40 },
   cardBody: { flex: 1, padding: 12, justifyContent: 'center', gap: 4 },
   statusBadge: {

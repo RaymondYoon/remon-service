@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 120,
   },
-  coverImg: { width: 96, height: '100%', resizeMode: 'cover' },
+  coverImg: { width: 96, height: 120, resizeMode: 'cover' },
   coverEmoji: { fontSize: 42 },
   cardBody: { flex: 1, padding: 14, justifyContent: 'center', gap: 5 },
   genreBadge: {

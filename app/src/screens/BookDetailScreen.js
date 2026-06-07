@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Platform,
+  StyleSheet, ActivityIndicator, Alert, Platform, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBookById, getReviews, addToLibrary, startReading } from '../api/bookApi';
@@ -38,6 +38,14 @@ export default function BookDetailScreen({ route, navigation }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addingLib, setAddingLib] = useState(false);
+  const [toast, setToast] = useState('');
+  const toastTimer = useRef(null);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(''), 2200);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -61,10 +69,10 @@ export default function BookDetailScreen({ route, navigation }) {
     setAddingLib(true);
     try {
       await addToLibrary(bookId);
-      Alert.alert('완료', '서재에 추가되었습니다.');
+      showToast('서재에 추가되었습니다 ✓');
     } catch (e) {
-      const msg = e.response?.data?.error ?? e.response?.data?.message ?? '이미 서재에 있거나 오류가 발생했습니다.';
-      Alert.alert('알림', msg);
+      const msg = e.response?.data?.error ?? e.response?.data?.message ?? '이미 서재에 있습니다.';
+      showToast(msg);
     } finally {
       setAddingLib(false);
     }
@@ -94,10 +102,19 @@ export default function BookDetailScreen({ route, navigation }) {
         <View style={{ width: 32 }} />
       </View>
 
+      {!!toast && (
+        <View style={styles.toast} pointerEvents="none">
+          <Text style={styles.toastText}>{toast}</Text>
+        </View>
+      )}
+
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}>
         {/* 표지 */}
         <View style={styles.coverBox}>
-          <Text style={styles.coverEmoji}>🍋</Text>
+          {book.coverImageUrl
+            ? <Image source={{ uri: book.coverImageUrl }} style={styles.coverImg} />
+            : <Text style={styles.coverEmoji}>🍋</Text>
+          }
         </View>
 
         {/* 제목 / 저자 */}
@@ -188,6 +205,18 @@ const styles = StyleSheet.create({
     }),
   },
   coverEmoji: { fontSize: 56 },
+  coverImg: { width: 120, height: 160, borderRadius: 12, resizeMode: 'cover' },
+  toast: {
+    position: 'absolute',
+    bottom: 90,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(30,30,30,0.82)',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    zIndex: 999,
+  },
+  toastText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   bookTitle: { fontSize: 22, fontWeight: '800', color: colors.text, textAlign: 'center' },
   bookAuthor: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
   badgeRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },

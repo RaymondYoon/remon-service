@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     }),
   },
   cover: { width: 96, backgroundColor: '#FFF9E6', alignItems: 'center', justifyContent: 'center', minHeight: 120 },
-  coverImg: { width: 96, height: '100%', resizeMode: 'cover' },
+  coverImg: { width: 96, height: 120, resizeMode: 'cover' },
   coverEmoji: { fontSize: 42 },
   cardBody: { flex: 1, padding: 14, justifyContent: 'center', gap: 5 },
   genreBadge: { alignSelf: 'flex-start', backgroundColor: '#EEF5E8', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
