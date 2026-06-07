@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, ActivityIndicator, Alert, Platform, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBookById, getReviews, addToLibrary, startReading } from '../api/bookApi';
+import { getBookById, getReviews, addToLibrary, startReading, addReview } from '../api/bookApi';
+import { getToken } from '../utils/auth';
 import { colors } from '../theme';
 
 function Stars({ rating }) {
@@ -40,6 +41,10 @@ export default function BookDetailScreen({ route, navigation }) {
   const [addingLib, setAddingLib] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewContent, setReviewContent] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -47,7 +52,13 @@ export default function BookDetailScreen({ route, navigation }) {
     toastTimer.current = setTimeout(() => setToast(''), 2200);
   };
 
+  const fetchReviews = async () => {
+    const res = await getReviews(bookId).catch(() => ({ data: [] }));
+    setReviews(Array.isArray(res.data) ? res.data : []);
+  };
+
   useEffect(() => {
+    getToken().then(t => setLoggedIn(!!t));
     Promise.all([
       getBookById(bookId),
       getReviews(bookId).catch(() => ({ data: [] })),
@@ -59,6 +70,23 @@ export default function BookDetailScreen({ route, navigation }) {
       navigation.goBack();
     }).finally(() => setLoading(false));
   }, [bookId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmitReview = async () => {
+    if (submittingReview) return;
+    setSubmittingReview(true);
+    try {
+      await addReview(bookId, reviewRating, reviewContent.trim());
+      setReviewContent('');
+      setReviewRating(5);
+      await fetchReviews();
+      showToast('리뷰가 등록되었습니다 ✓');
+    } catch (e) {
+      const msg = e.response?.data?.error ?? e.response?.data?.message ?? '리뷰 등록에 실패했습니다.';
+      showToast(msg);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handleRead = async () => {
     await startReading(bookId).catch(() => {});
@@ -163,6 +191,38 @@ export default function BookDetailScreen({ route, navigation }) {
             : reviews.map((r, i) => <ReviewItem key={r.id ?? i} review={r} />)
           }
         </View>
+
+        {/* 리뷰 작성 */}
+        {loggedIn && (
+          <View style={styles.reviewForm}>
+            <Text style={styles.sectionTitle}>리뷰 작성</Text>
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <TouchableOpacity key={n} onPress={() => setReviewRating(n)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                  <Text style={styles.starBtn}>{n <= reviewRating ? '⭐' : '☆'}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.reviewInput}
+              placeholder="한 줄 리뷰를 남겨보세요"
+              placeholderTextColor={colors.textMuted}
+              value={reviewContent}
+              onChangeText={setReviewContent}
+              maxLength={200}
+            />
+            <TouchableOpacity
+              style={[styles.reviewSubmitBtn, submittingReview && styles.reviewSubmitBtnDisabled]}
+              onPress={handleSubmitReview}
+              disabled={submittingReview}
+            >
+              {submittingReview
+                ? <ActivityIndicator color={colors.white} size="small" />
+                : <Text style={styles.reviewSubmitText}>리뷰 등록</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -266,4 +326,33 @@ const styles = StyleSheet.create({
   reviewNickname: { fontSize: 13, fontWeight: '700', color: colors.text },
   reviewStars: { fontSize: 13 },
   reviewContent: { fontSize: 14, color: colors.text, lineHeight: 20 },
+  reviewForm: {
+    marginTop: 8,
+    gap: 10,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  starRow: { flexDirection: 'row', gap: 6 },
+  starBtn: { fontSize: 26 },
+  reviewInput: {
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.text,
+  },
+  reviewSubmitBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  reviewSubmitBtnDisabled: { opacity: 0.6 },
+  reviewSubmitText: { color: colors.white, fontWeight: '700', fontSize: 15 },
 });

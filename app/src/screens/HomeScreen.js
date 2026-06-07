@@ -151,11 +151,11 @@ export default function HomeScreen({ navigation }) {
             data={books}
             keyExtractor={b => b.id.toString()}
             renderItem={({ item }) => <BookCard item={item} onPress={openBook} />}
-            contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16 }]}
+            contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 16, flexGrow: 1 }]}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.3}
-            ListEmptyComponent={<Text style={styles.empty}>책이 없습니다.</Text>}
+            ListEmptyComponent={<View style={styles.emptyWrap}><Text style={styles.empty}>책이 없습니다.</Text></View>}
             ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.primary} style={{ margin: 16 }} /> : null}
           />
         )
@@ -257,5 +257,6 @@ const styles = StyleSheet.create({
   cardAuthor: { fontSize: 12, color: colors.textMuted },
   rating: { fontSize: 12, color: '#B8860B', fontWeight: '600' },
   centered: { flex: 1 },
-  empty: { textAlign: 'center', color: colors.textMuted, marginTop: 60, fontSize: 15 },
+  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 },
+  empty: { textAlign: 'center', color: colors.textMuted, fontSize: 15 },
 });

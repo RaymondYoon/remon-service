@@ -15,6 +15,9 @@ export const getFeedBooks = () =>
 export const getReviews = (bookId) =>
   axiosInstance.get(`/api/books/${bookId}/reviews`);
 
+export const addReview = (bookId, rating, content) =>
+  axiosInstance.post(`/api/books/${bookId}/reviews`, { rating, content });
+
 export const addToLibrary = (bookId) =>
   axiosInstance.post('/api/library', { bookId });
 

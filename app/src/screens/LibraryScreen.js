@@ -88,21 +88,23 @@ export default function LibraryScreen({ navigation }) {
       </View>
 
       {/* Filter */}
-      <FlatList
-        horizontal
-        data={FILTERS}
-        keyExtractor={f => f}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-        renderItem={({ item: f }) => (
-          <TouchableOpacity
-            style={[styles.filterChip, filter === f && styles.filterChipActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{f}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <View style={styles.filterContainer}>
+        <FlatList
+          horizontal
+          data={FILTERS}
+          keyExtractor={f => f}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item: f }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, filter === f && styles.filterChipActive]}
+              onPress={() => setFilter(f)}
+            >
+              <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{f}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
       {loading
         ? <ActivityIndicator color={colors.primary} style={styles.centered} size="large" />
@@ -143,14 +145,22 @@ const styles = StyleSheet.create({
   headerEmoji: { fontSize: 22 },
   headerTitle: { fontSize: 22, fontWeight: '800', color: colors.primary },
   countText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
-  filterList: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
+  filterContainer: {
+    height: 52,
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  filterList: { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    height: 36,
+    paddingHorizontal: 16,
     borderRadius: 20,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   filterText: { fontSize: 13, color: colors.textMuted },
@@ -174,13 +184,16 @@ const styles = StyleSheet.create({
     }),
   },
   cover: {
-    width: 90,
+    width: 80,
     backgroundColor: '#FFF9E6',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 110,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+    overflow: 'hidden',
   },
-  coverImg: { width: 90, height: 110, resizeMode: 'cover' },
+  coverImg: { width: 80, height: 110, borderRadius: 8, resizeMode: 'cover' },
   coverEmoji: { fontSize: 40 },
   cardBody: { flex: 1, padding: 12, justifyContent: 'center', gap: 4 },
   statusBadge: {
