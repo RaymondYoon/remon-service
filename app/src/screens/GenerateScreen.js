@@ -18,6 +18,11 @@ const ENDINGS = [
   { label: '새드엔딩', value: 'SAD' },
   { label: '열린결말', value: 'OPEN' },
 ];
+const VIEWPOINTS = [
+  { label: '3인칭 (전지적 시점)', value: '3인칭' },
+  { label: '1인칭 (내가 주인공)', value: '1인칭' },
+];
+const PROTAGONIST_TRAITS = ['소심한', '까칠한', '비밀이 있는', '천재적인', '상처받은', '엉뚱한'];
 
 function OptionRow({ label, options, selected, onSelect }) {
   return (
@@ -50,6 +55,8 @@ export default function GenerateScreen({ navigation }) {
   const [genre, setGenre] = useState('일상');
   const [tone, setTone] = useState('WARM');
   const [ending, setEnding] = useState('HAPPY');
+  const [viewpoint, setViewpoint] = useState('3인칭');
+  const [protagonistTrait, setProtagonistTrait] = useState(null);
   const [protagonist, setProtagonist] = useState('');
   const [lemon, setLemon] = useState(null);
   const [generating, setGenerating] = useState(false);
@@ -107,6 +114,8 @@ export default function GenerateScreen({ navigation }) {
         tone,
         ending,
         protagonistName: protagonist.trim() || null,
+        viewpoint,
+        protagonistTrait,
       });
       bookId = data?.id;
       if (!bookId) {
@@ -202,6 +211,26 @@ export default function GenerateScreen({ navigation }) {
         <OptionRow label="장르" options={GENRES} selected={genre} onSelect={setGenre} />
         <OptionRow label="분위기" options={TONES} selected={tone} onSelect={setTone} />
         <OptionRow label="결말" options={ENDINGS} selected={ending} onSelect={setEnding} />
+        <OptionRow label="서술 시점" options={VIEWPOINTS} selected={viewpoint} onSelect={setViewpoint} />
+
+        {/* 주인공 성격 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>주인공 성격 (선택)</Text>
+          <View style={styles.optionRow}>
+            {PROTAGONIST_TRAITS.map(trait => {
+              const active = protagonistTrait === trait;
+              return (
+                <TouchableOpacity
+                  key={trait}
+                  style={[styles.optBtn, active && styles.optBtnActive]}
+                  onPress={() => setProtagonistTrait(active ? null : trait)}
+                >
+                  <Text style={[styles.optBtnText, active && styles.optBtnTextActive]}>{trait}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         {/* Protagonist */}
         <View style={styles.section}>
