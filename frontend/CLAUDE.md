@@ -42,7 +42,7 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 
 ## 라우팅 구조
 ```
-/                → Home.jsx            책 목록 + 검색 + 장르 필터 (debounce 300ms)
+/                → Home.jsx            책 목록 + 검색 + 장르 필터 (debounce 300ms) + 정렬 탭 (최신순/평점순/조회수순)
 /book/:id        → BookDetail.jsx      책 상세 + 서재 담기 + 별점/리뷰
 /book/:id/read   → ReadPage.jsx        react-pageflip 책 본문 뷰어 (데스크톱 두 페이지 / 모바일 단일 페이지)
 /login           → Login.jsx           이메일 로그인 + 카카오 로그인 버튼
@@ -80,7 +80,7 @@ src/
 │   └── Footer.jsx
 ├── hooks/
 │   ├── useBooks.js         — 책 목록 + 키워드 필터 fetch
-│   ├── useInfiniteBooks.js — 무한 스크롤 페이지네이션
+│   ├── useInfiniteBooks.js — 무한 스크롤 페이지네이션 (params에 sort 포함 — 변경 시 자동 초기화·재조회)
 │   ├── useTheme.js         — 다크/라이트 모드 토글 + localStorage
 │   └── useToast.js         — 토스트 알림 상태 관리
 ├── pages/
@@ -271,6 +271,12 @@ src/
   - 미지원 브라우저: `navigator.clipboard.writeText(url)` + "링크가 복사됐어요!" 토스트
 - [x] `BookDetail.css` `.share-btn` 스타일 추가 (테두리형, hover 시 primary 색상)
 
+### 2026-06-07
+- [x] `Home.jsx` 정렬 탭 UI 추가 — "추천 전자책" 타이틀 오른쪽에 최신순/평점순/조회수순 버튼 3개
+  - `sort` state (기본값 `"latest"`) 및 `SORT_OPTIONS` 상수 추가
+  - `params` useMemo에 `sort` 포함 → 정렬 변경 시 `paramsKey` 변경으로 자동 초기화·재조회
+- [x] `Home.css` 정렬 탭 스타일 추가 — `.home-section-header` (flex, space-between), `.sort-tabs`, `.sort-tab`, `.sort-tab--active` (primary 색상, color-mix 배경)
+
 ---
 
 ## 앞으로 할 작업
@@ -278,6 +284,7 @@ src/
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 서비스 스크린샷 촬영 및 `docs/screenshots/` 추가
 - [ ] 테스트 코드 작성 (Jest)
+- [ ] 평점순/조회수순 정렬 시 무한 스크롤 지원 검토 (현재 상위 12개 고정)
 
 ---
 

@@ -133,6 +133,8 @@ remon-service/
 | 생성 상태 step 필드 | `GET /api/books/{id}/status` 응답에 `step` 추가 (TEXT/IMAGE/DONE/FAILED) |
 | 책 공유 버튼 | BookDetail "본문 보기" 옆 📤 공유 버튼 — Web Share API / 미지원 시 URL 클립보드 복사 |
 | 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 |
+| 조회수 카운트 | `GET /api/books/{id}` 호출 시 `viewCount` 1 증가, `BookResponse`에 viewCount 포함 |
+| 홈 정렬 탭 | "추천 전자책" 섹션에 최신순/평점순/조회수순 탭 — 정렬 변경 시 목록 초기화 후 재조회 |
 
 ---
 
@@ -179,6 +181,7 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 서비스 스크린샷 촬영 및 README 갱신
 - [ ] 테스트 코드 작성 (백엔드 JUnit, 프론트엔드 Jest)
+- [ ] 평점순/조회수순 정렬 무한 스크롤 지원 (현재 상위 12개 고정 반환)
 - [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 

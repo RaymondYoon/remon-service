@@ -132,9 +132,15 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 - 별점(1~5점) + 리뷰 작성 (유저당 1개 제한, 중복 방지)
 - 리뷰/팔로우/책 생성 완료 이벤트 알림 + 헤더 미읽음 뱃지
 
-### 커서 기반 무한 스크롤
-- `GET /api/books/cursor?cursor=&keyword=&size=12` — 마지막 book ID를 커서로 사용
-- 프론트엔드 `useInfiniteBooks` 훅에서 `nextCursor` / `hasMore` 파싱, IntersectionObserver로 자동 loadMore
+### 커서 기반 무한 스크롤 & 정렬
+- `GET /api/books/cursor?cursor=&keyword=&size=12&sort=latest|rating|views` — sort 파라미터로 정렬 방식 선택
+- `sort=latest`(기본): 마지막 book ID 커서 기반 무한 스크롤 / `sort=rating`·`sort=views`: 상위 12개 고정 반환
+- 프론트엔드 `useInfiniteBooks` 훅 — params에 `sort` 포함, 정렬 변경 시 `paramsKey` 변동으로 목록 자동 초기화·재조회
+- 홈 화면 "추천 전자책" 섹션 우측에 최신순/평점순/조회수순 탭 UI
+
+### 조회수 카운트
+- `GET /api/books/{id}` 호출 시 `BookRepository.incrementViewCount` (@Modifying JPQL)로 viewCount 1 증가
+- `BookResponse`에 `viewCount` 포함하여 클라이언트에 반환
 
 ### 동시성 처리
 - 레몬 차감 시 `@Lock(LockModeType.PESSIMISTIC_WRITE)` 적용 — 동시 요청에서 중복 차감 방지
@@ -333,6 +339,7 @@ remon-service/
 | 안드로이드 모바일 책 넘김 버벅임 | 브라우저가 CSS transform 애니메이션을 CPU로 처리 — 60fps 미달 | `ReadPage.css`에 `will-change: transform`, `translateZ(0)`, `backface-visibility: hidden` 추가로 GPU 합성 레이어 강제 활성화 |
 | Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
 | 홈에 생성 중인 AI 책(PENDING/GENERATING)이 노출 | `GET /api/books`와 `GET /api/books/cursor`가 status 구분 없이 모든 AI 생성 책을 반환 | `BookRepository`에 DONE 필터 쿼리 추가 (`isAiGenerated = false OR status = DONE`), `BookService`에서 해당 쿼리 사용으로 교체 |
+| 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 다른 정렬 기준과 혼용 시 중복·누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 |
 
 ---
 

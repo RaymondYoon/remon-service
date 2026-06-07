@@ -71,7 +71,7 @@ com.remon/
 | 테이블 | 주요 컬럼 | 비고 |
 |--------|-----------|------|
 | `users` | id, email, password, provider, providerId, nickname, role, created_at | email UNIQUE |
-| `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl | status: PENDING/GENERATING/DONE/FAILED |
+| `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl, viewCount (bigint default 0) | status: PENDING/GENERATING/DONE/FAILED |
 | `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/DONE |
 | `reviews` | id, book_id, user_id, rating (1–5), content (TEXT), createdAt | UNIQUE(book_id, user_id) — 중복 방지 |
 | `follows` | id, follower_id, following_id, createdAt | UNIQUE(follower_id, following_id) |
@@ -110,8 +110,9 @@ com.remon/
 | GET | `/api/books/my` | 내가 만든 책 목록 | 필요 |
 | GET | `/api/books/explore` | 공개 책 탐색 | 불필요 |
 | GET | `/api/books/feed` | 팔로잉 유저 책 피드 | 필요 |
-| GET | `/api/books/{id}` | 책 상세 | 불필요 |
-| GET | `/api/books/{id}/status` | AI 생성 상태 (PENDING/DONE/FAILED) | 필요 |
+| GET | `/api/books/cursor` | 커서 기반 책 목록 (`cursor`, `keyword`, `size`, `sort=latest\|rating\|views`) | 불필요 |
+| GET | `/api/books/{id}` | 책 상세 (조회 시 viewCount +1) | 불필요 |
+| GET | `/api/books/{id}/status` | AI 생성 상태 + step (TEXT/IMAGE/DONE/FAILED) | 필요 |
 | POST | `/api/books` | 책 직접 등록 | 필요 |
 | POST | `/api/books/generate` | AI 책 생성 (202 Accepted, 비동기) | 필요 |
 | DELETE | `/api/books/{id}` | 책 삭제 | 필요 |
@@ -328,6 +329,14 @@ CLOUDINARY_API_SECRET=...
   - DONE → `step: "DONE"` / FAILED → `step: "FAILED"`
 - [x] `BookController.getBookStatus` — `bookService.getBookStatus(id)` 반환값 그대로 전달 (Map)
 
+### 2026-06-07
+- [x] `Book` 엔티티에 `viewCount` 필드 추가 (`@Builder.Default`, `@Column(columnDefinition = "bigint default 0")`) — DDL-auto=update로 DB 컬럼 자동 추가
+- [x] `BookResponse` DTO에 `viewCount` 필드 추가 및 `buildResponse`에서 매핑
+- [x] `BookRepository` — `incrementViewCount` (`@Modifying` JPQL UPDATE), `findBooksSortedByViews` (ORDER BY viewCount DESC), `findBooksSortedByRating` (상관 서브쿼리: AVG(r.rating) DESC) 추가
+- [x] `BookService.getBookById` — 조회 시 `bookRepository.incrementViewCount(id)` 호출로 조회수 1 증가
+- [x] `BookService.getBooksCursor` — `sort` 파라미터 추가: `latest`(기존 cursor 방식) / `rating`·`views`(상위 size개 고정 반환, hasMore=false)
+- [x] `BookController.getBooksCursor` — `@RequestParam(defaultValue = "latest") String sort` 추가
+
 ---
 
 ## 트러블슈팅 이력
@@ -346,6 +355,7 @@ CLOUDINARY_API_SECRET=...
 | `findDoneBooksWithoutCover` 결과 0건 | JPQL `b.status = 'DONE'` 문자열 리터럴 — Hibernate enum 비교에서 결과 없음 | `@Query` + `@Param("status") BookStatus status` 명시적 파라미터 바인딩으로 교체 |
 | `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → DDL-auto=update로 컬럼 자동 확장 |
 | OpenAI API `429 / insufficient_quota` | OpenAI 계정 크레딧 소진 (billing limit 초과) — gpt-image-1 표지 생성 전체 실패 | `ImagenService` 예외 `catch`로 표지 실패해도 책은 DONE 유지됨. 크레딧 충전 또는 `ImagenService` 비활성화로 대응 |
+| 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 ID 외 정렬 기준과 혼용 시 중복/누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 — 정렬 변경 시 프론트에서 목록 초기화 |
 
 ---
 
