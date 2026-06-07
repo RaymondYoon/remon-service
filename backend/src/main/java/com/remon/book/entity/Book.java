@@ -46,4 +46,8 @@ public class Book {
 
     @Builder.Default
     private boolean isPublic = true;
+
+    @Builder.Default
+    @Column(columnDefinition = "bigint default 0")
+    private Long viewCount = 0L;
 }

@@ -7,12 +7,18 @@ import { isLoggedIn } from "../utils/auth";
 import "./Home.css";
 
 const GENRES = ["전체", "SF", "판타지", "로맨스", "일상", "공포"];
+const SORT_OPTIONS = [
+  { value: "latest", label: "최신순" },
+  { value: "rating", label: "평점순" },
+  { value: "views",  label: "조회수순" },
+];
 
 const Home = () => {
   const location = useLocation();
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [genre, setGenre] = useState("전체");
+  const [sort, setSort] = useState("latest");
   const [libraryIds, setLibraryIds] = useState(new Set());
   const sentinelRef = useRef(null);
   const isFirstMount = useRef(true);
@@ -30,8 +36,8 @@ const Home = () => {
   }, [query]);
 
   const params = useMemo(
-    () => (searchTerm ? { keyword: searchTerm } : {}),
-    [searchTerm]
+    () => ({ ...(searchTerm ? { keyword: searchTerm } : {}), sort }),
+    [searchTerm, sort]
   );
 
   const { books, loading, error, hasMore, loadMore, retry } = useInfiniteBooks(params);
@@ -98,9 +104,22 @@ const Home = () => {
       </section>
 
       <section className="home-section">
-        <h2 className="home-section-title">
-          {searchTerm ? `"${searchTerm}" 검색 결과` : "추천 전자책"}
-        </h2>
+        <div className="home-section-header">
+          <h2 className="home-section-title">
+            {searchTerm ? `"${searchTerm}" 검색 결과` : "추천 전자책"}
+          </h2>
+          <div className="sort-tabs">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`sort-tab${sort === opt.value ? " sort-tab--active" : ""}`}
+                onClick={() => setSort(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {error ? (
           <div className="home-server-down">

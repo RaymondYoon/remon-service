@@ -28,4 +28,5 @@ public class BookResponse {
     private Long publishedBy;
     private String authorNickname;
     private Double averageRating;
+    private Long viewCount;
 }

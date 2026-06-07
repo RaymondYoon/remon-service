@@ -102,4 +102,39 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("SELECT b FROM Book b WHERE b.isAiGenerated = false OR b.status = :doneStatus")
     Page<Book> findAllDonePageable(@Param("doneStatus") BookStatus doneStatus, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Book b SET b.viewCount = b.viewCount + 1 WHERE b.id = :bookId")
+    void incrementViewCount(@Param("bookId") Long bookId);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
+              AND (:keyword IS NULL
+                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            ORDER BY b.viewCount DESC, b.id DESC
+            """)
+    List<Book> findBooksSortedByViews(
+            @Param("keyword") String keyword,
+            @Param("doneStatus") BookStatus doneStatus,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
+              AND (:keyword IS NULL
+                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            ORDER BY (SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = b.id) DESC, b.id DESC
+            """)
+    List<Book> findBooksSortedByRating(
+            @Param("keyword") String keyword,
+            @Param("doneStatus") BookStatus doneStatus,
+            Pageable pageable
+    );
 }

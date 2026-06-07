@@ -74,8 +74,9 @@ public class BookController {
     public Map<String, Object> getBooksCursor(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long cursor,
-            @RequestParam(defaultValue = "12") int size) {
-        return bookService.getBooksCursor(keyword, cursor, size);
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "latest") String sort) {
+        return bookService.getBooksCursor(keyword, cursor, size, sort);
     }
 
     @GetMapping("/explore")

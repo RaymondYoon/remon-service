@@ -149,6 +149,7 @@ public class BookService {
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
+        bookRepository.incrementViewCount(id);
         Double avgRating = reviewRepository.findAverageRatingByBookId(id);
         return buildResponse(book, null, avgRating);
     }
@@ -176,15 +177,30 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getBooksCursor(String keyword, Long cursor, int size) {
+    public Map<String, Object> getBooksCursor(String keyword, Long cursor, int size, String sort) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
-        List<Book> books = bookRepository.findBooksWithCursor(cursor, kw, BookStatus.DONE, PageRequest.of(0, size));
+        List<Book> books;
+        Long nextCursor;
+        boolean hasMore;
+
+        if ("rating".equals(sort)) {
+            books = bookRepository.findBooksSortedByRating(kw, BookStatus.DONE, PageRequest.of(0, size));
+            nextCursor = null;
+            hasMore = false;
+        } else if ("views".equals(sort)) {
+            books = bookRepository.findBooksSortedByViews(kw, BookStatus.DONE, PageRequest.of(0, size));
+            nextCursor = null;
+            hasMore = false;
+        } else {
+            books = bookRepository.findBooksWithCursor(cursor, kw, BookStatus.DONE, PageRequest.of(0, size));
+            nextCursor = books.isEmpty() ? null : books.get(books.size() - 1).getId();
+            hasMore = books.size() == size;
+        }
+
         Map<Long, Double> ratingCache = buildRatingCache(books);
         List<BookResponse> content = books.stream()
                 .map(b -> buildResponse(b, null, ratingCache.get(b.getId())))
                 .collect(Collectors.toList());
-        Long nextCursor = books.isEmpty() ? null : books.get(books.size() - 1).getId();
-        boolean hasMore = books.size() == size;
         Map<String, Object> result = new HashMap<>();
         result.put("books", content);
         result.put("nextCursor", nextCursor);
@@ -254,6 +270,7 @@ public class BookService {
                 .publishedBy(book.getPublishedBy())
                 .authorNickname(nickname)
                 .averageRating(avgRating)
+                .viewCount(book.getViewCount())
                 .build();
     }
 }
