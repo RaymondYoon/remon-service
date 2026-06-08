@@ -75,6 +75,8 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 이미지 CDN | Cloudinary (cloudinary-http45:1.39.0) |
 | Rate Limiting | Bucket4j 8.10.1 |
 | API 문서 | springdoc-openapi 2.8.3 (Swagger UI) |
+| DB 마이그레이션 | Flyway (flyway-mysql) — V1~V3 SQL, baseline-on-migrate, repair-on-migrate |
+| 캐싱 | Spring Cache + Redis — books-rating / books-views TTL 5분, GenericJackson2JsonRedisSerializer |
 | 빌드 / 배포 | Gradle, nixpacks, Railway (JVM -Xms128m -Xmx400m) |
 
 ### Frontend (Web)
@@ -307,7 +309,42 @@ remon-service/
 
 ---
 
-### 6. 읽기 시작 upsert — 서재 없이도 독서 상태 등록
+### 6. Flyway 마이그레이션 도입 — 스키마 버전 관리
+
+**Situation**: `ddl-auto=update`로 운영 중 Railway 재배포 시 Hibernate가 스키마를 임의 변경하거나 데이터가 유실될 위험이 있었음
+
+**Task**: 스키마 변경을 코드로 관리하고 데이터 유실을 원천 차단
+
+**Action**:
+- `spring.jpa.hibernate.ddl-auto=update` → `validate`로 전환 — Hibernate는 검증만 수행, DDL 실행 불가
+- `org.flywaydb:flyway-mysql` 의존성 추가, `baseline-on-migrate=true` + `repair-on-migrate=true` 설정
+- `V1__init_schema.sql`: 8개 테이블 전체 `CREATE TABLE IF NOT EXISTS` 정의 (기존 테이블 무손상)
+- `V2__cleanup_wrong_tables.sql`: 초기 마이그레이션 시 잘못 생성된 `books`/`users` 테이블 제거
+- `V3__cleanup_duplicate_tables.sql`: 잘못 생성된 `user_lemons` 테이블 제거
+- 엔티티에 `@Table(name = "...")` 명시 — Hibernate naming strategy 의존 제거 (`book`, `user`, `user_lemon`)
+
+**Result**: 스키마 변경 이력이 `flyway_schema_history` 테이블로 추적됨. 재배포 시 validate 실패로 데이터 유실성 DDL 사전 차단
+
+---
+
+### 7. Redis 캐싱 — 평점순/조회수순 쿼리 최적화
+
+**Situation**: `findBooksSortedByRating`은 상관 서브쿼리(AVG)를 포함한 무거운 쿼리로 정렬 탭 전환 시마다 풀스캔 발생
+
+**Task**: 자주 바뀌지 않는 정렬 결과를 캐싱하여 DB 부하 절감
+
+**Action**:
+- `spring-boot-starter-data-redis` 추가, `RedisConfig.java`에서 `RedisCacheManager` 빈 직접 구성
+- `GenericJackson2JsonRedisSerializer` + `activateDefaultTyping`으로 Book 엔티티 JSON 직렬화
+- `BookRepository`의 `findBooksSortedByViews` / `findBooksSortedByRating`에 `@Cacheable("books-views")` / `@Cacheable("books-rating")` 적용 (TTL 5분)
+- `BookService.getBookById`에 `@CacheEvict(allEntries = true)` — 조회수 변경 시 캐시 무효화
+- `BookGenerationTask.run`에서 DONE 전환 후 `CacheManager.getCache().clear()` — 신규 책 등록 시 캐시 갱신
+
+**Result**: 평점순/조회수순 탭 재전환 시 DB 쿼리 없이 Redis에서 즉시 반환, 신규 책/조회수 변경 시 자동 무효화
+
+---
+
+### 8. 읽기 시작 upsert — 서재 없이도 독서 상태 등록
 
 **Situation**: ReadPage 방문 시 서재에 책이 없으면 독서 상태(READING)를 등록할 수 없어 홈의 ✓ 배지가 표시되지 않음
 
@@ -348,6 +385,9 @@ remon-service/
 | Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
 | 홈에 생성 중인 AI 책(PENDING/GENERATING)이 노출 | `GET /api/books`와 `GET /api/books/cursor`가 status 구분 없이 모든 AI 생성 책을 반환 | `BookRepository`에 DONE 필터 쿼리 추가 (`isAiGenerated = false OR status = DONE`), `BookService`에서 해당 쿼리 사용으로 교체 |
 | 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 다른 정렬 기준과 혼용 시 중복·누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 |
+| `ddl-auto=update` 데이터 유실 | Railway 재배포 시 Hibernate가 스키마를 임의 변경하여 기존 데이터 유실 가능 | Flyway 도입 + `ddl-auto=validate` 전환 — V1~V3 SQL로 스키마 버전 관리, IF NOT EXISTS로 멱등성 보장 |
+| Flyway 체크섬 불일치 | V1 SQL 내용 수정 후 재배포 시 기존 `flyway_schema_history`와 체크섬 불일치로 기동 실패 | `repair-on-migrate=true` 설정 추가 + Railway MySQL Console에서 `UPDATE flyway_schema_history SET checksum=... WHERE version='1'`로 직접 수정 |
+| `user_lemons` 테이블 잘못 생성 | V1 SQL에 `user_lemons`로 생성했으나 실제 엔티티는 `user_lemon` (단수) 매핑 → validate 실패 | `@Table(name = "user_lemon")` 명시 + V3 마이그레이션으로 잘못된 `user_lemons` 테이블 DROP |
 
 ---
 

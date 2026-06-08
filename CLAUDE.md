@@ -139,6 +139,9 @@ remon-service/
 | 앱 리뷰 작성 | BookDetailScreen 별점+텍스트 리뷰 작성 폼 (로그인 시 노출), `addReview` API 연동 |
 | 앱 UI 버그 수정 | 카드 이미지 height 고정(Android), 서재 탭 높이, 장르 필터 빈공간, coverImageUrl 표시 |
 | 앱 GenerateScreen 옵션 | 서술 시점(1인칭/3인칭) + 주인공 성격(6종 칩) 선택 — 웹과 동일한 옵션 세트 |
+| Flyway 마이그레이션 | `ddl-auto=validate` 전환 + `db/migration/V1~V3` SQL로 스키마 버전 관리 — 데이터 유실 방지 |
+| Redis 캐싱 | `books-rating` / `books-views` 캐시 (TTL 5분) — `@Cacheable` on BookRepository, `CacheManager` evict on DONE |
+| DB 인덱스 | `book` 테이블 `status`, `view_count DESC`, `(status, id DESC)` 인덱스 — Flyway V1 SQL로 관리 |
 
 ---
 
@@ -177,7 +180,6 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] GitHub Actions CI/CD 파이프라인
-- [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답)
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 서비스 스크린샷 촬영 및 README 갱신
