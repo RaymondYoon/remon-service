@@ -10,6 +10,11 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "books", indexes = {
+        @Index(name = "idx_books_status",    columnList = "status"),
+        @Index(name = "idx_books_view_count", columnList = "view_count DESC"),
+        @Index(name = "idx_books_status_id", columnList = "status, id DESC")
+})
 @Getter
 @Builder
 @NoArgsConstructor
