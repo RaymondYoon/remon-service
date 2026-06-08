@@ -11,11 +11,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +29,8 @@ class BookGenerationTaskTest {
     @Mock private ImagenService imagenService;
     @Mock private CloudinaryService cloudinaryService;
     @Mock private NotificationService notificationService;
+    @Mock private CacheManager cacheManager;
+    @Mock private Cache cache;
 
     private BookGenerationTask bookGenerationTask;
 
@@ -36,7 +41,10 @@ class BookGenerationTaskTest {
     @BeforeEach
     void setUp() {
         bookGenerationTask = new BookGenerationTask(
-                bookRepository, openAiService, imagenService, cloudinaryService, notificationService);
+                bookRepository, openAiService, imagenService, cloudinaryService,
+                notificationService, cacheManager);
+        // 캐시 eviction mock 설정 (FAILED 경로에서는 호출되지 않으므로 lenient 처리)
+        lenient().when(cacheManager.getCache(anyString())).thenReturn(cache);
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -108,6 +109,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("UPDATE Book b SET b.viewCount = b.viewCount + 1 WHERE b.id = :bookId")
     void incrementViewCount(@Param("bookId") Long bookId);
 
+    @Cacheable("books-views")
     @Query("""
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
@@ -122,6 +124,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             @Param("doneStatus") BookStatus doneStatus
     );
 
+    @Cacheable("books-rating")
     @Query("""
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)

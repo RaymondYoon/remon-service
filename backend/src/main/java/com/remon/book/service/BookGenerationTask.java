@@ -7,6 +7,8 @@ import com.remon.notification.entity.NotificationType;
 import com.remon.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -23,15 +25,17 @@ public class BookGenerationTask {
     private final ImagenService imagenService;
     private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
+    private final CacheManager cacheManager;
 
     public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService,
                               ImagenService imagenService, CloudinaryService cloudinaryService,
-                              NotificationService notificationService) {
+                              NotificationService notificationService, CacheManager cacheManager) {
         this.bookRepository      = bookRepository;
         this.openAiService       = openAiService;
         this.imagenService       = imagenService;
         this.cloudinaryService   = cloudinaryService;
         this.notificationService = notificationService;
+        this.cacheManager        = cacheManager;
     }
 
     @Async
@@ -67,6 +71,9 @@ public class BookGenerationTask {
             bookRepository.updateStatus(bookId, BookStatus.DONE);
             log.info("책 생성 완료(DONE) - bookId: {}", bookId);
 
+            // 새 책이 추가됐으므로 평점순/조회수순 캐시 무효화
+            evictSortedBookCaches();
+
             // 책 생성 완료 알림 (이미지 처리 완료 후 발송)
             if (book != null && book.getPublishedBy() != null) {
                 try {
@@ -84,6 +91,14 @@ public class BookGenerationTask {
             bookRepository.updateStatus(bookId, BookStatus.FAILED);
             log.error("책 생성 실패 - bookId: {}, message: {}", bookId, e.getMessage(), e);
         }
+    }
+
+    private void evictSortedBookCaches() {
+        Cache rating = cacheManager.getCache("books-rating");
+        Cache views  = cacheManager.getCache("books-views");
+        if (rating != null) rating.clear();
+        if (views  != null) views.clear();
+        log.info("books-rating / books-views 캐시 무효화 완료");
     }
 
     @Async

@@ -12,6 +12,7 @@ import com.remon.library.repository.UserBookRepository;
 import com.remon.review.repository.ReviewRepository;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,6 +147,7 @@ public class BookService {
         bookRepository.delete(book);
     }
 
+    @CacheEvict(value = {"books-rating", "books-views"}, allEntries = true)
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
