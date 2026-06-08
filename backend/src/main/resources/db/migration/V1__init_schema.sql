@@ -3,7 +3,7 @@
 -- 모든 테이블은 IF NOT EXISTS로 멱등성 보장
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS `user` (
     id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     email          VARCHAR(255) NOT NULL UNIQUE,
     password       VARCHAR(255),
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified TINYINT(1)   NOT NULL DEFAULT 0
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS books (
+CREATE TABLE IF NOT EXISTS book (
     id              BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     title           VARCHAR(255),
     author          VARCHAR(255),
@@ -33,21 +33,21 @@ CREATE TABLE IF NOT EXISTS books (
     status          VARCHAR(255) NOT NULL DEFAULT 'DONE',
     is_public       TINYINT(1)   NOT NULL DEFAULT 1,
     view_count      BIGINT                DEFAULT 0,
-    INDEX idx_books_status    (status),
-    INDEX idx_books_view_count (view_count DESC),
-    INDEX idx_books_status_id (status, id DESC)
+    INDEX idx_book_status    (status),
+    INDEX idx_book_view_count (view_count DESC),
+    INDEX idx_book_status_id (status, id DESC)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS user_books (
-    id             BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_id        BIGINT      NOT NULL,
-    book_id        BIGINT      NOT NULL,
+    id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id        BIGINT       NOT NULL,
+    book_id        BIGINT       NOT NULL,
     status         VARCHAR(255) NOT NULL DEFAULT 'SAVED',
     last_read_page INT          NOT NULL DEFAULT 0,
     saved_at       DATETIME(6)  NOT NULL,
     UNIQUE KEY uk_user_books_user_book (user_id, book_id),
-    CONSTRAINT fk_user_books_user FOREIGN KEY (user_id) REFERENCES users (id),
-    CONSTRAINT fk_user_books_book FOREIGN KEY (book_id) REFERENCES books (id)
+    CONSTRAINT fk_user_books_user FOREIGN KEY (user_id) REFERENCES `user` (id),
+    CONSTRAINT fk_user_books_book FOREIGN KEY (book_id) REFERENCES book (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS reviews (
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS reviews (
     content    TEXT,
     created_at DATETIME(6),
     UNIQUE KEY uk_reviews_book_user (book_id, user_id),
-    CONSTRAINT fk_reviews_book FOREIGN KEY (book_id) REFERENCES books (id),
-    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users (id)
+    CONSTRAINT fk_reviews_book FOREIGN KEY (book_id) REFERENCES book (id),
+    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES `user` (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS follows (
@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS follows (
     following_id BIGINT     NOT NULL,
     created_at   DATETIME(6),
     UNIQUE KEY uk_follows_follower_following (follower_id, following_id),
-    CONSTRAINT fk_follows_follower  FOREIGN KEY (follower_id)  REFERENCES users (id),
-    CONSTRAINT fk_follows_following FOREIGN KEY (following_id) REFERENCES users (id)
+    CONSTRAINT fk_follows_follower  FOREIGN KEY (follower_id)  REFERENCES `user` (id),
+    CONSTRAINT fk_follows_following FOREIGN KEY (following_id) REFERENCES `user` (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS notifications (
