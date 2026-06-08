@@ -52,6 +52,9 @@ dependencies {
 
 	// Cloudinary
 	implementation 'com.cloudinary:cloudinary-http45:1.39.0'
+
+	// Flyway (MySQL)
+	implementation 'org.flywaydb:flyway-mysql'
 }
 
 tasks.named('test') {
