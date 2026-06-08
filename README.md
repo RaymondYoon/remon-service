@@ -385,9 +385,6 @@ remon-service/
 | Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
 | 홈에 생성 중인 AI 책(PENDING/GENERATING)이 노출 | `GET /api/books`와 `GET /api/books/cursor`가 status 구분 없이 모든 AI 생성 책을 반환 | `BookRepository`에 DONE 필터 쿼리 추가 (`isAiGenerated = false OR status = DONE`), `BookService`에서 해당 쿼리 사용으로 교체 |
 | 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 다른 정렬 기준과 혼용 시 중복·누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 |
-| `ddl-auto=update` 데이터 유실 | Railway 재배포 시 Hibernate가 스키마를 임의 변경하여 기존 데이터 유실 가능 | Flyway 도입 + `ddl-auto=validate` 전환 — V1~V3 SQL로 스키마 버전 관리, IF NOT EXISTS로 멱등성 보장 |
-| Flyway 체크섬 불일치 | V1 SQL 내용 수정 후 재배포 시 기존 `flyway_schema_history`와 체크섬 불일치로 기동 실패 | `repair-on-migrate=true` 설정 추가 + Railway MySQL Console에서 `UPDATE flyway_schema_history SET checksum=... WHERE version='1'`로 직접 수정 |
-| `user_lemons` 테이블 잘못 생성 | V1 SQL에 `user_lemons`로 생성했으나 실제 엔티티는 `user_lemon` (단수) 매핑 → validate 실패 | `@Table(name = "user_lemon")` 명시 + V3 마이그레이션으로 잘못된 `user_lemons` 테이블 DROP |
 
 ---
 
