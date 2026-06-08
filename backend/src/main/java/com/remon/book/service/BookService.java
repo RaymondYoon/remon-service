@@ -184,11 +184,11 @@ public class BookService {
         boolean hasMore;
 
         if ("rating".equals(sort)) {
-            books = bookRepository.findBooksSortedByRating(kw, BookStatus.DONE, PageRequest.of(0, size));
+            books = bookRepository.findBooksSortedByRating(kw, BookStatus.DONE);
             nextCursor = null;
             hasMore = false;
         } else if ("views".equals(sort)) {
-            books = bookRepository.findBooksSortedByViews(kw, BookStatus.DONE, PageRequest.of(0, size));
+            books = bookRepository.findBooksSortedByViews(kw, BookStatus.DONE);
             nextCursor = null;
             hasMore = false;
         } else {
