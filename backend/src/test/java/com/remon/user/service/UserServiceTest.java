@@ -1,5 +1,6 @@
 package com.remon.user.service;
 
+import com.remon.book.repository.BookRepository;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.user.entity.Role;
 import com.remon.user.entity.User;
@@ -28,13 +29,16 @@ class UserServiceTest {
     @Mock
     private UserBookRepository userBookRepository;
 
+    @Mock
+    private BookRepository bookRepository;
+
     private BCryptPasswordEncoder passwordEncoder;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        userService = new UserService(userRepository, passwordEncoder, userBookRepository);
+        userService = new UserService(userRepository, passwordEncoder, userBookRepository, bookRepository);
     }
 
     // ── 로그인 ──────────────────────────────────────────────────────────────
