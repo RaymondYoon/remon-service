@@ -12,6 +12,10 @@ const TONES = [
   { label: '따뜻하게', value: 'WARM' },
   { label: '긴장감 있게', value: 'DARK' },
   { label: '유쾌하게', value: 'HUMOROUS' },
+  { label: '신비로운', value: 'MYSTERIOUS' },
+  { label: '쓸쓸한', value: 'MELANCHOLY' },
+  { label: '긴장감', value: 'TENSE' },
+  { label: '웅장한', value: 'EPIC' },
 ];
 const ENDINGS = [
   { label: '해피엔딩', value: 'HAPPY' },
@@ -22,7 +26,7 @@ const VIEWPOINTS = [
   { label: '3인칭 (전지적 시점)', value: '3인칭' },
   { label: '1인칭 (내가 주인공)', value: '1인칭' },
 ];
-const PROTAGONIST_TRAITS = ['소심한', '까칠한', '비밀이 있는', '천재적인', '상처받은', '엉뚱한'];
+const PROTAGONIST_TRAITS = ['소심한', '까칠한', '비밀이 있는', '천재적인', '상처받은', '엉뚱한', '고집스러운', '순수한', '냉소적인', '외로운', '야망있는', '겁쟁이', '반항적인'];
 
 function OptionRow({ label, options, selected, onSelect }) {
   return (

@@ -8,9 +8,13 @@ import "./GeneratePage.css";
 
 const GENRES  = ["SF", "판타지", "로맨스", "일상", "공포", "액션", "스릴러", "드라마", "느와르"];
 const TONES = [
-  { value: "WARM",      label: "따뜻하게" },
-  { value: "DARK",      label: "긴장감 있게" },
-  { value: "HUMOROUS",  label: "유쾌하게" },
+  { value: "WARM",       label: "따뜻하게" },
+  { value: "DARK",       label: "긴장감 있게" },
+  { value: "HUMOROUS",   label: "유쾌하게" },
+  { value: "MYSTERIOUS", label: "신비로운" },
+  { value: "MELANCHOLY", label: "쓸쓸한" },
+  { value: "TENSE",      label: "긴장감" },
+  { value: "EPIC",       label: "웅장한" },
 ];
 const ENDINGS = [
   { value: "HAPPY", label: "해피엔딩" },
@@ -21,7 +25,7 @@ const VIEWPOINTS = [
   { value: "3인칭", label: "3인칭 (전지적 시점)" },
   { value: "1인칭", label: "1인칭 (내가 주인공)" },
 ];
-const PROTAGONIST_TRAITS = ["소심한", "까칠한", "비밀이 있는", "천재적인", "상처받은", "엉뚱한"];
+const PROTAGONIST_TRAITS = ["소심한", "까칠한", "비밀이 있는", "천재적인", "상처받은", "엉뚱한", "고집스러운", "순수한", "냉소적인", "외로운", "야망있는", "겁쟁이", "반항적인"];
 
 const GeneratePage = () => {
   const navigate = useNavigate();

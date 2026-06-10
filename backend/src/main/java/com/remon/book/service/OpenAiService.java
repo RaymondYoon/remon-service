@@ -95,9 +95,13 @@ public class OpenAiService {
     private String buildPrompt(List<String> keywords, String genre, String tone, String ending,
                                String protagonistName, String protagonistTrait, String viewpoint) {
         String toneDesc = switch (tone != null ? tone.toUpperCase() : "WARM") {
-            case "DARK"      -> "어둡고 긴장감 있게";
-            case "HUMOROUS"  -> "유쾌하고 재미있게";
-            default          -> "따뜻하고 감동적으로";
+            case "DARK"        -> "어둡고 긴장감 있게";
+            case "HUMOROUS"    -> "유쾌하고 재미있게";
+            case "MYSTERIOUS"  -> "신비롭고 미스터리하게";
+            case "MELANCHOLY"  -> "쓸쓸하고 애잔하게";
+            case "TENSE"       -> "긴장감 넘치게";
+            case "EPIC"        -> "웅장하고 압도적으로";
+            default            -> "따뜻하고 감동적으로";
         };
 
         String endingDesc = switch (ending != null ? ending.toUpperCase() : "HAPPY") {
@@ -181,7 +185,7 @@ public class OpenAiService {
                 === 생성 조건 ===
                 장르: %s
                 톤: %s
-                분량: 2500자 내외
+                분량: 3000자 내외
                 결말: %s
                 %s
                 %s
