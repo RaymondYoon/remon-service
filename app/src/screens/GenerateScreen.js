@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { generateBook, getGenerationStatus, getLemon } from '../api/bookApi';
 import { colors } from '../theme';
 
-const GENRES = ['SF', '판타지', '로맨스', '일상', '공포'];
+const GENRES = ['SF', '판타지', '로맨스', '일상', '공포', '액션', '스릴러', '드라마', '느와르'];
 const TONES = [
   { label: '따뜻하게', value: 'WARM' },
   { label: '긴장감 있게', value: 'DARK' },
