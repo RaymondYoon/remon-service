@@ -185,7 +185,7 @@ public class OpenAiService {
                 === 생성 조건 ===
                 장르: %s
                 톤: %s
-                분량: 3000자 내외
+                분량: 4000자 내외
                 결말: %s
                 %s
                 %s
