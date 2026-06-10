@@ -219,15 +219,15 @@ const BookDetail = () => {
                 본문 보기
               </button>
             )}
-            <button className="share-btn" onClick={handleShare}>
-              📤 공유
-            </button>
             <button
               className="add-library-btn"
               onClick={handleAddToLibrary}
               disabled={addLoading || addSuccess}
             >
               {addLoading ? "추가 중..." : addSuccess ? "서재에 담겼어요 ✓" : "내 서재에 담기"}
+            </button>
+            <button className="share-btn" onClick={handleShare} title="공유">
+              🔗
             </button>
           </div>
 
