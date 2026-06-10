@@ -277,6 +277,13 @@ src/
   - `params` useMemo에 `sort` 포함 → 정렬 변경 시 `paramsKey` 변경으로 자동 초기화·재조회
 - [x] `Home.css` 정렬 탭 스타일 추가 — `.home-section-header` (flex, space-between), `.sort-tabs`, `.sort-tab`, `.sort-tab--active` (primary 색상, color-mix 배경)
 
+### 2026-06-10
+- [x] `GeneratePage.jsx` 장르 확장 — `GENRES` 9개 (`SF/판타지/로맨스/일상/공포/액션/스릴러/드라마/느와르`)
+- [x] `GeneratePage.jsx` 분위기 확장 — `TONES` 7개 (기존 3개 + 신비로운/쓸쓸한/긴장감/웅장한 추가)
+- [x] `GeneratePage.jsx` 주인공 성격 확장 — `PROTAGONIST_TRAITS` 13개 (기존 6개 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가)
+- [x] `BookDetail.jsx` 공유 버튼 순서 변경 — 본문보기 → **내서재담기** → **공유** 순으로 재배치
+- [x] `BookDetail.css` 공유 버튼 스타일 변경 — 44×44px 원형 (`border-radius: 50%`), 배경 `var(--color-card)`, 테두리 `1px solid var(--color-border)`, 🔗 아이콘만 표시, hover 시 primary 색상
+
 ---
 
 ## 앞으로 할 작업

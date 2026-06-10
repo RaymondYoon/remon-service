@@ -160,6 +160,13 @@ NavigationContainer
 | HomeScreen 장르 필터 빈 공간 | `contentContainerStyle flexGrow:1`, ListEmptyComponent 중앙 정렬 |
 | addReview API 추가 | `bookApi.js`: `POST /api/books/:id/reviews { rating, content }` |
 
+### 2026-06-10
+| 작업 | 내용 |
+|------|------|
+| GenerateScreen 장르 확장 | `GENRES` 9개 (`SF/판타지/로맨스/일상/공포/액션/스릴러/드라마/느와르`) |
+| GenerateScreen 분위기 확장 | `TONES` 7개 (기존 3개 + 신비로운/쓸쓸한/긴장감/웅장한 추가) |
+| GenerateScreen 성격 확장 | `PROTAGONIST_TRAITS` 13개 (기존 6개 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가) |
+
 ---
 
 ## 앞으로 할 작업

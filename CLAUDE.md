@@ -2,8 +2,8 @@
 
 ## 프로젝트 개요
 **Remon**은 AI가 전자책/소설을 자동 생성해주는 웹 서비스다.
-사용자가 키워드(최대 4개), 장르, 분위기, 결말 방향, 주인공 이름·성격·서술 시점(선택)을 입력하면
-Google Gemini(gemini-2.5-flash)가 단편 소설을 생성한다.
+사용자가 키워드(최대 4개), 장르(9종), 분위기(7종), 결말 방향, 주인공 이름·성격(13종)·서술 시점(선택)을 입력하면
+Google Gemini(gemini-2.5-flash)가 3000자 내외의 단편 소설을 생성한다.
 레몬 경제 시스템(하루 3회 제한)과 소셜 기능(팔로우, 리뷰, 피드)을 갖추고 있다.
 
 ---
@@ -132,7 +132,7 @@ remon-service/
 | 생성 진행도 바 | 생성 중 단계별 프로그레스 바 (TEXT 10→50% / IMAGE 50→90% / 완료 100%) + 단계 메시지 |
 | 생성 상태 step 필드 | `GET /api/books/{id}/status` 응답에 `step` 추가 (TEXT/IMAGE/DONE/FAILED) |
 | 책 공유 버튼 | BookDetail "본문 보기" 옆 📤 공유 버튼 — Web Share API / 미지원 시 URL 클립보드 복사 |
-| 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 |
+| 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 (9개 장르 커버) |
 | 조회수 카운트 | `GET /api/books/{id}` 호출 시 `viewCount` 1 증가, `BookResponse`에 viewCount 포함 |
 | 홈 정렬 탭 | "추천 전자책" 섹션에 최신순/평점순/조회수순 탭 — 정렬 변경 시 목록 초기화 후 재조회 |
 | 앱 탭바 FAB | 중앙 만들기 버튼 원형 FAB 스타일 (🍋, #5B7E5A, top:-20, 60px) — `tabBarButton` prop |
@@ -142,6 +142,11 @@ remon-service/
 | Flyway 마이그레이션 | `ddl-auto=validate` 전환 + `db/migration/V1~V3` SQL로 스키마 버전 관리 — 데이터 유실 방지 |
 | Redis 캐싱 | `books-rating` / `books-views` 캐시 (TTL 5분) — `@Cacheable` on BookRepository, `CacheManager` evict on DONE |
 | DB 인덱스 | `book` 테이블 `status`, `view_count DESC`, `(status, id DESC)` 인덱스 — Flyway V1 SQL로 관리 |
+| 장르 9종 확장 | SF/판타지/로맨스/일상/공포 + 액션/스릴러/드라마/느와르 추가, 제목 스타일 가이드 4개 장르 확장 |
+| 분위기 7종 확장 | 따뜻하게/긴장감/유쾌하게 + MYSTERIOUS/MELANCHOLY/TENSE/EPIC 추가 |
+| 주인공 성격 13종 | 기존 6종 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가 |
+| 소설 분량 3000자 | buildPrompt 분량 2500자 → 3000자로 변경 |
+| 공유 버튼 개선 | BookDetail 공유 버튼 위치 재배치 (내서재 오른쪽) + 44px 원형 아이콘 스타일 |
 
 ---
 
@@ -183,7 +188,8 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 서비스 스크린샷 촬영 및 README 갱신
-- [ ] 테스트 코드 작성 (백엔드 JUnit, 프론트엔드 Jest)
+- [x] 테스트 코드 작성 (백엔드 JUnit — LemonService 동시성·BookGenerationTask·UserController 완료)
+- [ ] 테스트 코드 작성 (프론트엔드 Jest)
 - [ ] 평점순/조회수순 정렬 무한 스크롤 지원 (현재 상위 12개 고정 반환)
 - [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)

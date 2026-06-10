@@ -337,6 +337,12 @@ CLOUDINARY_API_SECRET=...
 - [x] `BookService.getBooksCursor` — `sort` 파라미터 추가: `latest`(기존 cursor 방식) / `rating`·`views`(상위 size개 고정 반환, hasMore=false)
 - [x] `BookController.getBooksCursor` — `@RequestParam(defaultValue = "latest") String sort` 추가
 
+### 2026-06-10
+- [x] `OpenAiService.buildPrompt` 장르 확장 — 액션/스릴러/드라마/느와르 4개 추가 (총 9개 장르 지원)
+- [x] `OpenAiService.buildPrompt` 제목 스타일 가이드 확장 — 액션("강렬한 동사 + 대상") / 스릴러("긴장감·불안감 조성") / 드라마("인물 관계·감정 핵심") / 느와르("어둠·배신·도시 이미지") 예시 추가
+- [x] `OpenAiService.buildPrompt` 분위기(tone) 확장 — MYSTERIOUS(신비롭고 미스터리하게) / MELANCHOLY(쓸쓸하고 애잔하게) / TENSE(긴장감 넘치게) / EPIC(웅장하고 압도적으로) 추가 (총 7종)
+- [x] 소설 분량 2500자 → 3000자로 변경
+
 ---
 
 ## 트러블슈팅 이력
