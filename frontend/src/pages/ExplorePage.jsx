@@ -80,8 +80,10 @@ const ExplorePage = () => {
                       : <span className="explore-card-cover-emoji">🍋</span>
                     }
                   </div>
-                  <div className="explore-card-genre">{book.genre || "일반"}</div>
-                  <h3 className="explore-card-title">{book.title}</h3>
+                  <div className="explore-card-body">
+                    <div className="explore-card-genre">{book.genre || "일반"}</div>
+                    <h3 className="explore-card-title">{book.title}</h3>
+                  </div>
                 </Link>
                 <div className="explore-card-footer">
                   <Link

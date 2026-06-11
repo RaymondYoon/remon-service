@@ -43,7 +43,20 @@ public class User {
     @Builder.Default
     private boolean emailVerified = false;
 
+    private LocalDateTime nicknameChangedAt;
+
+    @Builder.Default
+    private int nicknameChangeCount = 0;
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+        this.nicknameChangedAt = LocalDateTime.now();
+        this.nicknameChangeCount = this.nicknameChangeCount + 1;
+    }
+
+    public void resetNicknameCountAndUpdate(String nickname) {
+        this.nickname = nickname;
+        this.nicknameChangedAt = LocalDateTime.now();
+        this.nicknameChangeCount = 1;
     }
 }

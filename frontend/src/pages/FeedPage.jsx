@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getFeedBooks } from "../api/bookApi";
 import "./FeedPage.css";
@@ -10,10 +10,23 @@ const FeedPage = () => {
 
   useEffect(() => {
     getFeedBooks()
-      .then((res) => setBooks(res.data))
+      .then((res) => setBooks(Array.isArray(res.data) ? res.data : (res.data.content ?? [])))
       .catch(() => setBooks([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const authors = useMemo(() => {
+    const map = new Map();
+    books.forEach((book) => {
+      if (book.publishedBy && !map.has(book.publishedBy)) {
+        map.set(book.publishedBy, {
+          id: book.publishedBy,
+          nickname: book.authorNickname || book.author || "?",
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [books]);
 
   if (loading) return <div className="feed-loading">불러오는 중...</div>;
 
@@ -26,43 +39,64 @@ const FeedPage = () => {
 
       {books.length === 0 ? (
         <div className="feed-empty">
-          <p>아직 피드가 없습니다.</p>
+          <div className="feed-empty-icon">📚</div>
+          <p className="feed-empty-text">아직 팔로우한 작가가 없어요.</p>
           <p className="feed-empty-hint">
-            <span
-              className="feed-empty-link"
-              onClick={() => navigate("/explore")}
-            >
-              둘러보기
-            </span>
-            에서 사람들을 팔로우해보세요!
+            둘러보기에서 마음에 드는 작가를 팔로우해보세요!
           </p>
+          <button className="feed-empty-btn" onClick={() => navigate("/explore")}>
+            둘러보기 →
+          </button>
         </div>
       ) : (
-        <div className="feed-list">
-          {books.map((book) => (
-            <Link to={`/book/${book.id}`} key={book.id} className="feed-item">
-              <div className="feed-item-meta">
-                <Link
-                  to={`/profile/${book.publishedBy}`}
-                  className="feed-item-author"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {book.authorNickname || book.author || "알 수 없음"}
+        <>
+          {/* 팔로잉 작가 아바타 목록 */}
+          <div className="feed-authors">
+            {authors.map((author) => (
+              <Link
+                to={`/profile/${author.id}`}
+                key={author.id}
+                className="feed-author-item"
+              >
+                <div className="feed-author-avatar">
+                  {author.nickname.charAt(0).toUpperCase()}
+                </div>
+                <span className="feed-author-name">{author.nickname}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* 책 그리드 */}
+          <div className="feed-grid">
+            {books.map((book) => (
+              <div key={book.id} className="feed-card">
+                <Link to={`/book/${book.id}`} className="feed-card-link">
+                  <div className="feed-card-cover">
+                    {book.coverImageUrl
+                      ? <img src={book.coverImageUrl} alt={book.title} className="feed-card-img" />
+                      : <span className="feed-card-emoji">🍋</span>
+                    }
+                  </div>
+                  <div className="feed-card-body">
+                    {book.genre && (
+                      <span className="feed-card-genre">{book.genre}</span>
+                    )}
+                    <h3 className="feed-card-title">{book.title}</h3>
+                  </div>
                 </Link>
-                {book.genre && (
-                  <span className="feed-item-genre">{book.genre}</span>
-                )}
+                <div className="feed-card-footer">
+                  <Link
+                    to={`/profile/${book.publishedBy}`}
+                    className="feed-card-author"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    ✍️ {book.authorNickname || book.author || "알 수 없음"}
+                  </Link>
+                </div>
               </div>
-              <h3 className="feed-item-title">{book.title}</h3>
-              {book.description && (
-                <p className="feed-item-desc">
-                  {book.description.slice(0, 100)}
-                  {book.description.length > 100 ? "..." : ""}
-                </p>
-              )}
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

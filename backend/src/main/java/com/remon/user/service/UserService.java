@@ -12,6 +12,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.IsoFields;
 import java.util.Optional;
 
 @Service
@@ -91,7 +93,25 @@ public class UserService {
     public void updateNickname(String email, String nickname) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
-        user.updateNickname(nickname);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime changedAt = user.getNicknameChangedAt();
+
+        if (changedAt != null) {
+            boolean sameWeek = now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR) == changedAt.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+                    && now.get(IsoFields.WEEK_BASED_YEAR) == changedAt.get(IsoFields.WEEK_BASED_YEAR);
+            if (sameWeek) {
+                if (user.getNicknameChangeCount() >= 2) {
+                    throw new IllegalStateException("이번 주 닉네임 변경 횟수를 초과했습니다. (주 2회 제한)");
+                }
+                user.updateNickname(nickname);
+            } else {
+                user.resetNicknameCountAndUpdate(nickname);
+            }
+        } else {
+            user.updateNickname(nickname);
+        }
+
         bookRepository.updateAuthorByPublishedBy(user.getId(), nickname);
     }
 
