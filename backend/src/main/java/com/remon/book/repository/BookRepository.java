@@ -17,17 +17,15 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     @Query("""
             SELECT b FROM Book b
-            WHERE LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            WHERE LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%'))
             """)
     List<Book> searchByKeyword(@Param("keyword") String keyword);
 
     @Query("""
             SELECT b FROM Book b
-            WHERE LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-               OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            WHERE LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%'))
             """)
     Page<Book> searchByKeywordPageable(@Param("keyword") String keyword, Pageable pageable);
 
@@ -66,9 +64,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             WHERE (:cursor IS NULL OR b.id < :cursor)
               AND (b.isAiGenerated = false OR b.status = :doneStatus)
               AND (:keyword IS NULL
-                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                   OR LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%')))
             ORDER BY b.id DESC
             """)
     List<Book> findBooksWithCursor(
@@ -81,18 +78,16 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("""
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
-              AND (LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+              AND (LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
     List<Book> searchByKeywordAndDone(@Param("keyword") String keyword, @Param("doneStatus") BookStatus doneStatus);
 
     @Query("""
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
-              AND (LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+              AND (LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
     Page<Book> searchByKeywordPageableAndDone(@Param("keyword") String keyword,
                                               @Param("doneStatus") BookStatus doneStatus,
@@ -114,9 +109,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
               AND (:keyword IS NULL
-                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                   OR LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%')))
             ORDER BY b.viewCount DESC, b.id DESC
             """)
     List<Book> findBooksSortedByViews(
@@ -129,9 +123,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             SELECT b FROM Book b
             WHERE (b.isAiGenerated = false OR b.status = :doneStatus)
               AND (:keyword IS NULL
-                   OR LOWER(b.title)       LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.author)      LIKE LOWER(CONCAT('%', :keyword, '%'))
-                   OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                   OR LOWER(b.title)  LIKE LOWER(CONCAT('%', :keyword, '%'))
+                   OR LOWER(b.author) LIKE LOWER(CONCAT('%', :keyword, '%')))
             ORDER BY (SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.book.id = b.id) DESC, b.id DESC
             """)
     List<Book> findBooksSortedByRating(
