@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getUser, clearAuth, saveAuth } from "../utils/auth";
 import { getLemonInfo, updateNickname } from "../api/userApi";
 import { deleteAccount } from "../api/bookApi";
+import { getFollowers, getFollowing } from "../api/followApi";
 import { useToast } from "../hooks/useToast";
 import LemonTree from "../components/LemonTree";
 import "./MyPage.css";
@@ -14,13 +15,31 @@ const MyPage = () => {
   const [loading, setLoading] = useState(true);
   const showToast = useToast();
   const [nicknameInput, setNicknameInput] = useState(user?.nickname ?? "");
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [followModal, setFollowModal] = useState(false);
+  const [followTab, setFollowTab] = useState("followers");
 
   useEffect(() => {
     getLemonInfo()
       .then((res) => setLemonInfo(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+
+    if (user?.id) {
+      getFollowers(user.id)
+        .then((res) => setFollowers(Array.isArray(res.data) ? res.data : []))
+        .catch(() => {});
+      getFollowing(user.id)
+        .then((res) => setFollowing(Array.isArray(res.data) ? res.data : []))
+        .catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openModal = (tab) => {
+    setFollowTab(tab);
+    setFollowModal(true);
+  };
 
   const handleNicknameUpdate = async (e) => {
     e.preventDefault();
@@ -56,8 +75,61 @@ const MyPage = () => {
         <div className="mypage-profile-info">
           <h2 className="mypage-nickname">{user?.nickname ?? "사용자"}님</h2>
           <p className="mypage-email">{user?.email ?? ""}</p>
+          <div className="mypage-follow-stats">
+            <button className="mypage-follow-stat" onClick={() => openModal("followers")}>
+              <span className="mypage-follow-num">{followers.length}</span> 팔로워
+            </button>
+            <span className="mypage-follow-dot">·</span>
+            <button className="mypage-follow-stat" onClick={() => openModal("following")}>
+              <span className="mypage-follow-num">{following.length}</span> 팔로잉
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* 팔로워/팔로잉 모달 */}
+      {followModal && (
+        <div className="mypage-modal-overlay" onClick={() => setFollowModal(false)}>
+          <div className="mypage-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="mypage-modal-close" onClick={() => setFollowModal(false)}>✕</button>
+            <div className="mypage-modal-tabs">
+              <button
+                className={`mypage-modal-tab${followTab === "followers" ? " active" : ""}`}
+                onClick={() => setFollowTab("followers")}
+              >
+                팔로워 {followers.length}
+              </button>
+              <button
+                className={`mypage-modal-tab${followTab === "following" ? " active" : ""}`}
+                onClick={() => setFollowTab("following")}
+              >
+                팔로잉 {following.length}
+              </button>
+            </div>
+            <div className="mypage-modal-list">
+              {(followTab === "followers" ? followers : following).length === 0 ? (
+                <p className="mypage-modal-empty">
+                  {followTab === "followers" ? "팔로워가 없습니다." : "팔로잉하는 사람이 없습니다."}
+                </p>
+              ) : (
+                (followTab === "followers" ? followers : following).map((u) => (
+                  <Link
+                    key={u.userId}
+                    to={`/profile/${u.userId}`}
+                    className="mypage-follow-user"
+                    onClick={() => setFollowModal(false)}
+                  >
+                    <div className="mypage-follow-avatar">
+                      {(u.nickname || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <span className="mypage-follow-nickname">{u.nickname}</span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 레몬트리 카드 */}
       <div className="mypage-lemon-card">
