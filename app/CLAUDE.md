@@ -59,9 +59,10 @@ NavigationContainer
         Login → Signup (stack)
     ▸ 로그인:
         Main (BottomTab)
-          홈(🏠) | 둘러보기(🔍) | 만들기(✨) | 서재(📚) | 마이(👤)
-        Read   (stack, 책 읽기)
-        BookDetail (stack, 책 상세)
+          홈(🏠) | 만들기(🍋 FAB) | 서재(📚) | 마이(👤)  ← 4탭
+        Read        (stack, 책 읽기)
+        BookDetail  (stack, 책 상세)
+        UserProfile (stack, 작가 프로필)
 ```
 
 ---
@@ -166,6 +167,14 @@ NavigationContainer
 | GenerateScreen 장르 확장 | `GENRES` 9개 (`SF/판타지/로맨스/일상/공포/액션/스릴러/드라마/느와르`) |
 | GenerateScreen 분위기 확장 | `TONES` 7개 (기존 3개 + 신비로운/쓸쓸한/긴장감/웅장한 추가) |
 | GenerateScreen 성격 확장 | `PROTAGONIST_TRAITS` 13개 (기존 6개 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가) |
+
+### 2026-06-11
+| 작업 | 내용 |
+|------|------|
+| BookDetailScreen 공유 버튼 | `Share.share()` API로 🔗 공유 버튼 추가 (44px 원형 흰색 테두리 버튼, 읽기 버튼과 서재 버튼 사이 배치) |
+| AppNavigator 4탭 구성 | `ExploreScreen` 탭 제거 → 홈 / 만들기(FAB) / 서재 / 마이 4탭으로 개편. `UserProfile` Stack 스크린 추가 |
+| `app/src/components/BookCard.js` 신규 | 공유 BookCard 컴포넌트 — 저자명을 `TouchableOpacity`로 감싸 `UserProfile` 화면 이동 연결 (이벤트 버블링 차단) |
+| `app/src/screens/UserProfileScreen.js` 신규 | 작가 프로필 화면 — 72px 원형 아바타(이니셜), 닉네임, 팔로워/팔로잉 수, 공개 책 목록. `axiosInstance` 직접 사용 |
 
 ---
 

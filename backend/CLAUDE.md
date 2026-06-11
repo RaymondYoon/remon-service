@@ -70,7 +70,7 @@ com.remon/
 
 | 테이블 | 주요 컬럼 | 비고 |
 |--------|-----------|------|
-| `users` | id, email, password, provider, providerId, nickname, role, created_at | email UNIQUE |
+| `users` | id, email, password, provider, providerId, nickname, role, created_at, nickname_change_count (default 0), nickname_changed_at (nullable) | email UNIQUE |
 | `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl, viewCount (bigint default 0) | status: PENDING/GENERATING/DONE/FAILED |
 | `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/DONE |
 | `reviews` | id, book_id, user_id, rating (1–5), content (TEXT), createdAt | UNIQUE(book_id, user_id) — 중복 방지 |
@@ -193,7 +193,7 @@ Authorization: Bearer <token>
 - 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지 — DONE 수신 시 coverImageUrl 포함된 완성 책
 - AI 모델: `gemini-2.5-flash` (30초 타임아웃)
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
-- 분량: 항상 2500자 내외 고정
+- 분량: 항상 4000자 내외 고정
 - 생성 시 레몬 1개 소모 (서버측 처리)
 - **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 포함
 
@@ -342,6 +342,14 @@ CLOUDINARY_API_SECRET=...
 - [x] `OpenAiService.buildPrompt` 제목 스타일 가이드 확장 — 액션("강렬한 동사 + 대상") / 스릴러("긴장감·불안감 조성") / 드라마("인물 관계·감정 핵심") / 느와르("어둠·배신·도시 이미지") 예시 추가
 - [x] `OpenAiService.buildPrompt` 분위기(tone) 확장 — MYSTERIOUS(신비롭고 미스터리하게) / MELANCHOLY(쓸쓸하고 애잔하게) / TENSE(긴장감 넘치게) / EPIC(웅장하고 압도적으로) 추가 (총 7종)
 - [x] 소설 분량 2500자 → 3000자로 변경
+
+### 2026-06-11
+- [x] `OpenAiService.buildPrompt` 소설 분량 3000자 → 4000자로 증가
+- [x] `BookRepository` 검색 LIKE 범위 제한 — `description` 컬럼 제거, `title` + `author`만 검색 (7개 JPQL 쿼리 수정: `searchByKeyword`, `searchByKeywordPageable`, `findBooksWithCursor`, `searchByKeywordAndDone`, `searchByKeywordPageableAndDone`, `findBooksSortedByViews`, `findBooksSortedByRating`)
+- [x] `User` 엔티티 `nicknameChangedAt`(LocalDateTime), `nicknameChangeCount`(int, @Builder.Default 0) 필드 추가
+- [x] `User` 엔티티 `updateNickname()` / `resetNicknameCountAndUpdate()` 메서드 추가 — 닉네임 변경 시 count 누적 / 주 리셋 후 변경
+- [x] `UserService.updateNickname` 닉네임 주 2회 제한 로직 추가 — ISO Week(`IsoFields.WEEK_OF_WEEK_BASED_YEAR` + `IsoFields.WEEK_BASED_YEAR`) 기준, 같은 주 2회 초과 시 `IllegalStateException` 발생
+- [x] Flyway `V4__add_nickname_change_columns.sql` 마이그레이션 추가 — `user` 테이블에 `nickname_change_count INT NOT NULL DEFAULT 0`, `nickname_changed_at DATETIME NULL` 컬럼 추가
 
 ---
 

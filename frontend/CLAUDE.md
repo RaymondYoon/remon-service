@@ -139,7 +139,7 @@ src/
 - **주인공 이름**: 텍스트 입력 (선택사항, 비워두면 AI가 결정)
 - **서술 시점**: 3인칭(전지적 시점) / 1인칭(내가 주인공) — 칩 형식 단일 선택, 기본 3인칭
 - **주인공 성격**: 소심한 / 까칠한 / 비밀이 있는 / 천재적인 / 상처받은 / 엉뚱한 — 칩 형식 단일 선택, 선택 해제 가능 (다시 누르면 null)
-- 분량은 2500자 내외로 고정
+- 분량은 4000자 내외로 고정
 
 ---
 
@@ -283,6 +283,20 @@ src/
 - [x] `GeneratePage.jsx` 주인공 성격 확장 — `PROTAGONIST_TRAITS` 13개 (기존 6개 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가)
 - [x] `BookDetail.jsx` 공유 버튼 순서 변경 — 본문보기 → **내서재담기** → **공유** 순으로 재배치
 - [x] `BookDetail.css` 공유 버튼 스타일 변경 — 44×44px 원형 (`border-radius: 50%`), 배경 `var(--color-card)`, 테두리 `1px solid var(--color-border)`, 🔗 아이콘만 표시, hover 시 primary 색상
+
+### 2026-06-11
+- [x] `BookCard.jsx` 작가 이름 클릭 시 작가 프로필 페이지 이동 — `publishedBy` 있을 때 `<Link to="/profile/{id}">` 렌더링, `onClick stopPropagation`으로 카드 전체 클릭 이벤트와 분리
+- [x] `BookCard.css` `.book-author-link` 스타일 추가 — hover 시 `color: var(--color-primary)` + `text-decoration: underline`
+- [x] `Header.jsx` 드로어 메뉴에서 "둘러보기" 링크 제거 (라우트 `/explore`는 App.jsx에 유지)
+- [x] `ExplorePage.jsx` 장르 필터 칩 추가 — `GENRES` 10개 상수, `selectedGenre` state, `filteredBooks` computed value
+- [x] `ExplorePage.jsx` 카드 표지 이미지 구조 추가 — `explore-card-cover` div (coverImageUrl 있으면 `<img>`, 없으면 🍋 이모지)
+- [x] `ExplorePage.css` 이미지 잘림 수정 — `max-height:200px` 제거, 카드 `padding:0; overflow:hidden`, 커버 `aspect-ratio:3/4`로 교체. 팔로우 버튼 스타일: 팔로우=primary bg+white / 팔로잉=border only
+- [x] `FeedPage.jsx` 전면 재작성 — 팔로잉 작가 아바타 가로 스크롤 행 + 책 그리드 커버 카드 + 빈 화면 안내 ("둘러보기 →" 버튼)
+- [x] `FeedPage.css` 전면 재작성 — 작가 아바타 행 (52px 원형, 가로 스크롤, `scrollbar-width:none`), 책 그리드 엣지-투-엣지 카드
+- [x] `UserProfilePage.jsx` 책 카드에 표지 이미지 추가 — `profile-book-cover` div (`coverImageUrl` 있으면 `<img>`, 없으면 🍋 이모지)
+- [x] `UserProfilePage.css` `.profile-book-cover`, `.profile-book-img`, `.profile-book-emoji` 스타일 추가, 팔로우 버튼 크기 개선 (padding 10px 28px)
+- [x] `MyPage.jsx` 팔로워/팔로잉 통계 및 모달 추가 — 프로필 카드 내 클릭 가능 카운트 버튼, 탭 전환 모달로 목록 표시 (36px 아바타 + 프로필 링크)
+- [x] `MyPage.css` 팔로우 통계/모달 관련 스타일 추가 (`.mypage-follow-stats`, `.mypage-modal-overlay`, `.mypage-modal` 등)
 
 ---
 

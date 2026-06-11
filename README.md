@@ -33,7 +33,7 @@
 
 Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책 생성 플랫폼입니다.
 
-- 키워드(최대 4개), 장르(9종), 분위기(7종), 결말 방향, 주인공 이름·성격(13종)·서술 시점을 입력하면 Google Gemini가 3,000자 내외의 단편 소설을 비동기로 생성합니다.
+- 키워드(최대 4개), 장르(9종), 분위기(7종), 결말 방향, 주인공 이름·성격(13종)·서술 시점을 입력하면 Google Gemini가 4,000자 내외의 단편 소설을 비동기로 생성합니다.
 - 생성된 책은 **웹**에서는 react-pageflip 기반 책 넘기기 뷰어로, **앱**에서는 PanGestureHandler 스와이프 애니메이션으로 읽을 수 있습니다.
 - 레몬 경제 시스템(하루 1개 자동 충전, 1일 3회 생성 제한)으로 생성 횟수를 관리합니다.
 - 팔로우, 별점·리뷰, 피드, 알림 등 소셜 기능으로 다른 사용자의 책도 탐색할 수 있습니다.
@@ -75,7 +75,7 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 이미지 CDN | Cloudinary (cloudinary-http45:1.39.0) |
 | Rate Limiting | Bucket4j 8.10.1 |
 | API 문서 | springdoc-openapi 2.8.3 (Swagger UI) |
-| DB 마이그레이션 | Flyway (flyway-mysql) — V1~V3 SQL, baseline-on-migrate, repair-on-migrate |
+| DB 마이그레이션 | Flyway (flyway-mysql) — V1~V4 SQL, baseline-on-migrate, repair-on-migrate |
 | 캐싱 | Spring Cache + Redis — books-rating / books-views TTL 5분, GenericJackson2JsonRedisSerializer |
 | 빌드 / 배포 | Gradle, nixpacks, Railway (JVM -Xms128m -Xmx400m) |
 
@@ -94,15 +94,15 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 분류 | 기술 |
 |------|------|
 | 플랫폼 | React Native 0.81.5 (Expo SDK 54) |
-| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs 5탭, 중앙 FAB 버튼) |
+| 네비게이션 | @react-navigation/native v7 (Stack + BottomTabs 4탭, 중앙 FAB 버튼) |
 | HTTP 클라이언트 | axios (공통 인스턴스, 401 자동 재발급) |
 | 제스처 | react-native-gesture-handler (PanGestureHandler 스와이프) |
 | 저장소 | @react-native-async-storage/async-storage (토큰 관리) |
 | 배포 | Expo Go (개발) / EAS Build (예정) |
 
 #### 앱 주요 기능
-- 10개 화면: 로그인/회원가입/홈/둘러보기/AI책생성/책읽기/서재/마이페이지
-- 탭바 중앙 만들기(🍋) 버튼 — 원형 FAB (top:-20, `tabBarButton` prop)
+- 10개 화면: 로그인/회원가입/홈/AI책생성/책읽기/서재/마이페이지/작가프로필 등
+- 탭바 4탭: 홈 / 만들기(🍋 원형 FAB, top:-20, `tabBarButton` prop) / 서재 / 마이
 - BookDetailScreen: `coverImageUrl` 표지 이미지 + 별점·리뷰 작성 폼 (로그인 시 노출)
 - GenerateScreen: 장르(9종) + 분위기(7종) + 서술 시점(1인칭/3인칭) + 주인공 성격(13종 칩) — 웹과 동일한 세트
 - LibraryScreen: 독서 상태별 필터 탭 (전체/읽는 중/완독/저장됨)
@@ -122,7 +122,7 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ## 주요 기능
 
 ### AI 책 생성
-- 키워드(최대 4개), 장르(9종: SF/판타지/로맨스/일상/공포/액션/스릴러/드라마/느와르), 분위기(7종: 따뜻/긴장감/유쾌/신비로운/쓸쓸한/긴장감/웅장한), 결말(해피/새드/열린결말), 주인공 이름·성격(13종 칩), 서술 시점(1인칭/3인칭) → Google Gemini API로 3,000자 소설 자동 생성
+- 키워드(최대 4개), 장르(9종: SF/판타지/로맨스/일상/공포/액션/스릴러/드라마/느와르), 분위기(7종: 따뜻/긴장감/유쾌/신비로운/쓸쓸한/긴장감/웅장한), 결말(해피/새드/열린결말), 주인공 이름·성격(13종 칩), 서술 시점(1인칭/3인칭) → Google Gemini API로 4,000자 소설 자동 생성
 - 프롬프트 엔지니어링: 서사구조(강렬한 훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 내부 구상 단계 / 장르별 문학적 제목 생성 가이드 포함
 - `202 Accepted` + 폴링 방식 비동기 처리 — UI 블로킹 없이 생성 진행 상태 실시간 확인
 - 생성 진행도 프로그레스 바: `step` 필드(TEXT/IMAGE/DONE) 기반 단계별 메시지 + 퍼센티지 표시 (✍️ 10→50% / 🎨 50→90% / ✨ 100%)
@@ -159,6 +159,17 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 ### 책 공유
 - BookDetail 페이지 📤 공유 버튼 — `navigator.share()` (Web Share API) 호출
 - 미지원 브라우저(데스크톱 Chrome 등)는 URL을 클립보드에 복사 후 "링크가 복사됐어요!" 토스트 표시
+- 앱: `Share.share()` API로 네이티브 공유 시트 호출
+
+### 작가 프로필 & 소셜 탐색
+- BookCard 저자명 클릭 시 `/profile/:id` 작가 프로필 페이지 이동 (웹 + 앱)
+- 웹: ExplorePage 장르 10종 칩 필터 + 엣지-투-엣지 커버 이미지 카드 구조
+- 웹: FeedPage 팔로잉 작가 아바타 가로 스크롤 행 + 책 그리드 + 빈 화면 안내
+- 웹: MyPage 팔로워/팔로잉 클릭 가능 카운트 + 탭 전환 모달 목록
+
+### 닉네임 주 2회 제한
+- 서버측 ISO Week 기준 주 2회 초과 변경 시 `400 Bad Request` 반환
+- Flyway V4 마이그레이션으로 `nickname_change_count`, `nickname_changed_at` 컬럼 추가
 
 ### 인증
 - 이메일 회원가입/로그인 + 카카오 OAuth 2.0
@@ -321,6 +332,7 @@ remon-service/
 - `V1__init_schema.sql`: 8개 테이블 전체 `CREATE TABLE IF NOT EXISTS` 정의 (기존 테이블 무손상)
 - `V2__cleanup_wrong_tables.sql`: 초기 마이그레이션 시 잘못 생성된 `books`/`users` 테이블 제거
 - `V3__cleanup_duplicate_tables.sql`: 잘못 생성된 `user_lemons` 테이블 제거
+- `V4__add_nickname_change_columns.sql`: `user` 테이블에 `nickname_change_count INT NOT NULL DEFAULT 0`, `nickname_changed_at DATETIME NULL` 추가
 - 엔티티에 `@Table(name = "...")` 명시 — Hibernate naming strategy 의존 제거 (`book`, `user`, `user_lemon`)
 
 **Result**: 스키마 변경 이력이 `flyway_schema_history` 테이블로 추적됨. 재배포 시 validate 실패로 데이터 유실성 DDL 사전 차단
@@ -470,9 +482,10 @@ remon-service/
 │
 └── app/src/
     ├── api/           axiosInstance (AsyncStorage 기반 401 자동갱신), bookApi (16개 함수)
-    ├── navigation/    AppNavigator (Stack + BottomTabs 5탭)
-    ├── screens/       LoginScreen, SignupScreen, HomeScreen, ExploreScreen, FeedScreen,
-    │                  BookDetailScreen, GenerateScreen, ReadScreen, LibraryScreen, MyPageScreen
+    ├── navigation/    AppNavigator (Stack + BottomTabs 4탭)
+    ├── components/    BookCard.js (공유 컴포넌트 — 저자명 클릭 UserProfile 이동)
+    ├── screens/       LoginScreen, SignupScreen, HomeScreen, BookDetailScreen,
+    │                  GenerateScreen, ReadScreen, LibraryScreen, MyPageScreen, UserProfileScreen
     ├── utils/         auth.js (AsyncStorage 토큰/유저 관리)
     └── theme.js       색상 팔레트 (colors.primary 등)
 ```
