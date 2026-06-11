@@ -8,10 +8,10 @@ import { colors } from '../theme';
 import HomeScreen from '../screens/HomeScreen';
 import GenerateScreen from '../screens/GenerateScreen';
 import LibraryScreen from '../screens/LibraryScreen';
-import ExploreScreen from '../screens/ExploreScreen';
 import MyPageScreen from '../screens/MyPageScreen';
 import ReadScreen from '../screens/ReadScreen';
 import BookDetailScreen from '../screens/BookDetailScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 
@@ -61,14 +61,6 @@ function MainTabs({ onLogout }) {
         options={{
           tabBarLabel: '홈',
           tabBarIcon: ({ focused }) => <TabIcon icon="🏠" focused={focused} />,
-        }}
-      />
-      <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{
-          tabBarLabel: '둘러보기',
-          tabBarIcon: ({ focused }) => <TabIcon icon="🔍" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -140,6 +132,11 @@ export default function AppNavigator({ isLoggedIn, onLogin, onLogout }) {
             <Stack.Screen
               name="BookDetail"
               component={BookDetailScreen}
+              options={{ presentation: 'card', gestureEnabled: true }}
+            />
+            <Stack.Screen
+              name="UserProfile"
+              component={UserProfileScreen}
               options={{ presentation: 'card', gestureEnabled: true }}
             />
           </>

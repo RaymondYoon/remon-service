@@ -121,6 +121,23 @@
   text-overflow: ellipsis;
 }
 
+.book-author-link {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  display: block;
+  transition: color 0.2s;
+}
+
+.book-author-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
 .book-rating {
   font-size: 11px;
   color: var(--color-text-secondary);

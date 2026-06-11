@@ -204,7 +204,6 @@ const Header = ({ theme, toggleTheme }) => {
 
           {loggedIn ? (
             <>
-              <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
               <Link to="/feed" className="drawer-link" onClick={closeMenu}>피드</Link>
               <Link to="/my-books" className="drawer-link" onClick={closeMenu}>내 책</Link>
               <Link to="/library" className="drawer-link" onClick={closeMenu}>내 서재</Link>
@@ -213,7 +212,6 @@ const Header = ({ theme, toggleTheme }) => {
             </>
           ) : (
             <>
-              <Link to="/explore" className="drawer-link" onClick={closeMenu}>둘러보기</Link>
               <Link to="/login" className="drawer-link" onClick={closeMenu}>로그인</Link>
             </>
           )}
