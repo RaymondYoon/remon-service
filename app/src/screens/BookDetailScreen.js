@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  StyleSheet, ActivityIndicator, Alert, Platform, Image,
+  StyleSheet, ActivityIndicator, Alert, Platform, Image, Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBookById, getReviews, addToLibrary, startReading, addReview } from '../api/bookApi';
@@ -88,6 +88,15 @@ export default function BookDetailScreen({ route, navigation }) {
     }
   };
 
+  const handleShare = async () => {
+    const url = `https://remon-service.vercel.app/book/${book.id}`;
+    try {
+      await Share.share({
+        message: `"${book.title}" - Remon에서 AI가 생성한 단편소설\n${url}`,
+      });
+    } catch {}
+  };
+
   const handleRead = async () => {
     await startReading(bookId).catch(() => {});
     navigation.navigate('Read', { bookId, title: book?.title });
@@ -170,6 +179,9 @@ export default function BookDetailScreen({ route, navigation }) {
         <View style={styles.btnRow}>
           <TouchableOpacity style={styles.readBtn} onPress={handleRead}>
             <Text style={styles.readBtnText}>📖 읽기 시작</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
+            <Text style={styles.shareBtnText}>🔗</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.libBtn, addingLib && styles.libBtnDisabled]}
@@ -311,6 +323,17 @@ const styles = StyleSheet.create({
   },
   libBtnDisabled: { opacity: 0.6 },
   libBtnText: { color: colors.primary, fontWeight: '700', fontSize: 15 },
+  shareBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D0D0D0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareBtnText: { fontSize: 20 },
   section: { marginTop: 8, gap: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
   emptyReview: { color: colors.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 16 },

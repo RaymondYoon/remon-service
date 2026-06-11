@@ -81,16 +81,16 @@ const UserProfilePage = () => {
           <div className="profile-books-grid">
             {books.map((book) => (
               <Link to={`/book/${book.id}`} key={book.id} className="profile-book-card">
+                <div className="profile-book-cover">
+                  {book.coverImageUrl
+                    ? <img src={book.coverImageUrl} alt={book.title} className="profile-book-img" />
+                    : <span className="profile-book-emoji">🍋</span>
+                  }
+                </div>
                 {book.genre && (
                   <span className="profile-book-genre">{book.genre}</span>
                 )}
                 <h3 className="profile-book-title">{book.title}</h3>
-                {book.description && (
-                  <p className="profile-book-desc">
-                    {book.description.slice(0, 60)}
-                    {book.description.length > 60 ? "..." : ""}
-                  </p>
-                )}
               </Link>
             ))}
           </div>
