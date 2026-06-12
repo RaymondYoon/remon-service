@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getUser, clearAuth, saveAuth } from "../utils/auth";
-import { getLemonInfo, updateNickname } from "../api/userApi";
+import { getLemonInfo, updateNickname, getUserByEmail } from "../api/userApi";
 import { deleteAccount } from "../api/bookApi";
 import { getFollowers, getFollowing } from "../api/followApi";
 import { useToast } from "../hooks/useToast";
@@ -26,12 +26,18 @@ const MyPage = () => {
       .catch(() => {})
       .finally(() => setLoading(false));
 
-    if (user?.id) {
-      getFollowers(user.id)
-        .then((res) => setFollowers(Array.isArray(res.data) ? res.data : []))
-        .catch(() => {});
-      getFollowing(user.id)
-        .then((res) => setFollowing(Array.isArray(res.data) ? res.data : []))
+    if (user?.email) {
+      getUserByEmail(user.email)
+        .then((res) => {
+          const userId = res.data?.id;
+          if (!userId) return;
+          getFollowers(userId)
+            .then((r) => setFollowers(Array.isArray(r.data) ? r.data : []))
+            .catch(() => {});
+          getFollowing(userId)
+            .then((r) => setFollowing(Array.isArray(r.data) ? r.data : []))
+            .catch(() => {});
+        })
         .catch(() => {});
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
