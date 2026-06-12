@@ -9,6 +9,7 @@ export const saveAuth = (data) => {
     localStorage.setItem("refreshToken", refreshToken);
   }
   const user = {
+    id: data.id || data.userId || null,
     nickname: data.nickname || data.username || "",
     email: data.email || "",
   };

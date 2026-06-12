@@ -30,9 +30,10 @@ const OAuthCallback = () => {
     const refreshToken = searchParams.get("refreshToken");
     const nickname = searchParams.get("nickname");
     const email = searchParams.get("email");
+    const userId = searchParams.get("userId");
 
     if (accessToken) {
-      saveAuth({ accessToken, refreshToken, nickname, email });
+      saveAuth({ accessToken, refreshToken, nickname, email, id: userId ? Number(userId) : null });
       navigate("/", { replace: true, state: { justLoggedIn: true } });
     } else {
       setError("카카오 로그인에 실패했습니다. 다시 시도해주세요.");

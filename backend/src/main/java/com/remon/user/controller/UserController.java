@@ -67,6 +67,7 @@ public class UserController {
         String accessToken = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
         return LoginResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .role(user.getRole().name())

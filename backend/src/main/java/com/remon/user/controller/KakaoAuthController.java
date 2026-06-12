@@ -68,7 +68,8 @@ public class KakaoAuthController {
                 + "?token=" + accessToken
                 + "&refreshToken=" + refreshToken.getToken()
                 + "&nickname=" + nickname
-                + "&email=" + email;
+                + "&email=" + email
+                + "&userId=" + user.getId();
 
         response.sendRedirect(redirectUrl);
     }
