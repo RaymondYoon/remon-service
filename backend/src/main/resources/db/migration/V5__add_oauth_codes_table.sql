@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS oauth_codes (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(36) NOT NULL UNIQUE,
+  email VARCHAR(255) NOT NULL,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME NOT NULL
+);

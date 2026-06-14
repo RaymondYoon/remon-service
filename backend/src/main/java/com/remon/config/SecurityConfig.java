@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/kakao", "/api/auth/kakao/**").permitAll()
                         // Refresh Token으로 Access Token 재발급 (인증 불필요)
                         .requestMatchers("/api/auth/refresh").permitAll()
+                        // OAuth 단기 코드 교환 (인증 불필요)
+                        .requestMatchers("/api/auth/code-exchange").permitAll()
                         // Actuator health check
                         .requestMatchers("/actuator/health").permitAll()
                         // Swagger UI

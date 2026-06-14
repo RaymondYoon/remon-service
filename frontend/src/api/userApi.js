@@ -19,3 +19,6 @@ export const updateNickname = async (nickname) => {
 export const getUserByEmail = async (email) => {
   return await axiosInstance.get(`/api/users/${encodeURIComponent(email)}`);
 };
+
+export const exchangeOAuthCode = async (code) =>
+  axiosInstance.post('/api/auth/code-exchange', { code });
