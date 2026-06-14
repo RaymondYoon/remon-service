@@ -176,6 +176,13 @@ NavigationContainer
 | `app/src/components/BookCard.js` 신규 | 공유 BookCard 컴포넌트 — 저자명을 `TouchableOpacity`로 감싸 `UserProfile` 화면 이동 연결 (이벤트 버블링 차단) |
 | `app/src/screens/UserProfileScreen.js` 신규 | 작가 프로필 화면 — 72px 원형 아바타(이니셜), 닉네임, 팔로워/팔로잉 수, 공개 책 목록. `axiosInstance` 직접 사용 |
 
+### 2026-06-14
+| 작업 | 내용 |
+|------|------|
+| 확인: 앱 공유 버튼 | `BookDetailScreen` 🔗 공유 버튼 — `Share.share()` API, 44px 원형 (2026-06-11에 구현 완료) |
+| 확인: 둘러보기 탭 제거 | `AppNavigator` 4탭 구성 (홈/만들기FAB/서재/마이) — `ExploreScreen` 탭 제거 (2026-06-11에 구현 완료) |
+| 확인: UserProfileScreen 신규 | 작가 프로필 화면 `UserProfileScreen.js` — 아바타, 팔로워/팔로잉 수, 공개 책 목록 (2026-06-11에 구현 완료) |
+
 ---
 
 ## 앞으로 할 작업

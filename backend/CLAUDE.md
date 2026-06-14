@@ -61,7 +61,9 @@ com.remon/
 ├── security/           — JwtTokenProvider, JwtAuthenticationFilter
 └── user/               — 회원가입, 로그인(JWT), 카카오 OAuth, 유저 프로필
     ├── controller/     AuthController, KakaoAuthController, UserController
-    └── service/        UserService, KakaoAuthService, RefreshTokenService
+    ├── entity/         User, RefreshToken, OAuthCode
+    ├── repository/     UserRepository, RefreshTokenRepository, OAuthCodeRepository
+    └── service/        UserService, KakaoAuthService, RefreshTokenService, OAuthCodeService
 ```
 
 ---
@@ -78,6 +80,7 @@ com.remon/
 | `notifications` | id, receiverId, senderId, type, message, isRead, createdAt | type: REVIEW/FOLLOW |
 | `user_lemons` | userId (PK), lemonCount, lastChargeDate | 유저 1명당 1행 |
 | `refresh_tokens` | id, email, token, expiryDate | email 인덱스 |
+| `oauth_codes` | id, code (UUID), email, access_token (TEXT), refresh_token (TEXT), expires_at, created_at | code UNIQUE, 30초 유효 — V5 마이그레이션 |
 
 ---
 
@@ -91,7 +94,8 @@ com.remon/
 | POST | `/api/users/logout` | 로그아웃 | 필요 |
 | POST | `/api/auth/refresh` | accessToken 재발급 | refreshToken |
 | GET | `/api/auth/kakao` | 카카오 OAuth 시작 | 불필요 |
-| GET | `/api/auth/kakao/callback` | 카카오 OAuth 콜백 | 불필요 |
+| GET | `/api/auth/kakao/callback` | 카카오 OAuth 콜백 → 단기 코드 발급 후 redirect | 불필요 |
+| POST | `/api/auth/code-exchange` | 단기 코드(UUID) → accessToken + refreshToken 교환 | 불필요 |
 
 ### 유저 (`/api/users`)
 | Method | Endpoint | 설명 | Auth |
@@ -351,6 +355,15 @@ CLOUDINARY_API_SECRET=...
 - [x] `UserService.updateNickname` 닉네임 주 2회 제한 로직 추가 — ISO Week(`IsoFields.WEEK_OF_WEEK_BASED_YEAR` + `IsoFields.WEEK_BASED_YEAR`) 기준, 같은 주 2회 초과 시 `IllegalStateException` 발생
 - [x] Flyway `V4__add_nickname_change_columns.sql` 마이그레이션 추가 — `user` 테이블에 `nickname_change_count INT NOT NULL DEFAULT 0`, `nickname_changed_at DATETIME NULL` 컬럼 추가
 
+### 2026-06-14
+- [x] OAuth 단기 코드 방식 도입 — `OAuthCode` 엔티티 / `OAuthCodeRepository` / `OAuthCodeService` 신규 생성
+  - `generateCode(email, accessToken, refreshToken)`: UUID 단기 코드 생성 → `oauth_codes` 저장 (30초 유효), 기존 코드 먼저 삭제
+  - `exchangeCode(code)`: 코드 조회 → 만료 확인 → `{ accessToken, refreshToken, email }` Map 반환 → 코드 즉시 삭제, 만료/미존재 시 `IllegalStateException`
+- [x] `KakaoAuthController.kakaoCallback` 변경 — redirect URL에서 `accessToken`·`refreshToken` 제거, `OAuthCodeService.generateCode`로 단기 코드 발급 후 `?code={uuid}&nickname={}&email={}` 파라미터로 redirect
+- [x] `POST /api/auth/code-exchange` 신규 엔드포인트 추가 — Request `{ "code": "uuid" }` → Response `{ "accessToken", "refreshToken", "email" }`, 오류 시 400 반환
+- [x] `SecurityConfig` — `/api/auth/code-exchange` permitAll 추가
+- [x] Flyway `V5__add_oauth_codes_table.sql` 마이그레이션 추가 — `oauth_codes` 테이블 생성 (code UNIQUE, access_token/refresh_token TEXT, expires_at/created_at DATETIME)
+
 ---
 
 ## 트러블슈팅 이력
@@ -370,6 +383,7 @@ CLOUDINARY_API_SECRET=...
 | `BOOK_GENERATED` 알림 저장 시 `Data truncated for column 'type'` | `notifications.type` 컬럼 길이가 `BOOK_GENERATED`(14자)보다 짧게 생성됨 | `@Column(nullable = false, length = 20)` 명시 → DDL-auto=update로 컬럼 자동 확장 |
 | OpenAI API `429 / insufficient_quota` | OpenAI 계정 크레딧 소진 (billing limit 초과) — gpt-image-1 표지 생성 전체 실패 | `ImagenService` 예외 `catch`로 표지 실패해도 책은 DONE 유지됨. 크레딧 충전 또는 `ImagenService` 비활성화로 대응 |
 | 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 ID 외 정렬 기준과 혼용 시 중복/누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 — 정렬 변경 시 프론트에서 목록 초기화 |
+| 카카오 OAuth 토큰이 URL에 노출 | redirect URL에 `accessToken`·`refreshToken` 쿼리 파라미터로 전달 → 브라우저 히스토리·서버 로그에 토큰 노출 | 단기 UUID 코드(30초 유효) 발급 후 URL에는 `code`만 포함 → 프론트가 `POST /api/auth/code-exchange`로 토큰 교환 |
 
 ---
 

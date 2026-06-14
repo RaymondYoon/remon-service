@@ -75,7 +75,7 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 | 이미지 CDN | Cloudinary (cloudinary-http45:1.39.0) |
 | Rate Limiting | Bucket4j 8.10.1 |
 | API 문서 | springdoc-openapi 2.8.3 (Swagger UI) |
-| DB 마이그레이션 | Flyway (flyway-mysql) — V1~V4 SQL, baseline-on-migrate, repair-on-migrate |
+| DB 마이그레이션 | Flyway (flyway-mysql) — V1~V5 SQL, baseline-on-migrate, repair-on-migrate |
 | 캐싱 | Spring Cache + Redis — books-rating / books-views TTL 5분, GenericJackson2JsonRedisSerializer |
 | 빌드 / 배포 | Gradle, nixpacks, Railway (JVM -Xms128m -Xmx400m) |
 
@@ -165,16 +165,18 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 - BookCard 저자명 클릭 시 `/profile/:id` 작가 프로필 페이지 이동 (웹 + 앱)
 - 웹: ExplorePage 장르 10종 칩 필터 + 엣지-투-엣지 커버 이미지 카드 구조
 - 웹: FeedPage 팔로잉 작가 아바타 가로 스크롤 행 + 책 그리드 + 빈 화면 안내
-- 웹: MyPage 팔로워/팔로잉 클릭 가능 카운트 + 탭 전환 모달 목록
+- 웹: MyPage 팔로워/팔로잉 클릭 가능 카운트 + 탭 전환 모달 목록 (서버에서 userId 실시간 조회)
+- 앱: `UserProfileScreen` 작가 프로필 화면 — 아바타(이니셜), 팔로워/팔로잉 수, 공개 책 목록
 
 ### 닉네임 주 2회 제한
 - 서버측 ISO Week 기준 주 2회 초과 변경 시 `400 Bad Request` 반환
 - Flyway V4 마이그레이션으로 `nickname_change_count`, `nickname_changed_at` 컬럼 추가
 
-### 인증
+### 인증 & 보안
 - 이메일 회원가입/로그인 + 카카오 OAuth 2.0
 - JWT Access Token(15분) + Refresh Token(7일) 자동 재발급
 - 401 응답 시 axiosInstance 인터셉터에서 자동으로 토큰 갱신 후 요청 재시도
+- **OAuth 단기 코드 방식**: 카카오 로그인 콜백 시 JWT 토큰을 URL에 직접 포함하지 않고, 서버에서 30초 유효 UUID 코드 발급 → 프론트엔드가 `POST /api/auth/code-exchange`로 안전하게 토큰 교환 (브라우저 히스토리·서버 액세스 로그에 토큰 노출 방지)
 
 ---
 
@@ -220,7 +222,7 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 remon-service/
 ├── backend/      — Spring Boot (com.remon 패키지 12개 모듈, 60+ REST API)
 ├── frontend/     — React 19 웹 (13개 페이지, 8개 컴포넌트)
-├── app/          — React Native (Expo SDK 54, 10개 화면, 5탭 네비게이션)
+├── app/          — React Native (Expo SDK 54, 9개 화면, 4탭 네비게이션)
 └── docker-compose.yml  — 로컬 개발 환경 (MySQL + Spring Boot)
 ```
 
@@ -333,6 +335,7 @@ remon-service/
 - `V2__cleanup_wrong_tables.sql`: 초기 마이그레이션 시 잘못 생성된 `books`/`users` 테이블 제거
 - `V3__cleanup_duplicate_tables.sql`: 잘못 생성된 `user_lemons` 테이블 제거
 - `V4__add_nickname_change_columns.sql`: `user` 테이블에 `nickname_change_count INT NOT NULL DEFAULT 0`, `nickname_changed_at DATETIME NULL` 추가
+- `V5__add_oauth_codes_table.sql`: `oauth_codes` 테이블 생성 — OAuth 단기 코드 저장 (UUID 코드, 30초 유효)
 - 엔티티에 `@Table(name = "...")` 명시 — Hibernate naming strategy 의존 제거 (`book`, `user`, `user_lemon`)
 
 **Result**: 스키마 변경 이력이 `flyway_schema_history` 테이블로 추적됨. 재배포 시 validate 실패로 데이터 유실성 DDL 사전 차단
@@ -397,6 +400,7 @@ remon-service/
 | Windows bash curl 한글 페이로드 → 403 오류 | Windows bash의 curl이 `-d` 문자열을 시스템 인코딩(CP949)으로 전송 → Spring이 JSON 파싱 실패 | Python `urllib`로 `json.dumps(..., ensure_ascii=False).encode('utf-8')` 후 전송. Content-Type 헤더에 `charset=utf-8` 명시 |
 | 홈에 생성 중인 AI 책(PENDING/GENERATING)이 노출 | `GET /api/books`와 `GET /api/books/cursor`가 status 구분 없이 모든 AI 생성 책을 반환 | `BookRepository`에 DONE 필터 쿼리 추가 (`isAiGenerated = false OR status = DONE`), `BookService`에서 해당 쿼리 사용으로 교체 |
 | 평점순/조회수순 커서 페이지네이션 불가 | 커서가 `b.id < :cursor` 조건 기반이라 다른 정렬 기준과 혼용 시 중복·누락 발생 | `sort=rating`·`sort=views`는 커서 없이 상위 12개 고정 반환(`hasMore=false`)으로 처리 |
+| 카카오 OAuth 토큰 URL 노출 | redirect URL 쿼리 파라미터로 JWT 전달 시 브라우저 히스토리·Railway 액세스 로그에 토큰이 그대로 기록됨 | 서버에서 30초 유효 UUID 코드 발급, URL에는 코드만 포함 → 프론트가 `POST /api/auth/code-exchange`로 안전하게 토큰 교환 |
 
 ---
 

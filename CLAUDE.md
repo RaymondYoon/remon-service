@@ -80,10 +80,12 @@ remon-service/
 ├── app/               — React Native 모바일 앱 (Expo SDK 54)
 │   ├── src/
 │   │   ├── api/       — axiosInstance, bookApi (16개 API 함수)
-│   │   ├── navigation/ — AppNavigator (Stack + BottomTabs 5탭)
-│   │   ├── screens/   — LoginScreen, SignupScreen, HomeScreen, ExploreScreen,
-│   │   │                FeedScreen, BookDetailScreen, GenerateScreen,
-│   │   │                ReadScreen, LibraryScreen, MyPageScreen (10개)
+│   │   ├── components/ — BookCard.js (저자명 클릭 → UserProfile 이동)
+│   │   ├── navigation/ — AppNavigator (Stack + BottomTabs 4탭)
+│   │   ├── screens/   — LoginScreen, SignupScreen, HomeScreen,
+│   │   │                BookDetailScreen, GenerateScreen,
+│   │   │                ReadScreen, LibraryScreen, MyPageScreen,
+│   │   │                UserProfileScreen (9개 화면)
 │   │   ├── utils/     — auth.js (AsyncStorage 토큰 관리)
 │   │   └── theme.js   — 색상 팔레트
 │   ├── App.js
@@ -159,6 +161,9 @@ remon-service/
 | 앱 작가 프로필 화면 | `UserProfileScreen.js` — 72px 아바타, 팔로워/팔로잉 수, 공개 책 목록 |
 | 앱 공유 버튼 | BookDetailScreen 🔗 공유 버튼 (`Share.share()` API, 44px 원형) |
 | 앱 BookCard 컴포넌트 | `app/src/components/BookCard.js` 신규 — 저자명 클릭 시 UserProfile 이동 |
+| OAuth 단기 코드 보안 | 카카오 로그인 redirect URL에서 JWT 토큰 제거 → 30초 유효 UUID 코드 발급 → `POST /api/auth/code-exchange`로 토큰 교환 (브라우저 히스토리·로그 토큰 노출 차단) |
+| 마이페이지 userId 실시간 조회 | 로컬 스토리지 캐시 제거, 서버에서 userId 직접 조회 — 로그인 직후 팔로워/팔로잉 모달 즉시 반영 |
+| Flyway V5 마이그레이션 | `oauth_codes` 테이블 추가 (code VARCHAR UNIQUE, access_token TEXT, expires_at DATETIME) |
 
 ---
 
@@ -199,12 +204,14 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
-- [ ] 서비스 스크린샷 촬영 및 README 갱신
+- [ ] 서비스 스크린샷 촬영 및 README 갱신 (`docs/screenshots/`)
+- [ ] 프로필 사진 업로드 기능 (아바타 이미지 → Cloudinary)
 - [x] 테스트 코드 작성 (백엔드 JUnit — LemonService 동시성·BookGenerationTask·UserController 완료)
 - [ ] 테스트 코드 작성 (프론트엔드 Jest)
 - [ ] 평점순/조회수순 정렬 무한 스크롤 지원 (현재 상위 12개 고정 반환)
 - [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
+- [ ] `oauth_codes` 만료 코드 정기 정리 스케줄러 (`@Scheduled` + `deleteByExpiresAtBefore`)
 
 ---
 

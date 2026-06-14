@@ -298,6 +298,11 @@ src/
 - [x] `MyPage.jsx` 팔로워/팔로잉 통계 및 모달 추가 — 프로필 카드 내 클릭 가능 카운트 버튼, 탭 전환 모달로 목록 표시 (36px 아바타 + 프로필 링크)
 - [x] `MyPage.css` 팔로우 통계/모달 관련 스타일 추가 (`.mypage-follow-stats`, `.mypage-modal-overlay`, `.mypage-modal` 등)
 
+### 2026-06-14
+- [x] `OAuthCallback.jsx` 보안 개선 — URL에서 `code`(단기 UUID)·`nickname`·`email`만 파싱, `exchangeOAuthCode(code)` 호출로 `POST /api/auth/code-exchange` 요청 → 응답에서 `accessToken`·`refreshToken` 수신 후 `saveAuth` 저장 (토큰이 URL에 노출되지 않음)
+- [x] `userApi.js` `exchangeOAuthCode(code)` 함수 추가 — `POST /api/auth/code-exchange { code }`
+- [x] `MyPage.jsx` userId 서버 조회로 변경 — `GET /api/users/me/lemon` 응답 or `/api/users/{email}` 기반으로 서버에서 userId 실시간 조회 (로컬 스토리지 캐시 제거로 로그인 직후 즉시 반영)
+
 ---
 
 ## 앞으로 할 작업
