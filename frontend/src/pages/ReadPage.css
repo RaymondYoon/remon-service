@@ -10,6 +10,11 @@
   box-sizing: border-box;
   transition: background-color 0.3s;
   touch-action: pan-y;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* ─── 상단 헤더 (뒤로가기 + 제목) ─── */
@@ -93,6 +98,15 @@
 
 .html-flipbook .stf__parent {
   min-height: 500px;
+}
+
+.stf__parent,
+.stf__wrapper {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* ─── 페이지 분할용 측정 프레임 (화면 밖, 실제 책과 동일 flex 레이아웃) ─── */
