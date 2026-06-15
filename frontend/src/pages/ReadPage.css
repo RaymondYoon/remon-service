@@ -1,6 +1,6 @@
 /* ─── 읽기 페이지 전체 배경 ─── */
 .read-container {
-  height: calc(100vh - 60px);
+  height: calc(var(--real-vh, 1vh) * 100 - 60px);
   overflow-y: auto;
   background: var(--color-read-bg);
   display: flex;

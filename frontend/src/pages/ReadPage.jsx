@@ -153,6 +153,10 @@ function getPageDimensions() {
   return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
 }
 
+function setRealVh() {
+  document.documentElement.style.setProperty("--real-vh", `${window.innerHeight * 0.01}px`);
+}
+
 const ReadPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -277,6 +281,16 @@ const ReadPage = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
+
+  useEffect(() => {
+    setRealVh();
+    window.addEventListener("resize", setRealVh);
+    window.addEventListener("orientationchange", setRealVh);
+    return () => {
+      window.removeEventListener("resize", setRealVh);
+      window.removeEventListener("orientationchange", setRealVh);
+    };
+  }, []);
 
   useEffect(() => {
     let timer;
