@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Toast from "./components/Toast";
+import GenerationToast from "./components/GenerationToast";
 import { ToastContext, useToastState } from "./hooks/useToast";
+import { BookGenerationProvider } from "./context/BookGenerationContext";
 import { migrateOrClearLegacyAuth } from "./utils/auth";
 import { useTheme } from "./hooks/useTheme";
 import "./styles/global.css";
@@ -38,9 +40,11 @@ function App() {
   }, [toastState.showToast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
+    <BookGenerationProvider>
     <ToastContext.Provider value={toastState}>
     <Router>
       <Header theme={theme} toggleTheme={toggleTheme} />
+      <GenerationToast />
 
       <main>
         <Suspense fallback={<div className="page-loading"><div className="page-spinner" /></div>}>
@@ -102,6 +106,7 @@ function App() {
     </Router>
     <Toast toasts={toastState.toasts} removeToast={toastState.removeToast} />
     </ToastContext.Provider>
+    </BookGenerationProvider>
   );
 }
 

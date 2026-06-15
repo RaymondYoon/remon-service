@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { generateBook, getBookGenerationStatus } from "../api/bookApi";
+import { generateBook } from "../api/bookApi";
 import { getLemonInfo } from "../api/userApi";
+import { useBookGeneration } from "../context/BookGenerationContext";
 import LemonTree from "../components/LemonTree";
 import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
@@ -29,6 +30,7 @@ const PROTAGONIST_TRAITS = ["소심한", "까칠한", "비밀이 있는", "천�
 
 const GeneratePage = () => {
   const navigate = useNavigate();
+  const { startGeneration } = useBookGeneration();
 
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords]         = useState([]);
@@ -40,67 +42,14 @@ const GeneratePage = () => {
   const [protagonistTrait, setProtagonistTrait] = useState(null);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
-  const [generatingBookId, setGeneratingBookId] = useState(null);
-  const [displayKeywords, setDisplayKeywords]   = useState([]);
   const [lemonTrigger, setLemonTrigger] = useState(0);
   const [lemonInfo, setLemonInfo] = useState({ lemonCount: 3, maxDaily: 3, usedToday: 0 });
-  const [progress, setProgress] = useState(0);
-  const intervalRef = useRef(null);
-  const stepRef = useRef("TEXT");
-  const progressIntervalRef = useRef(null);
 
   useEffect(() => {
     getLemonInfo()
       .then((res) => setLemonInfo(res.data))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!generatingBookId) return;
-
-    intervalRef.current = setInterval(async () => {
-      try {
-        const res = await getBookGenerationStatus(generatingBookId);
-        const { status, step } = res.data;
-        if (status === "DONE") {
-          clearInterval(intervalRef.current);
-          clearInterval(progressIntervalRef.current);
-          setProgress(100);
-          setTimeout(() => {
-            navigate(`/book/${generatingBookId}`, { state: { fromGenerate: true } });
-          }, 800);
-        } else if (status === "FAILED") {
-          clearInterval(intervalRef.current);
-          clearInterval(progressIntervalRef.current);
-          setError("책 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
-          setLoading(false);
-          setGeneratingBookId(null);
-        } else if (step === "IMAGE" && stepRef.current !== "IMAGE") {
-          stepRef.current = "IMAGE";
-          setProgress((prev) => Math.max(prev, 50));
-        }
-      } catch (err) {
-        // 폴링 중 네트워크 오류는 무시하고 계속 시도
-      }
-    }, 3000);
-
-    return () => clearInterval(intervalRef.current);
-  }, [generatingBookId, navigate]);
-
-  useEffect(() => {
-    if (!generatingBookId) return;
-
-    progressIntervalRef.current = setInterval(() => {
-      setProgress((prev) => {
-        const s = stepRef.current;
-        if (s === "TEXT" && prev < 50) return Math.min(prev + 0.4, 50);
-        if (s === "IMAGE" && prev < 90) return Math.min(prev + 0.4, 90);
-        return prev;
-      });
-    }, 200);
-
-    return () => clearInterval(progressIntervalRef.current);
-  }, [generatingBookId]);
 
   const handleKeywordKeyDown = (e) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -144,7 +93,6 @@ const GeneratePage = () => {
       return;
     }
 
-    setDisplayKeywords(allKeywords);
     setLemonTrigger((prev) => prev + 1);
     setLoading(true);
 
@@ -160,47 +108,18 @@ const GeneratePage = () => {
         viewpoint,
         protagonistTrait: protagonistTrait || null,
       });
-      // 생성 성공 시 레몬 정보 갱신
       getLemonInfo()
         .then((res) => setLemonInfo(res.data))
         .catch(() => {});
       const bookId = response.data.id;
-      setProgress(10);
-      stepRef.current = "TEXT";
-      setGeneratingBookId(bookId);
+      startGeneration(bookId);
+      navigate("/");
     } catch (err) {
       const msg = err.response?.data?.error || "책 생성 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
       setError(msg);
       setLoading(false);
     }
   };
-
-  if (loading) {
-    const pct = Math.round(progress);
-    const stepMsg = pct >= 100 ? "✨ 완성됐어요!"
-                  : pct >= 50  ? "🎨 표지를 그리고 있어요..."
-                  :              "✍️ 이야기를 쓰고 있어요...";
-    return (
-      <div className="generate-loading">
-        <div className="generate-book-animation">
-          <div className="generate-book-cover" />
-          <div className="generate-book-page generate-page-1" />
-          <div className="generate-book-page generate-page-2" />
-          <div className="generate-book-page generate-page-3" />
-        </div>
-        <h2 className="generate-loading-title">Remon이 이야기를 쓰고 있어요</h2>
-        <p className="generate-loading-sub">
-          키워드: {displayKeywords.join(", ")}
-        </p>
-        <p className="generate-progress-msg">{stepMsg}</p>
-        <div className="generate-progress-wrap">
-          <div className="generate-progress-fill" style={{ width: `${pct}%` }} />
-        </div>
-        <p className="generate-progress-pct">{pct}%</p>
-        <p className="generate-loading-hint">보통 10~60초 정도 걸려요. 페이지를 닫지 마세요.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="generate-container">
@@ -368,9 +287,9 @@ const GeneratePage = () => {
         <button
           type="submit"
           className="generate-submit-btn"
-          disabled={lemonInfo.lemonCount <= 0}
+          disabled={loading || lemonInfo.lemonCount <= 0}
         >
-          이야기 만들기 ✨
+          {loading ? "요청 중..." : "이야기 만들기 ✨"}
         </button>
       </form>
     </div>
