@@ -172,6 +172,11 @@ const ReadPage = () => {
   const [pagesReady, setPagesReady] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [dim, setDim] = useState(() => getPageDimensions());
+  const [debugInfo, setDebugInfo] = useState("");
+
+  useEffect(() => {
+    setDebugInfo(`iW:${window.innerWidth} cW:${document.documentElement.clientWidth} isMobile:${window.innerWidth <= 640}`);
+  }, []);
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
@@ -368,6 +373,9 @@ const ReadPage = () => {
 
   return (
     <div className="read-container">
+      <div style={{fontSize:"10px", color:"red", position:"fixed", top:0, zIndex:9999}}>
+        {debugInfo}
+      </div>
       {measureFrame}
       <div className="read-header">
         <button
