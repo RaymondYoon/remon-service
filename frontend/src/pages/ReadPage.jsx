@@ -146,7 +146,7 @@ function getPageDimensions() {
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = vw - 32;
-    const h = vh - 180;
+    const h = vh - 150;
     return { width: w, height: h, isMobile: true };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
@@ -379,14 +379,8 @@ const ReadPage = () => {
           ref={bookRef}
           width={dim.width}
           height={dim.height}
-          size={dim.isMobile ? "stretch" : "fixed"}
-          {...(dim.isMobile && {
-            minWidth: 100,
-            maxWidth: 600,
-            minHeight: 300,
-            maxHeight: 900,
-          })}
-          usePortrait={dim.isMobile ? true : false}
+          size="fixed"
+          usePortrait={false}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
