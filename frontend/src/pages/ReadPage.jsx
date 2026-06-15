@@ -375,7 +375,7 @@ const ReadPage = () => {
 
       <div className="read-book">
         <HTMLFlipBook
-          key={`${dim.width}x${dim.height}-${pages.length}`}
+          key={`${dim.width}x${dim.height}-${pages.length}-${dim.isMobile}`}
           ref={bookRef}
           width={dim.width}
           height={dim.height}
@@ -386,7 +386,7 @@ const ReadPage = () => {
             minHeight: 300,
             maxHeight: 900,
           })}
-          usePortrait={dim.isMobile}
+          usePortrait={dim.isMobile ? true : false}
           flippingTime={700}
           drawShadow={true}
           showCover={false}
