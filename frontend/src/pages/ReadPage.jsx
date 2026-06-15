@@ -145,8 +145,8 @@ function getPageDimensions() {
   const vh = window.innerHeight;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
-    const w = vw - 32;
-    const h = vh - 150;
+    const w = vw - 16;
+    const h = vh - 200;
     return { width: w, height: h, isMobile: true };
   }
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
