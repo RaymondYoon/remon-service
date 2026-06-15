@@ -143,9 +143,10 @@ const MIN_PAGE_HEIGHT = 500;
 function getPageDimensions() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const clientW = document.documentElement.clientWidth;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
-    const w = vw - 32;
+    const w = clientW - 8;
     const h = vh - 200;
     return { width: w, height: h, isMobile: true };
   }
