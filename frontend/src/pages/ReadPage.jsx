@@ -146,7 +146,7 @@ function getPageDimensions() {
   const clientW = document.documentElement.clientWidth;
   const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
-    const w = clientW - 8;
+    const w = clientW - 16;
     const h = vh - 200;
     return { width: w, height: h, isMobile: true };
   }
@@ -172,11 +172,6 @@ const ReadPage = () => {
   const [pagesReady, setPagesReady] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [dim, setDim] = useState(() => getPageDimensions());
-  const [debugInfo, setDebugInfo] = useState("");
-
-  useEffect(() => {
-    setDebugInfo(`iW:${window.innerWidth} cW:${document.documentElement.clientWidth} isMobile:${window.innerWidth <= 640}`);
-  }, []);
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
@@ -373,9 +368,6 @@ const ReadPage = () => {
 
   return (
     <div className="read-container">
-      <div style={{fontSize:"10px", color:"red", position:"fixed", top:0, zIndex:9999}}>
-        {debugInfo}
-      </div>
       {measureFrame}
       <div className="read-header">
         <button
@@ -403,7 +395,7 @@ const ReadPage = () => {
           width={dim.width}
           height={dim.height}
           size="fixed"
-          usePortrait={false}
+          usePortrait={dim.isMobile}
           flippingTime={700}
           drawShadow={true}
           showCover={false}

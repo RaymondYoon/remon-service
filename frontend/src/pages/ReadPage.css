@@ -284,12 +284,12 @@
   }
 
   .flip-page-inner {
-    padding: 8px 8px 8px;
+    padding: 16px 20px;
   }
 
   .read-para {
-    font-size: 12px;
-    line-height: 1.7;
+    font-size: 15px;
+    line-height: 1.8;
   }
 
   .read-nav-btn {
