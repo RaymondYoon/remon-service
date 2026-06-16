@@ -401,7 +401,7 @@ const ReadPage = () => {
           showCover={false}
           showPageCorners={false}
           mobileScrollSupport={false}
-          useMouseEvents={false}
+          useMouseEvents={true}
           swipeDistance={30}
           onFlip={onFlip}
           startPage={currentPage}
