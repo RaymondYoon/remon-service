@@ -3,12 +3,16 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { clearAuth, isLoggedIn } from "../utils/auth";
 import { getLemonInfo } from "../api/userApi";
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from "../api/notificationApi";
+import { useBookGeneration } from "../context/BookGenerationContext";
+import { useToast } from "../hooks/useToast";
 import "./Header.css";
 
 const Header = ({ theme, toggleTheme }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
+  const { status, restore } = useBookGeneration();
+  const showToast = useToast();
 
   // navigation마다 로그인 상태 재계산 (navigate 후 stale 방지)
   useEffect(() => {
@@ -101,6 +105,17 @@ const Header = ({ theme, toggleTheme }) => {
     clearAuth();
     closeMenu();
     navigate("/login");
+  };
+
+  const handleGenerateClick = (e) => {
+    if (status === "generating") {
+      e.preventDefault();
+      restore();
+      showToast("현재 책을 만들고 있어요! 잠시만 기다려주세요.", "info");
+      closeMenu();
+    } else {
+      closeMenu();
+    }
   };
 
   return (
@@ -198,7 +213,7 @@ const Header = ({ theme, toggleTheme }) => {
 
         <div className="drawer-links">
           {loggedIn && (
-            <Link to="/generate" className="drawer-link drawer-link--generate" onClick={closeMenu}>✨ 책 만들기</Link>
+            <Link to="/generate" className="drawer-link drawer-link--generate" onClick={handleGenerateClick}>✨ 책 만들기</Link>
           )}
           <Link to="/" className="drawer-link" state={{ refresh: true }} onClick={closeMenu}>홈</Link>
 

@@ -8,6 +8,7 @@ export const BookGenerationProvider = ({ children }) => {
   const [status, setStatus] = useState(null); // null | "generating" | "done" | "failed"
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
+  const [minimized, setMinimized] = useState(false);
 
   const intervalRef = useRef(null);
   const progressIntervalRef = useRef(null);
@@ -20,12 +21,16 @@ export const BookGenerationProvider = ({ children }) => {
 
   useEffect(() => () => stopAll(), [stopAll]);
 
+  const minimize = useCallback(() => setMinimized(true), []);
+  const restore = useCallback(() => setMinimized(false), []);
+
   const startGeneration = useCallback((newBookId) => {
     stopAll();
     setBookId(newBookId);
     setStatus("generating");
     setProgress(10);
     setMessage("✍️ 이야기를 쓰고 있어요...");
+    setMinimized(false);
     stepRef.current = "TEXT";
 
     progressIntervalRef.current = setInterval(() => {
@@ -66,10 +71,11 @@ export const BookGenerationProvider = ({ children }) => {
     setStatus(null);
     setProgress(0);
     setMessage("");
+    setMinimized(false);
   }, [stopAll]);
 
   return (
-    <BookGenerationContext.Provider value={{ bookId, status, progress, message, startGeneration, dismiss }}>
+    <BookGenerationContext.Provider value={{ bookId, status, progress, message, minimized, startGeneration, minimize, restore, dismiss }}>
       {children}
     </BookGenerationContext.Provider>
   );
