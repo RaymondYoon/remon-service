@@ -183,6 +183,12 @@ NavigationContainer
 | 확인: 둘러보기 탭 제거 | `AppNavigator` 4탭 구성 (홈/만들기FAB/서재/마이) — `ExploreScreen` 탭 제거 (2026-06-11에 구현 완료) |
 | 확인: UserProfileScreen 신규 | 작가 프로필 화면 `UserProfileScreen.js` — 아바타, 팔로워/팔로잉 수, 공개 책 목록 (2026-06-11에 구현 완료) |
 
+### 2026-06-15
+| 작업 | 내용 |
+|------|------|
+| ReadScreen 단일 페이지 확인 | 모바일 단일 페이지 모드 — `Dimensions.get('window').width` 기반 자동 분할 (기존 구현 유지) |
+| GenerateScreen 시놉시스 미반영 | 웹과 달리 `synopsis`·`characters`·`protagonistNames` 배열 미지원 — 추후 웹과 동기화 예정 (앞으로 할 작업 추가) |
+
 ---
 
 ## 앞으로 할 작업
@@ -192,6 +198,7 @@ NavigationContainer
 - [ ] 팔로우/언팔로우 기능 앱에 연동 (followApi 추가)
 - [ ] 알림 기능 앱에 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] 카카오 OAuth 앱 지원 (딥링크 설정)
+- [ ] GenerateScreen 시놉시스·조연·주인공 여러 명 UI 추가 (웹 GeneratePage와 동기화)
 
 ---
 

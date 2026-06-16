@@ -303,6 +303,32 @@ src/
 - [x] `userApi.js` `exchangeOAuthCode(code)` 함수 추가 — `POST /api/auth/code-exchange { code }`
 - [x] `MyPage.jsx` userId 서버 조회로 변경 — `GET /api/users/me/lemon` 응답 or `/api/users/{email}` 기반으로 서버에서 userId 실시간 조회 (로컬 스토리지 캐시 제거로 로그인 직후 즉시 반영)
 
+### 2026-06-15
+- [x] `GeneratePage.jsx` 한 줄 시놉시스 입력 추가 — `synopsis` state, `<textarea>` UI (maxLength 100), API 전송 시 빈 문자열이면 `null`
+- [x] `GeneratePage.jsx` 분위기 다중 선택 (최대 2개) — `tones: ["WARM"]` 배열 state, `toggleTone()`: 마지막 1개 유지 강제, 2개 초과 시 `"최대 2개까지 선택 가능해요"` 토스트
+- [x] `GeneratePage.jsx` 주인공 성격 다중 선택 (최대 3개) — `protagonistTraits: []` 배열 state, `toggleTrait()`: 재클릭 해제, 3개 초과 시 `"최대 3개까지 선택 가능해요"` 토스트
+- [x] `GeneratePage.jsx` 주인공 여러 명 (최대 3명) — `protagonistNames: [""]` 배열 state, 동적 추가/삭제 UI (`+ 주인공 추가` 버튼, × 삭제 버튼)
+- [x] `GeneratePage.jsx` 조연 등장인물 (최대 4명) — `characters: []` 배열 state, 동적 추가/삭제 UI
+- [x] 다중 선택 칩에 `✓` 체크 아이콘 표시 (`chip-check` span), `chip-group--multi` 클래스 구분
+- [x] `GeneratePage.css` 캐릭터 입력 스타일 추가 — `.character-list`, `.character-input-row`, `.character-remove-btn` (원형 ×), `.character-add-btn` (dashed border)
+- [x] `ReadPage.jsx` 모바일 텍스트 잘림 근본 해결 — `getPageDimensions()`에서 `window.innerWidth` → `document.documentElement.clientWidth` 사용 (iOS Safari 스크롤바·노치 제외 실제 콘텐츠 너비)
+- [x] `ReadPage.jsx` 모바일 단일 페이지 강제 적용 — 모바일 감지 로직 확정 (`clientWidth ≤ 640`), `usePortrait={dim.isMobile}` 유지
+- [x] `BookDetail.jsx` 다크모드 별점 색상 수정 — `[data-theme="dark"] .review-star-btn` inactive `color: #888`, active `color: #f5c842` 추가
+- [x] 텍스트 입력 `onKeyDown` 엔터 제출 방지 — 주인공·조연 `<input>`에 `e.key === 'Enter'` 시 `e.preventDefault()` 추가
+- [x] `BookGenerationContext` 전역 책 생성 폴링 — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트
+
+### 2026-06-16
+- [x] `ReadPage.css` 책 읽기 화면 전면 디자인 개선:
+  - 배경: 라이트 `#f5f0e8` (크림) / 다크 `#1a1a2e` (딥 네이비)
+  - 페이지: 라이트 `#fefcf7` (아이보리) / 다크 `#16213e`
+  - `.flip-page` `border: 1px solid rgba(0,0,0,0.08)` + `box-shadow: 0 4px 20px rgba(0,0,0,0.08)`
+  - `.read-para` `font-family: 'Georgia', 'Nanum Myeongjo', serif` + `font-size: 16px` + `text-indent: 1.5em`
+  - `.flip-page-num` `font-family: Georgia, serif` + `font-size: 12px` + `color: #999`
+  - `.read-header` `background: rgba(255,255,255,0.95)` + `backdrop-filter: blur(8px)` + `border-bottom`
+  - `.read-progress-fill` `height: 3px` + `background: linear-gradient(to right, #5b7e5a, #8ab87a)`
+  - `.read-nav-btn` `border-radius: 24px`
+- [x] `variables.css` 독서 페이지 CSS 변수 업데이트 — 라이트 `--color-read-bg: #f5f0e8`, 다크 `--color-read-bg: #1a1a2e` / `--color-read-page: #16213e`
+
 ---
 
 ## 앞으로 할 작업

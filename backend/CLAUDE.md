@@ -364,6 +364,27 @@ CLOUDINARY_API_SECRET=...
 - [x] `SecurityConfig` — `/api/auth/code-exchange` permitAll 추가
 - [x] Flyway `V5__add_oauth_codes_table.sql` 마이그레이션 추가 — `oauth_codes` 테이블 생성 (code UNIQUE, access_token/refresh_token TEXT, expires_at/created_at DATETIME)
 
+### 2026-06-15
+- [x] `LemonService` `MAX_DAILY` 3 → 2로 변경 — 하루 레몬 생성 제한 2회로 하향
+- [x] `UserRepository` `existsByEmail(String email)` Spring Data 메서드 추가 — 회원가입 시 이메일 중복 확인
+- [x] `UserService.registerUser` 이메일 중복 방지 — `existsByEmail()` 사용, 중복 시 `"이미 사용 중인 이메일입니다."` 오류 반환
+- [x] `UserRepository` `existsByNickname(String nickname)` Spring Data 메서드 추가 — 닉네임 변경 시 중복 확인
+- [x] `UserService.updateNickname` 닉네임 중복 방지 — 현재 닉네임과 다를 때만 `existsByNickname()` 검사, 중복 시 `"이미 사용 중인 닉네임입니다."` 오류 반환
+- [x] `GenerateBookRequest` DTO 확장:
+  - `String protagonistName` → `List<String> protagonistNames` (주인공 복수 지원, 최대 3명)
+  - `String protagonistTrait` → `List<String> protagonistTrait` (다중 선택, 최대 3개)
+  - `List<String> tone` (`@NotEmpty`, 다중 선택, 최대 2개) — 기존 `String`에서 변경
+  - `String synopsis` 신규 (한 줄 시놉시스, 선택사항)
+  - `List<String> characters` 신규 (조연 등장인물, 최대 4명, 선택사항)
+- [x] `OpenAiService.generate()` / `BookGenerationTask.run()` / `BookService.generateBook()` 메서드 시그니처 전체 확장 — `protagonistNames`, `characters` 파라미터 추가
+- [x] `OpenAiService.buildPrompt` 전면 확장:
+  - `toneDesc`: `List<String>` 스트림 → 한국어 묘사 + `", "` 조인
+  - `protagonistLine`: 복수 주인공 필터·조인, 2명 이상 시 "여러 명이 함께 이야기를 이끌어갈 것" 문구 추가
+  - `protagonistTraitLine`: `List<String>` → `", "` 조인
+  - `charactersLine`: 조연 목록 조인 + "조연은 자연스럽게 등장, 주인공 서사 보조" 지시
+  - `synopsisLine`: 시놉시스 기반 확장 지시 조건부 삽입
+- [x] `OpenAiService.buildPrompt` 소설 분량 4000자 → 6000자로 증가
+
 ---
 
 ## 트러블슈팅 이력

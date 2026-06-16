@@ -2,9 +2,9 @@
 
 ## 프로젝트 개요
 **Remon**은 AI가 전자책/소설을 자동 생성해주는 웹 서비스다.
-사용자가 키워드(최대 4개), 장르(9종), 분위기(7종), 결말 방향, 주인공 이름·성격(13종)·서술 시점(선택)을 입력하면
-Google Gemini(gemini-2.5-flash)가 4000자 내외의 단편 소설을 생성한다.
-레몬 경제 시스템(하루 3회 제한)과 소셜 기능(팔로우, 리뷰, 피드)을 갖추고 있다.
+사용자가 키워드(최대 4개), 장르(9종), 분위기(7종, 다중 선택), 결말 방향, 주인공 이름(최대 3명)·성격(13종, 다중 선택)·서술 시점·한 줄 시놉시스·조연(최대 4명)을 입력하면
+Google Gemini(gemini-2.5-flash)가 6000자 내외의 단편 소설을 생성한다.
+레몬 경제 시스템(하루 2회 제한)과 소셜 기능(팔로우, 리뷰, 피드)을 갖추고 있다.
 
 ---
 
@@ -105,9 +105,9 @@ remon-service/
 |------|------|
 | 회원가입/로그인 | 이메일 + 카카오 OAuth 2.0 |
 | JWT 인증 | Access Token 15분 + Refresh Token 7일 자동 재발급 |
-| AI 책 생성 | 키워드·장르·분위기·결말·주인공 이름·성격·서술 시점 → Gemini 비동기 생성 (폴링) |
-| AI 소설 품질 향상 | 서사구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상 내부 단계 / 2500자 고정 |
-| 레몬 시스템 | 하루 1개 자동 충전, 책 생성 시 소모, 1일 3회 제한 |
+| AI 책 생성 | 키워드·장르·분위기(다중)·결말·주인공(최대 3명)·성격(다중)·서술 시점·시놉시스·조연(최대 4명) → Gemini 비동기 생성 (폴링) |
+| AI 소설 품질 향상 | 서사구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상 내부 단계 / 6000자 |
+| 레몬 시스템 | 하루 1개 자동 충전, 책 생성 시 소모, 1일 2회 제한 |
 | 레몬트리 UI | 레몬 개수별 나무 시각화, 소모 시 낙하 애니메이션 |
 | 내 서재 | 책 저장, 독서 상태(SAVED/READING/DONE), 페이지 저장 |
 | 책 뷰어 (웹) | react-pageflip 두 페이지(데스크톱)/단일 페이지(모바일), DOM 높이 기반 자동 분할, 모바일 40px 안전 마진·DOM 높이 측정, 키보드 방향키 지원 |
@@ -149,7 +149,7 @@ remon-service/
 | 주인공 성격 13종 | 기존 6종 + 고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인 추가 |
 | 소설 분량 3000자 | buildPrompt 분량 2500자 → 3000자로 변경 |
 | 공유 버튼 개선 | BookDetail 공유 버튼 위치 재배치 (내서재 오른쪽) + 44px 원형 아이콘 스타일 |
-| 소설 분량 4000자 | buildPrompt 분량 3000자 → 4000자로 증가 |
+| 소설 분량 6000자 | buildPrompt 분량 4000자 → 6000자로 증가 |
 | 검색 범위 제한 | BookRepository LIKE 쿼리에서 description 제거, title + author만 검색 (7개 JPQL 수정) |
 | 닉네임 주 2회 제한 | ISO Week 기준 주 2회 초과 시 오류, Flyway V4 마이그레이션 (`nickname_change_count`, `nickname_changed_at`) |
 | 웹 작가 이름→프로필 링크 | BookCard 저자명 클릭 시 `/profile/:id` 이동 (`e.stopPropagation()` 처리) |
@@ -164,6 +164,11 @@ remon-service/
 | OAuth 단기 코드 보안 | 카카오 로그인 redirect URL에서 JWT 토큰 제거 → 30초 유효 UUID 코드 발급 → `POST /api/auth/code-exchange`로 토큰 교환 (브라우저 히스토리·로그 토큰 노출 차단) |
 | 마이페이지 userId 실시간 조회 | 로컬 스토리지 캐시 제거, 서버에서 userId 직접 조회 — 로그인 직후 팔로워/팔로잉 모달 즉시 반영 |
 | Flyway V5 마이그레이션 | `oauth_codes` 테이블 추가 (code VARCHAR UNIQUE, access_token TEXT, expires_at DATETIME) |
+| 이메일/닉네임 중복 방지 | `UserRepository.existsByEmail()` / `existsByNickname()` 추가 — 회원가입·닉네임 변경 시 즉시 검증 |
+| 생성 옵션 확장 | `GenerateBookRequest`: 시놉시스·주인공 복수(최대 3명)·조연(최대 4명)·분위기/성격 다중 선택 지원 |
+| 전역 책 생성 폴링 | `BookGenerationContext` — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트 |
+| 책 읽기 UI 개선 | 명조체 + 종이 질감 배경 + 페이지 그림자 + 진행 바 그라데이션 + 딥 네이비 다크모드 |
+| 모바일 뷰포트 수정 | `clientWidth` 기반 페이지 너비 계산 — iOS Safari innerWidth 불일치로 인한 텍스트 잘림 해결 |
 
 ---
 
@@ -201,6 +206,7 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] 앱 EAS Build 설정 및 스토어 배포 (iOS/Android)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
+- [ ] 앱 GenerateScreen 시놉시스·조연·주인공 여러 명 UI 추가 (웹과 동기화)
 - [ ] GitHub Actions CI/CD 파이프라인
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
@@ -212,6 +218,9 @@ npx expo start --clear    # 캐시 초기화 후 실행
 - [ ] Python 분석 스크립트 (생성 책 장르·분위기 분포, 사용자 활동 통계)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 - [ ] `oauth_codes` 만료 코드 정기 정리 스케줄러 (`@Scheduled` + `deleteByExpiresAtBefore`)
+- [ ] Gemini 유료 플랜 전환 검토 (무료 한도 초과 시 503 동시 요청 한도 대응)
+- [ ] 디스코드 웹훅 연동 (책 생성 완료·오류 실시간 알림)
+- [ ] 동시 생성 부하 테스트 (Gemini API 동시 호출 한도 확인)
 
 ---
 
