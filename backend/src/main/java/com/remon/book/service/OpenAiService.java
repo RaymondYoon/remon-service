@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class OpenAiService {
@@ -41,8 +42,8 @@ public class OpenAiService {
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
-    public String[] generate(List<String> keywords, String genre, String tone, String ending,
-                             String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
+    public String[] generate(List<String> keywords, String genre, List<String> tone, String ending,
+                             String protagonistName, List<String> protagonistTrait, String viewpoint, String synopsis) {
         String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint, synopsis);
 
         HttpHeaders headers = new HttpHeaders();
@@ -92,17 +93,21 @@ public class OpenAiService {
 
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
-    private String buildPrompt(List<String> keywords, String genre, String tone, String ending,
-                               String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
-        String toneDesc = switch (tone != null ? tone.toUpperCase() : "WARM") {
-            case "DARK"        -> "어둡고 긴장감 있게";
-            case "HUMOROUS"    -> "유쾌하고 재미있게";
-            case "MYSTERIOUS"  -> "신비롭고 미스터리하게";
-            case "MELANCHOLY"  -> "쓸쓸하고 애잔하게";
-            case "TENSE"       -> "긴장감 넘치게";
-            case "EPIC"        -> "웅장하고 압도적으로";
-            default            -> "따뜻하고 감동적으로";
-        };
+    private String buildPrompt(List<String> keywords, String genre, List<String> tones, String ending,
+                               String protagonistName, List<String> protagonistTraits, String viewpoint, String synopsis) {
+        String toneDesc = (tones != null && !tones.isEmpty())
+                ? tones.stream()
+                        .map(t -> switch (t != null ? t.toUpperCase() : "WARM") {
+                            case "DARK"        -> "어둡고 긴장감 있게";
+                            case "HUMOROUS"    -> "유쾌하고 재미있게";
+                            case "MYSTERIOUS"  -> "신비롭고 미스터리하게";
+                            case "MELANCHOLY"  -> "쓸쓸하고 애잔하게";
+                            case "TENSE"       -> "긴장감 넘치게";
+                            case "EPIC"        -> "웅장하고 압도적으로";
+                            default            -> "따뜻하고 감동적으로";
+                        })
+                        .collect(Collectors.joining(", "))
+                : "따뜻하고 감동적으로";
 
         String endingDesc = switch (ending != null ? ending.toUpperCase() : "HAPPY") {
             case "SAD"  -> "새드엔딩 (슬프고 여운이 남는 결말)";
@@ -118,8 +123,8 @@ public class OpenAiService {
                 ? "1인칭 주인공 시점으로 서술 ('나'가 직접 겪는 방식)"
                 : "3인칭 전지적 시점으로 서술";
 
-        String protagonistTraitLine = (protagonistTrait != null && !protagonistTrait.isBlank())
-                ? "주인공 성격/특징: " + protagonistTrait + " — 이 특징이 이야기 전반에 자연스럽게 드러나도록 할 것"
+        String protagonistTraitLine = (protagonistTraits != null && !protagonistTraits.isEmpty())
+                ? "주인공 성격/특징: " + String.join(", ", protagonistTraits) + " — 이 특징들이 이야기 전반에 자연스럽게 드러나도록 할 것"
                 : "";
 
         String synopsisLine = (synopsis != null && !synopsis.isBlank())

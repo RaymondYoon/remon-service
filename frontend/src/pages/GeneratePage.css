@@ -195,6 +195,11 @@
   font-weight: 700;
 }
 
+.chip-check {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
 /* 텍스트 입력 (주인공 이름 등) */
 .generate-text-input {
   width: 100%;

@@ -87,7 +87,7 @@ public class BookService {
                 .description("키워드: " + String.join(", ", request.getKeywords()))
                 .isAiGenerated(true)
                 .genre(request.getGenre())
-                .tone(request.getTone())
+                .tone(request.getTone() != null ? String.join(", ", request.getTone()) : null)
                 .publishedDate(LocalDate.now())
                 .price(0.0)
                 .publishedBy(user.getId())

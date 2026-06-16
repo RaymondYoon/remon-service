@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { generateBook } from "../api/bookApi";
 import { getLemonInfo } from "../api/userApi";
 import { useBookGeneration } from "../context/BookGenerationContext";
+import { useToast } from "../hooks/useToast";
 import LemonTree from "../components/LemonTree";
 import LemonFall from "../components/LemonFall";
 import "./GeneratePage.css";
@@ -31,16 +32,17 @@ const PROTAGONIST_TRAITS = ["소심한", "까칠한", "비밀이 있는", "천�
 const GeneratePage = () => {
   const navigate = useNavigate();
   const { startGeneration } = useBookGeneration();
+  const showToast = useToast();
 
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords]         = useState([]);
   const [genre, setGenre]               = useState(GENRES[0]);
-  const [tone, setTone]                 = useState("WARM");
+  const [tones, setTones]               = useState(["WARM"]);
   const [ending, setEnding]             = useState("HAPPY");
   const [protagonistName, setProtagonistName] = useState("");
   const [synopsis, setSynopsis] = useState("");
   const [viewpoint, setViewpoint]             = useState("3인칭");
-  const [protagonistTrait, setProtagonistTrait] = useState(null);
+  const [protagonistTraits, setProtagonistTraits] = useState([]);
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
   const [lemonTrigger, setLemonTrigger] = useState(0);
@@ -51,6 +53,24 @@ const GeneratePage = () => {
       .then((res) => setLemonInfo(res.data))
       .catch(() => {});
   }, []);
+
+  const toggleTone = (value) => {
+    if (tones.includes(value)) {
+      if (tones.length > 1) setTones(tones.filter((t) => t !== value));
+    } else {
+      if (tones.length >= 2) { showToast("최대 2개까지 선택 가능해요", "error"); return; }
+      setTones([...tones, value]);
+    }
+  };
+
+  const toggleTrait = (trait) => {
+    if (protagonistTraits.includes(trait)) {
+      setProtagonistTraits(protagonistTraits.filter((t) => t !== trait));
+    } else {
+      if (protagonistTraits.length >= 3) { showToast("최대 3개까지 선택 가능해요", "error"); return; }
+      setProtagonistTraits([...protagonistTraits, trait]);
+    }
+  };
 
   const handleKeywordKeyDown = (e) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -103,11 +123,11 @@ const GeneratePage = () => {
       const response = await generateBook({
         keywords: allKeywords,
         genre,
-        tone,
+        tone: tones,
         ending,
         protagonistName: nameValue,
         viewpoint,
-        protagonistTrait: protagonistTrait || null,
+        protagonistTrait: protagonistTraits.length > 0 ? protagonistTraits : null,
         synopsis: synopsis.trim() || null,
       });
       getLemonInfo()
@@ -201,18 +221,23 @@ const GeneratePage = () => {
 
         {/* 분위기 */}
         <div className="generate-field">
-          <label className="generate-label">분위기</label>
-          <div className="chip-group">
-            {TONES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                className={`chip ${tone === t.value ? "chip--active" : ""}`}
-                onClick={() => setTone(t.value)}
-              >
-                {t.label}
-              </button>
-            ))}
+          <label className="generate-label">
+            분위기 <span className="generate-label-hint">최대 2개 선택</span>
+          </label>
+          <div className="chip-group chip-group--multi">
+            {TONES.map((t) => {
+              const active = tones.includes(t.value);
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  className={`chip ${active ? "chip--active" : ""}`}
+                  onClick={() => toggleTone(t.value)}
+                >
+                  {active && <span className="chip-check">✓ </span>}{t.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -283,19 +308,22 @@ const GeneratePage = () => {
         {/* 주인공 성격 */}
         <div className="generate-field">
           <label className="generate-label">
-            주인공 성격 <span className="generate-label-hint">선택사항 · 다시 누르면 해제</span>
+            주인공 성격 <span className="generate-label-hint">선택사항 · 최대 3개 · 다시 누르면 해제</span>
           </label>
-          <div className="chip-group">
-            {PROTAGONIST_TRAITS.map((trait) => (
-              <button
-                key={trait}
-                type="button"
-                className={`chip ${protagonistTrait === trait ? "chip--active" : ""}`}
-                onClick={() => setProtagonistTrait(protagonistTrait === trait ? null : trait)}
-              >
-                {trait}
-              </button>
-            ))}
+          <div className="chip-group chip-group--multi">
+            {PROTAGONIST_TRAITS.map((trait) => {
+              const active = protagonistTraits.includes(trait);
+              return (
+                <button
+                  key={trait}
+                  type="button"
+                  className={`chip ${active ? "chip--active" : ""}`}
+                  onClick={() => toggleTrait(trait)}
+                >
+                  {active && <span className="chip-check">✓ </span>}{trait}
+                </button>
+              );
+            })}
           </div>
         </div>
 

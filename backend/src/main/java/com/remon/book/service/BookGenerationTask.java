@@ -39,8 +39,8 @@ public class BookGenerationTask {
     }
 
     @Async
-    public void run(Long bookId, List<String> keywords, String genre, String tone, String ending,
-                    String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
+    public void run(Long bookId, List<String> keywords, String genre, List<String> tone, String ending,
+                    String protagonistName, List<String> protagonistTrait, String viewpoint, String synopsis) {
         bookRepository.updateStatus(bookId, BookStatus.GENERATING);
         log.info("책 생성 시작 - bookId: {}, keywords: {}, genre: {}, tone: {}, ending: {}",
                 bookId, keywords, genre, tone, ending);
