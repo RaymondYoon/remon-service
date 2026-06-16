@@ -490,3 +490,30 @@
 .admin-delete-book-btn:hover {
   opacity: 0.85;
 }
+
+/* ── 다크모드 리뷰 색상 수정 ── */
+[data-theme="dark"] .review-section {
+  background: var(--color-card);
+}
+
+[data-theme="dark"] .review-form {
+  background: var(--color-bg-subtle);
+}
+
+[data-theme="dark"] .review-item-content {
+  color: var(--color-text-primary, var(--color-text));
+}
+
+[data-theme="dark"] .review-item-nickname {
+  color: var(--color-text-primary, var(--color-text));
+}
+
+[data-theme="dark"] .review-section-title {
+  color: var(--color-text-primary, var(--color-text));
+}
+
+[data-theme="dark"] .review-textarea {
+  background: var(--color-card);
+  color: var(--color-text);
+  border-color: var(--color-border-input);
+}

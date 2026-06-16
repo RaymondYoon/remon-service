@@ -242,6 +242,7 @@ const GeneratePage = () => {
             placeholder="예: 지우, 하늘, Alex"
             value={protagonistName}
             onChange={(e) => setProtagonistName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
             maxLength={20}
           />
         </div>

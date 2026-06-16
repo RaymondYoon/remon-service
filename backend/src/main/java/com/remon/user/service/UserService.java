@@ -94,6 +94,10 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
+        if (!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) {
+            throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime changedAt = user.getNicknameChangedAt();
 
