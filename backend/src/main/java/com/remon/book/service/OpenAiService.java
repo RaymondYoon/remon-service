@@ -43,8 +43,9 @@ public class OpenAiService {
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
     public String[] generate(List<String> keywords, String genre, List<String> tone, String ending,
-                             String protagonistName, List<String> protagonistTrait, String viewpoint, String synopsis) {
-        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint, synopsis);
+                             List<String> protagonistNames, List<String> protagonistTrait, String viewpoint,
+                             String synopsis, List<String> characters) {
+        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistNames, protagonistTrait, viewpoint, synopsis, characters);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -61,8 +62,8 @@ public class OpenAiService {
         String url = apiUrl + "?key=" + apiKey;
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-        log.info("Gemini 요청 시작 - url: {}, keywords: {}, genre: {}, tone: {}, ending: {}, protagonistNameProvided: {}",
-                apiUrl, keywords.size(), genre, tone, ending, protagonistName != null && !protagonistName.isBlank());
+        log.info("Gemini 요청 시작 - url: {}, keywords: {}, genre: {}, tone: {}, ending: {}, protagonistNamesProvided: {}",
+                apiUrl, keywords.size(), genre, tone, ending, protagonistNames != null && !protagonistNames.isEmpty());
 
         int maxAttempts = 3;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -94,7 +95,8 @@ public class OpenAiService {
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
     private String buildPrompt(List<String> keywords, String genre, List<String> tones, String ending,
-                               String protagonistName, List<String> protagonistTraits, String viewpoint, String synopsis) {
+                               List<String> protagonistNames, List<String> protagonistTraits, String viewpoint,
+                               String synopsis, List<String> characters) {
         String toneDesc = (tones != null && !tones.isEmpty())
                 ? tones.stream()
                         .map(t -> switch (t != null ? t.toUpperCase() : "WARM") {
@@ -115,9 +117,21 @@ public class OpenAiService {
             default     -> "해피엔딩 (희망적이고 긍정적인 결말)";
         };
 
-        String protagonistLine = (protagonistName != null && !protagonistName.isBlank())
-                ? "주인공 이름: " + protagonistName
-                : "주인공 이름: AI가 자유롭게 결정";
+        List<String> validProtagonists = (protagonistNames != null)
+                ? protagonistNames.stream().filter(n -> n != null && !n.isBlank()).collect(Collectors.toList())
+                : List.of();
+        String protagonistLine = validProtagonists.isEmpty()
+                ? "주인공 이름: AI가 자유롭게 결정"
+                : "주인공: " + String.join(", ", validProtagonists)
+                  + (validProtagonists.size() > 1 ? " (여러 명이 함께 이야기를 이끌어갈 것)" : "");
+
+        List<String> validCharacters = (characters != null)
+                ? characters.stream().filter(c -> c != null && !c.isBlank()).collect(Collectors.toList())
+                : List.of();
+        String charactersLine = validCharacters.isEmpty()
+                ? ""
+                : "조연 등장인물: " + String.join(", ", validCharacters)
+                  + "\n- 조연은 이야기에 자연스럽게 등장하되 주인공의 서사를 보조할 것";
 
         String viewpointDesc = "1인칭".equals(viewpoint)
                 ? "1인칭 주인공 시점으로 서술 ('나'가 직접 겪는 방식)"
@@ -198,6 +212,7 @@ public class OpenAiService {
                 결말: %s
                 %s
                 %s
+                %s
                 키워드: %s
                 %s
                 타겟 독자: 성인 / 책을 잘 읽지 않는 독자도 몰입할 수 있도록 첫 문장부터 강렬하게, 문체는 간결하고 세련되게
@@ -208,6 +223,7 @@ public class OpenAiService {
                 endingDesc,
                 protagonistLine,
                 protagonistTraitLine,
+                charactersLine,
                 String.join(", ", keywords),
                 synopsisLine
         );

@@ -39,7 +39,8 @@ const GeneratePage = () => {
   const [genre, setGenre]               = useState(GENRES[0]);
   const [tones, setTones]               = useState(["WARM"]);
   const [ending, setEnding]             = useState("HAPPY");
-  const [protagonistName, setProtagonistName] = useState("");
+  const [protagonistNames, setProtagonistNames] = useState([""]);
+  const [characters, setCharacters]     = useState([]);
   const [synopsis, setSynopsis] = useState("");
   const [viewpoint, setViewpoint]             = useState("3인칭");
   const [protagonistTraits, setProtagonistTraits] = useState([]);
@@ -117,7 +118,8 @@ const GeneratePage = () => {
     setLemonTrigger((prev) => prev + 1);
     setLoading(true);
 
-    const nameValue = protagonistName.trim() || null;
+    const validProtagonistNames = protagonistNames.map((n) => n.trim()).filter(Boolean);
+    const validCharacters = characters.map((c) => c.trim()).filter(Boolean);
 
     try {
       const response = await generateBook({
@@ -125,10 +127,11 @@ const GeneratePage = () => {
         genre,
         tone: tones,
         ending,
-        protagonistName: nameValue,
+        protagonistNames: validProtagonistNames.length > 0 ? validProtagonistNames : null,
         viewpoint,
         protagonistTrait: protagonistTraits.length > 0 ? protagonistTraits : null,
         synopsis: synopsis.trim() || null,
+        characters: validCharacters.length > 0 ? validCharacters : null,
       });
       getLemonInfo()
         .then((res) => setLemonInfo(res.data))
@@ -261,17 +264,41 @@ const GeneratePage = () => {
         {/* 주인공 이름 */}
         <div className="generate-field">
           <label className="generate-label">
-            주인공 이름 <span className="generate-label-hint">선택사항 · 비워두면 AI가 결정</span>
+            주인공 이름 <span className="generate-label-hint">선택사항 · 최대 3명 · 비워두면 AI가 결정</span>
           </label>
-          <input
-            type="text"
-            className="generate-text-input"
-            placeholder="예: 지우, 하늘, Alex"
-            value={protagonistName}
-            onChange={(e) => setProtagonistName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-            maxLength={20}
-          />
+          <div className="character-list">
+            {protagonistNames.map((name, i) => (
+              <div key={i} className="character-input-row">
+                <input
+                  type="text"
+                  className="generate-text-input"
+                  placeholder="예: 지우, 하늘, Alex"
+                  value={name}
+                  onChange={(e) => {
+                    const next = [...protagonistNames];
+                    next[i] = e.target.value;
+                    setProtagonistNames(next);
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                  maxLength={20}
+                />
+                {protagonistNames.length > 1 && (
+                  <button
+                    type="button"
+                    className="character-remove-btn"
+                    onClick={() => setProtagonistNames(protagonistNames.filter((_, j) => j !== i))}
+                  >×</button>
+                )}
+              </div>
+            ))}
+            {protagonistNames.length < 3 && (
+              <button
+                type="button"
+                className="character-add-btn"
+                onClick={() => setProtagonistNames([...protagonistNames, ""])}
+              >+ 주인공 추가</button>
+            )}
+          </div>
         </div>
 
         {/* 한 줄 시놉시스 */}
@@ -286,6 +313,44 @@ const GeneratePage = () => {
             onChange={(e) => setSynopsis(e.target.value)}
             maxLength={100}
           />
+        </div>
+
+        {/* 조연 등장인물 */}
+        <div className="generate-field">
+          <label className="generate-label">
+            조연 등장인물 <span className="generate-label-hint">선택사항 · 최대 4명</span>
+          </label>
+          <div className="character-list">
+            {characters.map((name, i) => (
+              <div key={i} className="character-input-row">
+                <input
+                  type="text"
+                  className="generate-text-input"
+                  placeholder="조연 이름"
+                  value={name}
+                  onChange={(e) => {
+                    const next = [...characters];
+                    next[i] = e.target.value;
+                    setCharacters(next);
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                  maxLength={20}
+                />
+                <button
+                  type="button"
+                  className="character-remove-btn"
+                  onClick={() => setCharacters(characters.filter((_, j) => j !== i))}
+                >×</button>
+              </div>
+            ))}
+            {characters.length < 4 && (
+              <button
+                type="button"
+                className="character-add-btn"
+                onClick={() => setCharacters([...characters, ""])}
+              >+ 조연 추가</button>
+            )}
+          </div>
         </div>
 
         {/* 서술 시점 */}

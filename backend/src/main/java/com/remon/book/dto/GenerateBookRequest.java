@@ -20,13 +20,15 @@ public class GenerateBookRequest {
     @NotEmpty
     private List<String> tone;      // ["WARM", "DARK"] 최대 2개
 
-    private String ending;          // "HAPPY" | "SAD" | "OPEN" (선택, 기본값 HAPPY)
+    private String ending;               // "HAPPY" | "SAD" | "OPEN" (선택, 기본값 HAPPY)
 
-    private String protagonistName;  // 주인공 이름 (선택, null이면 AI가 결정)
+    private List<String> protagonistNames; // 주인공 이름 (여러 명 가능, 선택)
 
     private List<String> protagonistTrait; // 주인공 성격 특징 (선택, 최대 3개)
 
-    private String viewpoint;        // 서술 시점 ("1인칭" | "3인칭", 기본값 "3인칭")
+    private String viewpoint;             // 서술 시점 ("1인칭" | "3인칭", 기본값 "3인칭")
 
-    private String synopsis;         // 한 줄 시놉시스 (선택)
+    private String synopsis;              // 한 줄 시놉시스 (선택)
+
+    private List<String> characters;      // 조연 이름 목록 (선택)
 }
