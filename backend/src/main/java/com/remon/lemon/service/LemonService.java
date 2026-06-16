@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Transactional
 public class LemonService {
 
-    static final int MAX_DAILY = 3;
+    static final int MAX_DAILY = 2;
 
     private final UserLemonRepository userLemonRepository;
     private final UserRepository userRepository;

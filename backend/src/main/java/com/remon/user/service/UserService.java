@@ -55,10 +55,9 @@ public class UserService {
 
     public User registerUser(String email, String password, String provider, String providerId, String nickname){
         log.info("회원가입 시도: {}", MaskingUtil.maskEmail(email));
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        if (existingUser.isPresent()) {
+        if (userRepository.existsByEmail(email)) {
             log.warn("회원가입 실패 - 이미 존재하는 이메일: {}", MaskingUtil.maskEmail(email));
-            throw new IllegalStateException("이미 가입된 이메일 입니다.");
+            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
         }
         String encodedPassword = bCryptPasswordEncoder.encode(password);
         User user = User.builder()
