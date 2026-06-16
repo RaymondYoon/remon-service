@@ -42,8 +42,8 @@ public class OpenAiService {
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
     public String[] generate(List<String> keywords, String genre, String tone, String ending,
-                             String protagonistName, String protagonistTrait, String viewpoint) {
-        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint);
+                             String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
+        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint, synopsis);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -93,7 +93,7 @@ public class OpenAiService {
     // ── 프롬프트 ────────────────────────────────────────────────────────────
 
     private String buildPrompt(List<String> keywords, String genre, String tone, String ending,
-                               String protagonistName, String protagonistTrait, String viewpoint) {
+                               String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
         String toneDesc = switch (tone != null ? tone.toUpperCase() : "WARM") {
             case "DARK"        -> "어둡고 긴장감 있게";
             case "HUMOROUS"    -> "유쾌하고 재미있게";
@@ -120,6 +120,10 @@ public class OpenAiService {
 
         String protagonistTraitLine = (protagonistTrait != null && !protagonistTrait.isBlank())
                 ? "주인공 성격/특징: " + protagonistTrait + " — 이 특징이 이야기 전반에 자연스럽게 드러나도록 할 것"
+                : "";
+
+        String synopsisLine = (synopsis != null && !synopsis.isBlank())
+                ? "작가 제공 시놉시스: " + synopsis + "\n위 시놉시스를 바탕으로 이야기를 풀어내되,\n키워드와 장르에 맞게 확장하고 발전시킬 것."
                 : "";
 
         return String.format(
@@ -190,6 +194,7 @@ public class OpenAiService {
                 %s
                 %s
                 키워드: %s
+                %s
                 타겟 독자: 성인 / 책을 잘 읽지 않는 독자도 몰입할 수 있도록 첫 문장부터 강렬하게, 문체는 간결하고 세련되게
                 """,
                 viewpointDesc,
@@ -198,7 +203,8 @@ public class OpenAiService {
                 endingDesc,
                 protagonistLine,
                 protagonistTraitLine,
-                String.join(", ", keywords)
+                String.join(", ", keywords),
+                synopsisLine
         );
     }
 

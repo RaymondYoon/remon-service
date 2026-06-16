@@ -218,6 +218,32 @@
   color: var(--color-text-muted);
 }
 
+/* 시놉시스 입력 */
+.generate-synopsis-input {
+  width: 100%;
+  height: 72px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border-input);
+  border-radius: 10px;
+  background: var(--color-input-bg);
+  font-size: 14px;
+  color: var(--color-text);
+  font-family: inherit;
+  resize: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, background-color 0.3s;
+  outline: none;
+}
+
+.generate-synopsis-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-card);
+}
+
+.generate-synopsis-input::placeholder {
+  color: var(--color-text-muted);
+}
+
 /* 에러 */
 .generate-error {
   font-size: 13px;

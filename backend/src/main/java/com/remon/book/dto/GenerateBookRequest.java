@@ -27,4 +27,6 @@ public class GenerateBookRequest {
     private String protagonistTrait; // 주인공 성격 특징 (선택)
 
     private String viewpoint;        // 서술 시점 ("1인칭" | "3인칭", 기본값 "3인칭")
+
+    private String synopsis;         // 한 줄 시놉시스 (선택)
 }

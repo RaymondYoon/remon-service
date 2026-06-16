@@ -98,7 +98,8 @@ public class BookService {
         bookGenerationTask.run(savedBook.getId(), request.getKeywords(),
                 request.getGenre(), request.getTone(),
                 request.getEnding(), request.getProtagonistName(),
-                request.getProtagonistTrait(), request.getViewpoint());
+                request.getProtagonistTrait(), request.getViewpoint(),
+                request.getSynopsis());
         return buildResponse(savedBook, null, null);
     }
 

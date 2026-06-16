@@ -40,12 +40,12 @@ public class BookGenerationTask {
 
     @Async
     public void run(Long bookId, List<String> keywords, String genre, String tone, String ending,
-                    String protagonistName, String protagonistTrait, String viewpoint) {
+                    String protagonistName, String protagonistTrait, String viewpoint, String synopsis) {
         bookRepository.updateStatus(bookId, BookStatus.GENERATING);
         log.info("책 생성 시작 - bookId: {}, keywords: {}, genre: {}, tone: {}, ending: {}",
                 bookId, keywords, genre, tone, ending);
         try {
-            String[] result = openAiService.generate(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint);
+            String[] result = openAiService.generate(keywords, genre, tone, ending, protagonistName, protagonistTrait, viewpoint, synopsis);
             bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.GENERATING);
             log.info("텍스트 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
                     bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);

@@ -38,6 +38,7 @@ const GeneratePage = () => {
   const [tone, setTone]                 = useState("WARM");
   const [ending, setEnding]             = useState("HAPPY");
   const [protagonistName, setProtagonistName] = useState("");
+  const [synopsis, setSynopsis] = useState("");
   const [viewpoint, setViewpoint]             = useState("3인칭");
   const [protagonistTrait, setProtagonistTrait] = useState(null);
   const [loading, setLoading]           = useState(false);
@@ -107,6 +108,7 @@ const GeneratePage = () => {
         protagonistName: nameValue,
         viewpoint,
         protagonistTrait: protagonistTrait || null,
+        synopsis: synopsis.trim() || null,
       });
       getLemonInfo()
         .then((res) => setLemonInfo(res.data))
@@ -244,6 +246,20 @@ const GeneratePage = () => {
             onChange={(e) => setProtagonistName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
             maxLength={20}
+          />
+        </div>
+
+        {/* 한 줄 시놉시스 */}
+        <div className="generate-field">
+          <label className="generate-label">
+            한 줄 시놉시스 <span className="generate-label-hint">선택사항 · 이야기의 방향을 직접 제시</span>
+          </label>
+          <textarea
+            className="generate-synopsis-input"
+            placeholder="예: 기억을 잃은 형사가 자신이 범인임을 깨닫는 이야기"
+            value={synopsis}
+            onChange={(e) => setSynopsis(e.target.value)}
+            maxLength={100}
           />
         </div>
 
