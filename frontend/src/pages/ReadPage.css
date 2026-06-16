@@ -26,6 +26,12 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
 .read-back-btn {
@@ -57,7 +63,7 @@
   width: 100%;
   max-width: 800px;
   flex-shrink: 0;
-  height: 4px;
+  height: 3px;
   background: var(--color-read-progress-track);
   border-radius: 2px;
   margin-bottom: 12px;
@@ -67,7 +73,7 @@
 
 .read-progress-fill {
   height: 100%;
-  background: var(--color-primary);
+  background: linear-gradient(to right, #5b7e5a, #8ab87a);
   border-radius: 2px;
   transition: width 0.25s ease;
 }
@@ -134,6 +140,8 @@
   background: var(--color-read-page);
   overflow: hidden;
   height: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -184,20 +192,22 @@
 .flip-page-num {
   flex-shrink: 0;
   text-align: center;
-  font-size: 13px;
-  color: var(--color-read-page-num);
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: #999;
   letter-spacing: 0.03em;
   padding: 6px 0 10px;
 }
 
 /* ─── 본문 단락 ─── */
 .read-para {
-  font-size: clamp(14px, 1.6vw, 16px);
+  font-family: 'Georgia', 'Nanum Myeongjo', serif;
+  font-size: 16px;
   line-height: 2.0;
   color: var(--color-read-text);
   margin: 0 0 1.2em;
   word-break: keep-all;
-  text-indent: 1em;
+  text-indent: 1.5em;
 }
 
 .read-para:last-child {
@@ -215,11 +225,11 @@
 }
 
 .read-nav-btn {
-  padding: 10px 26px;
+  padding: 10px 24px;
   background: var(--color-card);
   color: var(--color-primary);
   border: 1.5px solid var(--color-primary);
-  border-radius: 30px;
+  border-radius: 24px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;

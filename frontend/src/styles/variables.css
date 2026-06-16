@@ -32,9 +32,9 @@
   --color-spinner-track: #e4e4df;
 
   /* 독서 페이지 전용 */
-  --color-read-bg: #f0ece4;
-  --color-read-page: #fffef8;
-  --color-read-text: #3a3228;
+  --color-read-bg: #f5f0e8;
+  --color-read-page: #fefcf7;
+  --color-read-text: #2c2c2c;
   --color-read-title: #4a4237;
   --color-read-border-left: #d6cfc4;
   --color-read-progress-track: #e4dfd8;
@@ -74,8 +74,8 @@
   --color-spinner-track: #3a3a3a;
 
   /* 독서 페이지 전용 */
-  --color-read-bg: #181818;
-  --color-read-page: #242424;
+  --color-read-bg: #1a1a2e;
+  --color-read-page: #16213e;
   --color-read-text: #d0c8be;
   --color-read-title: #c8c0b8;
   --color-read-border-left: #3a3632;
