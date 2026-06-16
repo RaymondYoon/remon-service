@@ -396,11 +396,13 @@ const ReadPage = () => {
           height={dim.height}
           size="fixed"
           usePortrait={dim.isMobile}
-          flippingTime={700}
-          drawShadow={true}
+          flippingTime={600}
+          drawShadow={false}
           showCover={false}
           showPageCorners={false}
           mobileScrollSupport={false}
+          useMouseEvents={false}
+          swipeDistance={30}
           onFlip={onFlip}
           startPage={currentPage}
           maxShadowOpacity={0.35}
