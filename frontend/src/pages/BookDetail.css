@@ -517,3 +517,11 @@
   color: var(--color-text);
   border-color: var(--color-border-input);
 }
+
+[data-theme="dark"] .review-star-btn {
+  color: #888;
+}
+
+[data-theme="dark"] .review-star-btn.active {
+  color: #f5c842;
+}

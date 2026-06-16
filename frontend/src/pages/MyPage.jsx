@@ -55,8 +55,9 @@ const MyPage = () => {
       await updateNickname(trimmed);
       saveAuth({ ...user, nickname: trimmed });
       showToast("닉네임이 변경되었어요!", "success");
-    } catch {
-      showToast("변경에 실패했습니다. 다시 시도해주세요.", "error");
+    } catch (e) {
+      const msg = e.response?.data?.error || "변경에 실패했습니다.";
+      showToast(msg, "error");
     }
   };
 
