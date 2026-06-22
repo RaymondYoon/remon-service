@@ -234,23 +234,26 @@ const BookDetail = () => {
               <p className="detail-desc-text">{book.description}</p>
             )}
 
-            <div className="detail-actions">
-              {book.content && (
+            {book.content && (
+              <div className="book-actions-main">
                 <button
-                  className="read-book-btn"
+                  className="btn-read-primary"
                   onClick={() => navigate(`/book/${id}/read`, { state: { from } })}
                 >
-                  본문 보기
+                  📖 본문 보기
                 </button>
-              )}
+              </div>
+            )}
+            <div className="book-actions-secondary">
               <button
-                className="add-library-btn"
+                className={`btn-icon-circle${addSuccess ? " btn-icon-circle--done" : ""}`}
                 onClick={handleAddToLibrary}
                 disabled={addLoading || addSuccess}
+                title="서재에 담기"
               >
-                {addLoading ? "추가 중..." : addSuccess ? "서재에 담겼어요 ✓" : "내 서재에 담기"}
+                {addLoading ? "…" : addSuccess ? "✓" : "+"}
               </button>
-              <button className="share-btn" onClick={handleShare} title="공유">
+              <button className="btn-icon-circle" onClick={handleShare} title="공유하기">
                 🔗
               </button>
             </div>
