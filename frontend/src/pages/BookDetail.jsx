@@ -218,7 +218,7 @@ const BookDetail = () => {
             </div>
 
             {book.publishedDate && (
-              <p className="detail-meta">📅 {book.publishedDate}</p>
+              <p className="detail-meta">{book.publishedDate}</p>
             )}
 
             {book.keywords && book.keywords.length > 0 && (
@@ -240,7 +240,7 @@ const BookDetail = () => {
                   className="btn-read-primary"
                   onClick={() => navigate(`/book/${id}/read`, { state: { from } })}
                 >
-                  📖 본문 보기
+                  본문 보기
                 </button>
               </div>
             )}
