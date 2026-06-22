@@ -167,164 +167,181 @@ const BookDetail = () => {
   }
 
   return (
-    <div className="detail-container">
-      <button
-        className="detail-back-btn"
-        onClick={() => from ? navigate(from) : navigate(-1)}
-      >
-        ← 뒤로
-      </button>
-
-      {/* AI 생성 직후 진입 시 축하 배너 — DONE 상태일 때만 표시 */}
-      {fromGenerate && book.status === "DONE" && (
-        <div className="detail-generated-banner">
-          ✨ 이야기가 완성됐어요! 지금 바로 읽어보세요.
-        </div>
+    <div className="detail-page">
+      {/* 블러 배경 — 표지 이미지 기반 */}
+      {book.coverImageUrl && (
+        <div
+          className="detail-blur-bg"
+          style={{ backgroundImage: `url(${book.coverImageUrl})` }}
+        />
       )}
 
-      <div className="detail-card">
-        <div className="detail-cover">
-          {book.coverImageUrl ? (
-            <img src={book.coverImageUrl} alt={book.title} />
-          ) : (
-            <span className="detail-cover-placeholder">🍋</span>
-          )}
-        </div>
+      <div className="detail-container">
+        <button
+          className="detail-back-btn"
+          onClick={() => from ? navigate(from) : navigate(-1)}
+        >
+          ← 뒤로
+        </button>
 
-        <div className="detail-info">
-          {book.isAiGenerated && (
-            <span className="detail-ai-badge">AI 생성</span>
-          )}
-          <h1 className="detail-title">{book.title}</h1>
-          <p className="detail-author">✍️ {book.author}</p>
+        {fromGenerate && book.status === "DONE" && (
+          <div className="detail-generated-banner">
+            ✨ 이야기가 완성됐어요! 지금 바로 읽어보세요.
+          </div>
+        )}
 
-          {book.genre && (
-            <span className="genre-pill">{book.genre}</span>
-          )}
-          {book.publishedDate && (
-            <p className="detail-meta">📅 {book.publishedDate}</p>
-          )}
-          {book.isbn && (
-            <p className="detail-meta">ISBN: {book.isbn}</p>
-          )}
+        {/* 포스터 섹션 */}
+        <div className="detail-poster">
+          <div className="detail-cover">
+            {book.coverImageUrl ? (
+              <img src={book.coverImageUrl} alt={book.title} />
+            ) : (
+              <span className="detail-cover-placeholder">🍋</span>
+            )}
+          </div>
 
-          {book.description && (
-            <div className="detail-desc">
-              <h3>책 소개</h3>
-              <p>{book.description}</p>
+          <div className="detail-poster-info">
+            {book.isAiGenerated && (
+              <span className="detail-ai-badge">AI 생성</span>
+            )}
+            <h1 className="detail-title">{book.title}</h1>
+            <p className="detail-author">{book.author}</p>
+
+            <div className="detail-badges">
+              {book.genre && <span className="genre-pill">{book.genre}</span>}
+              {book.averageRating != null && (
+                <span className="review-avg">
+                  <span className="review-avg-stars">{renderStars(book.averageRating)}</span>
+                  {book.averageRating.toFixed(1)}
+                </span>
+              )}
             </div>
-          )}
 
-          <div className="detail-actions">
-            {book.content && (
+            {book.publishedDate && (
+              <p className="detail-meta">📅 {book.publishedDate}</p>
+            )}
+
+            {book.keywords && book.keywords.length > 0 && (
+              <div className="detail-keywords">
+                {(Array.isArray(book.keywords) ? book.keywords : book.keywords.split(","))
+                  .map((kw, i) => (
+                    <span key={i} className="keyword-tag">#{kw.trim()}</span>
+                  ))}
+              </div>
+            )}
+
+            {book.description && (
+              <p className="detail-desc-text">{book.description}</p>
+            )}
+
+            <div className="detail-actions">
+              {book.content && (
+                <button
+                  className="read-book-btn"
+                  onClick={() => navigate(`/book/${id}/read`, { state: { from } })}
+                >
+                  본문 보기
+                </button>
+              )}
               <button
-                className="read-book-btn"
-                onClick={() => navigate(`/book/${id}/read`, { state: { from } })}
+                className="add-library-btn"
+                onClick={handleAddToLibrary}
+                disabled={addLoading || addSuccess}
               >
-                본문 보기
+                {addLoading ? "추가 중..." : addSuccess ? "서재에 담겼어요 ✓" : "내 서재에 담기"}
+              </button>
+              <button className="share-btn" onClick={handleShare} title="공유">
+                🔗
+              </button>
+            </div>
+
+            {addMessage && (
+              <p className={addSuccess ? "detail-add-msg" : "detail-add-msg detail-add-msg--error"}>
+                {addMessage}
+              </p>
+            )}
+
+            {admin && (
+              <button className="admin-delete-book-btn" onClick={handleAdminDeleteBook}>
+                [관리자] 책 삭제
               </button>
             )}
-            <button
-              className="add-library-btn"
-              onClick={handleAddToLibrary}
-              disabled={addLoading || addSuccess}
-            >
-              {addLoading ? "추가 중..." : addSuccess ? "서재에 담겼어요 ✓" : "내 서재에 담기"}
-            </button>
-            <button className="share-btn" onClick={handleShare} title="공유">
-              🔗
-            </button>
           </div>
+        </div>
 
-          {addMessage && (
-            <p className={addSuccess ? "detail-add-msg" : "detail-add-msg detail-add-msg--error"}>
-              {addMessage}
-            </p>
+        {/* 별점·리뷰 섹션 */}
+        <div className="review-section">
+          <h2 className="review-section-title">
+            리뷰 <span className="review-section-count">{reviews.length}</span>
+            {book.averageRating != null && (
+              <span className="review-avg">
+                <span className="review-avg-stars">{renderStars(book.averageRating)}</span>
+                {book.averageRating.toFixed(1)}
+              </span>
+            )}
+          </h2>
+
+          {loggedIn && !alreadyReviewed && (
+            <div className="review-form">
+              <div className="review-stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    className={`review-star-btn ${star <= (hoverRating || myRating) ? "active" : ""}`}
+                    onClick={() => setMyRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    aria-label={`${star}점`}
+                  >
+                    ★
+                  </button>
+                ))}
+                {myRating > 0 && <span className="review-star-label">{myRating}점</span>}
+              </div>
+              <textarea
+                className="review-textarea"
+                placeholder="이 책에 대한 감상을 남겨보세요 (선택)"
+                value={reviewContent}
+                onChange={(e) => setReviewContent(e.target.value)}
+                rows={3}
+              />
+              {reviewError && <p className="review-error">{reviewError}</p>}
+              <button
+                className="review-submit-btn"
+                onClick={handleSubmitReview}
+                disabled={reviewSubmitting}
+              >
+                {reviewSubmitting ? "작성 중..." : "리뷰 작성"}
+              </button>
+            </div>
           )}
 
-          {admin && (
-            <button className="admin-delete-book-btn" onClick={handleAdminDeleteBook}>
-              [관리자] 책 삭제
-            </button>
+          {reviews.length === 0 ? (
+            <p className="review-empty">아직 리뷰가 없습니다. 첫 리뷰를 남겨보세요!</p>
+          ) : (
+            <ul className="review-list">
+              {reviews.map((review) => (
+                <li key={review.id} className="review-item">
+                  <div className="review-item-header">
+                    <span className="review-item-nickname">{review.nickname}</span>
+                    <span className="review-item-stars">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                    <span className="review-item-date">{review.createdAt}</span>
+                    {me && (review.userId === me.id || admin) && (
+                      <button
+                        className="review-delete-btn"
+                        onClick={() => handleDeleteReview(review.id)}
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                  {review.content && <p className="review-item-content">{review.content}</p>}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
-
-      {/* 별점·리뷰 섹션 */}
-      <div className="review-section">
-        <h2 className="review-section-title">
-          리뷰 <span className="review-section-count">({reviews.length})</span>
-          {book.averageRating != null && (
-            <span className="review-avg">
-              <span className="review-avg-stars">{renderStars(book.averageRating)}</span>
-              {book.averageRating.toFixed(1)}
-            </span>
-          )}
-        </h2>
-
-        {/* 리뷰 작성 폼 */}
-        {loggedIn && !alreadyReviewed && (
-          <div className="review-form">
-            <div className="review-stars">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  className={`review-star-btn ${star <= (hoverRating || myRating) ? "active" : ""}`}
-                  onClick={() => setMyRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  aria-label={`${star}점`}
-                >
-                  ★
-                </button>
-              ))}
-              {myRating > 0 && <span className="review-star-label">{myRating}점</span>}
-            </div>
-            <textarea
-              className="review-textarea"
-              placeholder="이 책에 대한 감상을 남겨보세요 (선택)"
-              value={reviewContent}
-              onChange={(e) => setReviewContent(e.target.value)}
-              rows={3}
-            />
-            {reviewError && <p className="review-error">{reviewError}</p>}
-            <button
-              className="review-submit-btn"
-              onClick={handleSubmitReview}
-              disabled={reviewSubmitting}
-            >
-              {reviewSubmitting ? "작성 중..." : "리뷰 작성"}
-            </button>
-          </div>
-        )}
-
-        {/* 리뷰 목록 */}
-        {reviews.length === 0 ? (
-          <p className="review-empty">아직 리뷰가 없습니다. 첫 리뷰를 남겨보세요!</p>
-        ) : (
-          <ul className="review-list">
-            {reviews.map((review) => (
-              <li key={review.id} className="review-item">
-                <div className="review-item-header">
-                  <span className="review-item-nickname">{review.nickname}</span>
-                  <span className="review-item-stars">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
-                  <span className="review-item-date">{review.createdAt}</span>
-                  {me && (review.userId === me.id || admin) && (
-                    <button
-                      className="review-delete-btn"
-                      onClick={() => handleDeleteReview(review.id)}
-                    >
-                      삭제
-                    </button>
-                  )}
-                </div>
-                {review.content && <p className="review-item-content">{review.content}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
     </div>
   );
 };
