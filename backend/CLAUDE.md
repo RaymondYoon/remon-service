@@ -183,11 +183,13 @@ Authorization: Bearer <token>
 {
   "keywords": ["우주", "고양이", "모험", "시간여행"],  // 최대 4개
   "genre": "SF",
-  "tone": "WARM",
-  "ending": "HAPPY",               // HAPPY | SAD | OPEN (선택, 기본 HAPPY)
-  "protagonistName": "지우",       // 선택, null이면 AI가 결정
-  "protagonistTrait": "비밀이 있는", // 선택, null이면 미반영 (6가지 중 택1)
-  "viewpoint": "1인칭"             // "1인칭" | "3인칭" (선택, 기본 "3인칭")
+  "tone": ["WARM", "MYSTERIOUS"],        // 분위기 다중 선택, 최대 2개 (10종: WARM/DARK/HUMOROUS/MYSTERIOUS/MELANCHOLY/TENSE/EPIC/BRUTAL/DREAMY/CYNICAL)
+  "ending": "HAPPY",                      // HAPPY | SAD | OPEN (선택, 기본 HAPPY)
+  "protagonistNames": ["지우", "하늘"],  // 선택, 최대 3명, 비워두면 AI가 결정
+  "protagonistTrait": ["비밀이 있는", "천재적인"],  // 선택, 최대 3개 (17종)
+  "viewpoint": "1인칭",                  // "1인칭" | "3인칭" (선택, 기본 "3인칭")
+  "synopsis": "두 소년이 시간여행 장치를 발견한다",  // 한 줄 시놉시스 (선택)
+  "characters": ["박사 김현우", "외계인 제로"]       // 조연 등장인물, 최대 4명 (선택)
 }
 → 202 Accepted + { "id": 123 }
 ```
@@ -197,16 +199,16 @@ Authorization: Bearer <token>
 - 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지 — DONE 수신 시 coverImageUrl 포함된 완성 책
 - AI 모델: `gemini-2.5-flash` (30초 타임아웃)
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
-- 분량: 항상 4000자 내외 고정
+- 분량: 항상 6000자 내외 고정
 - 생성 시 레몬 1개 소모 (서버측 처리)
-- **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 포함
+- **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 / 시놉시스·조연·다중 성격·다중 분위기 반영
 
 ---
 
 ## 레몬 시스템
 - 유저당 레몬 보유량은 `user_lemons` 테이블에서 관리
 - 하루 1개 자동 충전 (`lastChargeDate` 비교)
-- 책 생성 시 레몬 1개 소모, 하루 최대 3회 제한
+- 책 생성 시 레몬 1개 소모, 하루 최대 2회 제한 (`MAX_DAILY = 2`)
 - `GET /api/users/me/lemon` — `{ lemonCount, usedToday, maxDaily }` 반환
 
 ---
@@ -384,6 +386,19 @@ CLOUDINARY_API_SECRET=...
   - `charactersLine`: 조연 목록 조인 + "조연은 자연스럽게 등장, 주인공 서사 보조" 지시
   - `synopsisLine`: 시놉시스 기반 확장 지시 조건부 삽입
 - [x] `OpenAiService.buildPrompt` 소설 분량 4000자 → 6000자로 증가
+
+### 2026-06-14~22
+- [x] 카카오 OAuth Rate Limit 상향 — `@KakaoRateLimiter` 허용량 증가 (동시 로그인 급증 대응)
+- [x] 레몬 하루 2개 제한 — `LemonService.useLemon()` 일일 사용 횟수 2회로 제한 (기존 3회)
+- [x] 이메일/닉네임 중복 가입 방지 — `UserRepository.existsByEmail()` / `existsByNickname()` 추가, 회원가입·닉네임 변경 시 즉시 검증
+- [x] `GenerateBookRequest` 확장 — `synopsis` (String), `characters` (List<CharacterDto>), `protagonistNames` (List<String>), `tone` (List<String>), `protagonistTrait` (List<String>) 다중값 지원
+- [x] `OpenAiService.buildPrompt()` 전면 확장 — 시놉시스·조연 설명·다중 성격·다중 분위기 프롬프트 삽입, 문단 구분 강화, 서사 구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상
+- [x] 소설 분량 6000자 — `buildPrompt` 목표 분량 4000자 → 6000자
+- [x] 분위기 10종 확장 — 잔혹한(BRUTAL)/몽환적인(DREAMY)/냉소적인(CYNICAL) 추가 (기존 7종 → 10종)
+- [x] 성격 17종 확장 — 활발한/긍정적인/다정한/유쾌한 추가 (기존 13종 → 17종)
+- [x] Flyway V4 마이그레이션 — `users` 테이블에 `nickname_change_count`, `nickname_changed_at` 컬럼 추가 (주 2회 닉네임 변경 제한)
+- [x] Flyway V5 마이그레이션 — `oauth_codes` 테이블 추가 (`code` VARCHAR UNIQUE, `access_token` TEXT, `expires_at` DATETIME)
+- [x] OAuth 단기 코드 보안 개선 — 카카오 로그인 redirect URL에서 JWT 토큰 제거 → 30초 유효 UUID 코드 발급 → `POST /api/auth/code-exchange`로 토큰 교환 (브라우저 히스토리·로그 토큰 노출 차단)
 
 ---
 

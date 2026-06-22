@@ -189,6 +189,15 @@ NavigationContainer
 | ReadScreen 단일 페이지 확인 | 모바일 단일 페이지 모드 — `Dimensions.get('window').width` 기반 자동 분할 (기존 구현 유지) |
 | GenerateScreen 시놉시스 미반영 | 웹과 달리 `synopsis`·`characters`·`protagonistNames` 배열 미지원 — 추후 웹과 동기화 예정 (앞으로 할 작업 추가) |
 
+### 2026-06-11~22
+- [x] 앱 공유 버튼 — `BookDetailScreen` 🔗 공유 버튼 (`Share.share()` API, 44px 원형)
+- [x] 앱 4탭 구성 — ExploreScreen 탭 제거 → 홈/만들기(FAB)/서재/마이 4탭, 중앙 FAB 스타일(🍋, #5B7E5A, top:-20, 60px)
+- [x] 앱 `UserProfileScreen.js` — 72px 아바타, 팔로워/팔로잉 수, 공개 책 목록
+- [x] 앱 `BookCard.js` 컴포넌트 — 저자명 클릭 시 UserProfile 이동
+- [x] 앱 단일 페이지 모드 — `ReadScreen` 모바일 화면 크기 기반 자동 분할, PanGestureHandler 스와이프
+- [x] 앱 리뷰 작성 — `BookDetailScreen` 별점+텍스트 리뷰 폼, `addReview` API 연동
+- [x] 앱 UI 버그 수정 — 카드 이미지 `height` 고정(Android), 서재 탭 높이, `coverImageUrl` 표시
+
 ---
 
 ## 앞으로 할 작업

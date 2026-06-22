@@ -317,6 +317,25 @@ src/
 - [x] 텍스트 입력 `onKeyDown` 엔터 제출 방지 — 주인공·조연 `<input>`에 `e.key === 'Enter'` 시 `e.preventDefault()` 추가
 - [x] `BookGenerationContext` 전역 책 생성 폴링 — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트
 
+### 2026-06-16~22
+- [x] `ReadPage.jsx` 모바일 텍스트 잘림 근본 해결 — `document.documentElement.clientWidth` 사용 (iOS Safari `innerWidth` 불일치 해결)
+- [x] `ReadPage.jsx` 데스크톱/모바일 그림자 분리 — `drawShadow={!dim.isMobile}` (모바일은 정적 CSS 그림자, 데스크톱은 JS 동적 그림자)
+- [x] `ReadPage.css` 중앙 그라데이션 — `.html-flipbook::after` (데스크톱만, 모바일 `display: none`)
+- [x] `ReadPage.css` 책 읽기 화면 글래스모피즘 통일 — 헤더(`rgba(255,255,255,0.6)` + `backdrop-filter: blur(12px)`), 진행바(`height: 2px`, 레몬→그린 그라데이션), 네비게이션 버튼(`rgba(255,255,255,0.6)` + `blur(10px)`), 페이지 번호(`opacity: 0.5`)
+- [x] `ReadPage` 페이지 분할 로직 개선 — 창 크기(높이) 변경 시 자동 재분할, 문장 단위 분리로 빈공간 제거
+- [x] `BookGenerationContext` 전역 책 생성 폴링 — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트, 최소화 버블 UI
+- [x] `BookCard.css` 디자인 개선 — 그린 계열 그림자, `translateY(-6px) scale(1.02)` hover, 글래스모피즘 장르 배지
+- [x] `BookDetail.jsx` 전면 포스터 스타일 재설계 — 블러 배경(`position:fixed`, `blur(60px)`), 세로 정렬, 명조체 제목, 레몬옐로우 `본문보기` 버튼(240×52px), 원형 보조버튼(서재담기/공유)
+- [x] `BookDetail.css` 레몬 옐로우 통일 — `.btn-read-primary` `linear-gradient(135deg, #F0C75E, #E0AD3C)`, `.btn-icon-circle` 글래스모피즘, `genre-pill` 옐로우 틴트
+- [x] `BookDetail.css` 리뷰 폼 디자인 통일 — 폼 컨테이너 글래스모피즘, 별점 26px + `#F0C75E`, textarea focus 레몬 링, 제출버튼 레몬 그라데이션
+- [x] `GeneratePage.jsx` 시놉시스 입력 추가 — `synopsis` state, `<textarea>` UI (maxLength 100)
+- [x] `GeneratePage.jsx` 분위기 다중 선택 (최대 2개), 성격 다중 선택 (최대 3개)
+- [x] `GeneratePage.jsx` 주인공 여러 명 (최대 3명), 조연 등장인물 (최대 4명) — 동적 추가/삭제 UI
+- [x] `OAuthCallback.jsx` 보안 개선 — URL에서 단기 UUID 코드 파싱 → `POST /api/auth/code-exchange` 교환
+- [x] `MyPage.jsx` 팔로워/팔로잉 모달 추가 — 클릭 가능 카운트, 탭 전환 목록
+- [x] `Header.jsx` 둘러보기 드로어 링크 제거
+- [x] 다크모드 별점 색상 수정, 닉네임 에러 메시지, 엔터 제출 방지
+
 ### 2026-06-16
 - [x] `ReadPage.css` 책 읽기 화면 전면 디자인 개선:
   - 배경: 라이트 `#f5f0e8` (크림) / 다크 `#1a1a2e` (딥 네이비)
