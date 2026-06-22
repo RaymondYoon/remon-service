@@ -37,6 +37,11 @@ function binarySearchSplit(probe, text, maxH, makeP) {
   };
 }
 
+// 문단을 문장 단위로 분리 (마침표·느낌표·물음표·… 뒤 공백 기준)
+function splitSentences(text) {
+  return text.split(/(?<=[.!?…])\s+/).filter((s) => s.trim().length > 0);
+}
+
 // 실제 .flip-page-content 높이(contentEl.clientHeight) 기준으로 페이지 분할
 function buildPagesByContentBox(content, contentEl) {
   if (!content || !contentEl) return [];
@@ -63,6 +68,12 @@ function buildPagesByContentBox(content, contentEl) {
     return el;
   };
 
+  // probe를 items 배열 내용으로 재구성
+  const rebuildProbe = (items) => {
+    probe.innerHTML = "";
+    items.forEach((item) => probe.appendChild(makeP(item)));
+  };
+
   const pages = [];
   let current = [];
   const queue = [...paragraphs];
@@ -77,6 +88,7 @@ function buildPagesByContentBox(content, contentEl) {
       probe.removeChild(probe.lastChild);
 
       if (current.length === 0) {
+        // 빈 페이지에서도 안 들어감 — 문자 단위 이진 탐색으로 분할
         const split = binarySearchSplit(probe, para, maxH, makeP);
         if (split.front.length > 0) {
           pages.push([split.front]);
@@ -89,10 +101,42 @@ function buildPagesByContentBox(content, contentEl) {
           current = [];
         }
       } else {
-        pages.push([...current]);
-        probe.innerHTML = "";
-        current = [];
-        queue.unshift(para);
+        // 현재 페이지에 내용이 있음 — 문장 단위로 쪼개서 빈 공간 채우기
+        const sentences = splitSentences(para);
+        let fittedCount = 0;
+
+        if (sentences.length > 1) {
+          for (let i = 1; i <= sentences.length; i++) {
+            const partial = sentences.slice(0, i).join(" ");
+            rebuildProbe([...current, partial]);
+            if (probe.offsetHeight <= maxH) {
+              fittedCount = i;
+            } else {
+              break;
+            }
+          }
+        }
+
+        if (fittedCount > 0 && fittedCount < sentences.length) {
+          // 일부 문장만 현재 페이지에 들어감 — 현재 페이지 채우고 나머지는 다음 페이지로
+          const frontText = sentences.slice(0, fittedCount).join(" ");
+          const backText = sentences.slice(fittedCount).join(" ");
+          current.push(frontText);
+          pages.push([...current]);
+          probe.innerHTML = "";
+          current = [];
+          if (backText.trim()) queue.unshift(backText);
+        } else if (fittedCount === sentences.length) {
+          // 문장 재결합 시 전체 들어감 (원본과 미세한 차이)
+          current.push(sentences.join(" "));
+          rebuildProbe(current);
+        } else {
+          // 한 문장도 안 들어감 — 현재 페이지 확정, 다음 페이지에서 재시도
+          pages.push([...current]);
+          probe.innerHTML = "";
+          current = [];
+          queue.unshift(para);
+        }
       }
     }
   }
