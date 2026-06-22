@@ -100,7 +100,12 @@
   transform: translateX(-50%);
   width: 100%;
   height: 100%;
-  background: linear-gradient(to right, transparent 49.5%, rgba(0,0,0,0.04) 50%, transparent 50.5%);
+  background: linear-gradient(to right,
+    transparent 47%,
+    rgba(0,0,0,0.08) 49.5%,
+    rgba(0,0,0,0.12) 50%,
+    rgba(0,0,0,0.08) 50.5%,
+    transparent 53%);
   pointer-events: none;
   z-index: 1;
 }
@@ -157,9 +162,10 @@
   height: 100%;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.08),
-    0 4px 12px rgba(0,0,0,0.06),
-    inset 1px 0 0 rgba(0,0,0,0.03);
+    0 2px 4px rgba(0,0,0,0.15),
+    0 8px 24px rgba(0,0,0,0.12),
+    0 16px 40px rgba(0,0,0,0.08),
+    inset 2px 0 4px rgba(0,0,0,0.06);
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -169,8 +175,44 @@
 
 [data-theme="dark"] .flip-page {
   box-shadow:
-    0 1px 2px rgba(0,0,0,0.3),
-    0 4px 16px rgba(0,0,0,0.25);
+    0 2px 4px rgba(0,0,0,0.5),
+    0 8px 24px rgba(0,0,0,0.4),
+    0 16px 40px rgba(0,0,0,0.3);
+}
+
+/* 페이지 끝부분 살짝 휜 느낌 */
+.flip-page:first-child {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.15),
+    0 8px 24px rgba(0,0,0,0.12),
+    0 16px 40px rgba(0,0,0,0.08),
+    inset 2px 0 4px rgba(0,0,0,0.06),
+    inset -8px 0 12px -8px rgba(0,0,0,0.1);
+}
+
+.flip-page:last-child {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.15),
+    0 8px 24px rgba(0,0,0,0.12),
+    0 16px 40px rgba(0,0,0,0.08),
+    inset 2px 0 4px rgba(0,0,0,0.06),
+    inset 8px 0 12px -8px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] .flip-page:first-child {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.5),
+    0 8px 24px rgba(0,0,0,0.4),
+    0 16px 40px rgba(0,0,0,0.3),
+    inset -8px 0 12px -8px rgba(0,0,0,0.2);
+}
+
+[data-theme="dark"] .flip-page:last-child {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.5),
+    0 8px 24px rgba(0,0,0,0.4),
+    0 16px 40px rgba(0,0,0,0.3),
+    inset 8px 0 12px -8px rgba(0,0,0,0.2);
 }
 
 .flip-page-inner {
