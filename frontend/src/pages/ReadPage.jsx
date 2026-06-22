@@ -137,21 +137,21 @@ function PageMeasureFrame({ dim, contentMeasureRef }) {
   );
 }
 
-const VERTICAL_CHROME = 240;
+const VERTICAL_CHROME = 215; // 모바일 40px 안전마진은 데스크톱에 적용하지 않음
 const MIN_PAGE_HEIGHT = 500;
 
 function getPageDimensions() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const clientW = document.documentElement.clientWidth;
-  const maxH = Math.max(300, vh - VERTICAL_CHROME);
   if (vw <= 640) {
     const w = clientW - 16;
-    const h = vh - 200;
+    const h = vh - 200; // 모바일 전용 40px 안전마진
     return { width: w, height: h, isMobile: true };
   }
+  const maxH = Math.max(vh - VERTICAL_CHROME, MIN_PAGE_HEIGHT);
   const pageWidth = Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  return { width: pageWidth, height: Math.max(Math.min(Math.round(pageWidth * 1.51), maxH), MIN_PAGE_HEIGHT), isMobile: false };
+  return { width: pageWidth, height: maxH, isMobile: false };
 }
 
 function setRealVh() {
