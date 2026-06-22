@@ -450,7 +450,7 @@ const ReadPage = () => {
           size="fixed"
           usePortrait={dim.isMobile}
           flippingTime={600}
-          drawShadow={false}
+          drawShadow={!dim.isMobile}
           showCover={false}
           showPageCorners={false}
           mobileScrollSupport={false}
