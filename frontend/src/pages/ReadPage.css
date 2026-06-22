@@ -89,17 +89,31 @@
   align-items: center;
   gap: 16px;
   position: relative;
+  overflow: hidden;
 }
 
-/* 책 중앙 접힘 그라데이션 (데스크톱 두 페이지 모드) */
-.read-book::after {
+/* ─── HTMLFlipBook 컨테이너 ─── */
+.html-flipbook {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  min-height: 500px;
+  overflow: hidden;
+  position: relative;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* 책 중앙 접힘 그라데이션 — .html-flipbook에 위치시켜 책 영역에만 적용 */
+.html-flipbook::after {
   content: "";
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  height: 100%;
   background: linear-gradient(to right,
     transparent 47%,
     rgba(0,0,0,0.08) 49.5%,
@@ -108,18 +122,6 @@
     transparent 53%);
   pointer-events: none;
   z-index: 1;
-}
-
-/* ─── HTMLFlipBook 컨테이너 ─── */
-.html-flipbook {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-  min-height: 500px;
-  overflow: hidden;
-  will-change: transform;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .html-flipbook .stf__parent {
