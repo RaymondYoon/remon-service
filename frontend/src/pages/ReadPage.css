@@ -26,10 +26,10 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   padding: 8px 12px;
   border-radius: 8px;
 }
@@ -63,8 +63,8 @@
   width: 100%;
   max-width: 800px;
   flex-shrink: 0;
-  height: 3px;
-  background: var(--color-read-progress-track);
+  height: 2px;
+  background: rgba(91, 126, 90, 0.15);
   border-radius: 2px;
   margin-bottom: 12px;
   overflow: hidden;
@@ -73,7 +73,7 @@
 
 .read-progress-fill {
   height: 100%;
-  background: linear-gradient(to right, #5b7e5a, #8ab87a);
+  background: linear-gradient(90deg, #F0C75E, #5b7e5a);
   border-radius: 2px;
   transition: width 0.25s ease;
 }
@@ -263,8 +263,9 @@
   font-family: Georgia, serif;
   font-size: 12px;
   color: #999;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.5px;
   padding: 6px 0 10px;
+  opacity: 0.5;
 }
 
 /* ─── 본문 단락 ─── */
@@ -294,9 +295,11 @@
 
 .read-nav-btn {
   padding: 10px 24px;
-  background: var(--color-card);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--color-primary);
-  border: 1.5px solid var(--color-primary);
+  border: 1px solid rgba(61, 43, 31, 0.12);
   border-radius: 24px;
   font-size: 14px;
   font-weight: 700;
@@ -305,8 +308,8 @@
 }
 
 .read-nav-btn:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-primary);
 }
 
 .read-nav-btn:disabled {
