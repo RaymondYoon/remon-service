@@ -106,6 +106,9 @@ public class OpenAiService {
                             case "MELANCHOLY"  -> "쓸쓸하고 애잔하게";
                             case "TENSE"       -> "긴장감 넘치게";
                             case "EPIC"        -> "웅장하고 압도적으로";
+                            case "BRUTAL"      -> "잔혹하고 거친 분위기";
+                            case "DREAMY"      -> "몽환적이고 환상적인 분위기";
+                            case "CYNICAL"     -> "냉소적이고 차가운 분위기";
                             default            -> "따뜻하고 감동적으로";
                         })
                         .collect(Collectors.joining(", "))
