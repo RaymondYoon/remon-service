@@ -115,11 +115,11 @@
   transform: translateX(-50%);
   width: 100%;
   background: linear-gradient(to right,
-    transparent 47%,
-    rgba(0,0,0,0.08) 49.5%,
-    rgba(0,0,0,0.12) 50%,
-    rgba(0,0,0,0.08) 50.5%,
-    transparent 53%);
+    transparent 48%,
+    rgba(0,0,0,0.04) 49.5%,
+    rgba(0,0,0,0.06) 50%,
+    rgba(0,0,0,0.04) 50.5%,
+    transparent 52%);
   pointer-events: none;
   z-index: 1;
 }
