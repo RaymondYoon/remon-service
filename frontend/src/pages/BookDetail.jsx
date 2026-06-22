@@ -6,6 +6,11 @@ import { isLoggedIn, getUser, isAdmin } from "../utils/auth";
 import { useToast } from "../hooks/useToast";
 import "./BookDetail.css";
 
+const renderStars = (rating) => {
+  const full = Math.round(rating);
+  return "★".repeat(full) + "☆".repeat(5 - full);
+};
+
 const BookDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -191,13 +196,13 @@ const BookDetail = () => {
             <span className="detail-ai-badge">AI 생성</span>
           )}
           <h1 className="detail-title">{book.title}</h1>
-          <p className="detail-author">{book.author}</p>
+          <p className="detail-author">✍️ {book.author}</p>
 
           {book.genre && (
-            <p className="detail-meta">장르: {book.genre}</p>
+            <span className="genre-pill">{book.genre}</span>
           )}
           {book.publishedDate && (
-            <p className="detail-meta">생성일: {book.publishedDate}</p>
+            <p className="detail-meta">📅 {book.publishedDate}</p>
           )}
           {book.isbn && (
             <p className="detail-meta">ISBN: {book.isbn}</p>
@@ -248,11 +253,11 @@ const BookDetail = () => {
       {/* 별점·리뷰 섹션 */}
       <div className="review-section">
         <h2 className="review-section-title">
-          리뷰
+          리뷰 <span className="review-section-count">({reviews.length})</span>
           {book.averageRating != null && (
             <span className="review-avg">
-              ⭐ {book.averageRating.toFixed(1)}
-              <span className="review-count">({reviews.length})</span>
+              <span className="review-avg-stars">{renderStars(book.averageRating)}</span>
+              {book.averageRating.toFixed(1)}
             </span>
           )}
         </h2>
