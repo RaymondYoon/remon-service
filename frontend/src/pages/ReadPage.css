@@ -383,6 +383,10 @@
   .read-nav {
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
+
+  .html-flipbook::after {
+    display: none;
+  }
 }
 
 @media (min-width: 641px) and (max-width: 900px) {
