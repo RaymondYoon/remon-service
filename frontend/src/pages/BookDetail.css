@@ -136,11 +136,11 @@
 
 .genre-pill {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(240, 199, 94, 0.15);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  color: #4a4a4a;
+  border: 1px solid rgba(240, 199, 94, 0.3);
+  color: #6B4F1F;
   padding: 5px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -204,33 +204,33 @@
   margin-top: 8px;
 }
 
-/* 본문 보기 — primary, 그라데이션 + 글로우 */
+/* 본문 보기 — 레몬 옐로우 그라데이션 */
 .read-book-btn {
   padding: 12px 28px;
-  background: linear-gradient(135deg, #5b7e5a 0%, #4a6b49 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #F0C75E 0%, #E0AD3C 100%);
+  color: #3D2B1F;
   border: none;
   border-radius: 30px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(91,126,90,0.35), 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(224,173,60,0.4), 0 1px 2px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
 }
 
 .read-book-btn:hover {
-  box-shadow: 0 6px 24px rgba(91,126,90,0.45);
+  box-shadow: 0 6px 24px rgba(224,173,60,0.5);
   transform: translateY(-2px);
 }
 
-/* 내 서재에 담기 — 글래스모피즘 아웃라인 */
+/* 내 서재에 담기 — 중립 브라운 글래스 */
 .add-library-btn {
   padding: 12px 28px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: #4a6b49;
-  border: 1.5px solid rgba(91,126,90,0.3);
+  color: #3D2B1F;
+  border: 1.5px solid rgba(61,43,31,0.2);
   border-radius: 30px;
   font-size: 15px;
   font-weight: 700;
@@ -239,8 +239,8 @@
 }
 
 .add-library-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(91,126,90,0.5);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(61,43,31,0.35);
 }
 
 .add-library-btn:disabled {
@@ -545,20 +545,20 @@
 }
 
 [data-theme="dark"] .genre-pill {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #d0d0d0;
+  background: rgba(240, 199, 94, 0.08);
+  border-color: rgba(240, 199, 94, 0.2);
+  color: #C9943A;
 }
 
 [data-theme="dark"] .add-library-btn {
   background: rgba(0, 0, 0, 0.3);
-  border-color: rgba(91,126,90,0.4);
-  color: #8ab87a;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #d0c8b8;
 }
 
 [data-theme="dark"] .add-library-btn:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(91,126,90,0.6);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 [data-theme="dark"] .share-btn {
