@@ -13,10 +13,6 @@
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 책장에 비뚤게 꽂힌 느낌 */
-.book-card:nth-child(3n) {
-  margin-top: -8px;
-}
 
 .book-card:hover {
   box-shadow: 0 4px 8px rgba(61,92,58,0.1), 0 16px 32px rgba(61,92,58,0.15);
