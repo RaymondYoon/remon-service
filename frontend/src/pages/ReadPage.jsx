@@ -220,6 +220,7 @@ const ReadPage = () => {
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
   const totalPagesRef = useRef(0);
+  const currentPageRef = useRef(0); // 리사이즈 시 비율 기반 페이지 복원용
   const contentMeasureRef = useRef(null);
   const initialPageSetRef = useRef(false);
   const loggedIn = isLoggedIn();
@@ -272,6 +273,7 @@ const ReadPage = () => {
       const built = buildPagesByContentBox(book.content, contentEl);
       if (cancelled) return;
 
+      const prevTotal = totalPagesRef.current; // 비율 계산용 이전 총 페이지 수
       setPages(built);
       totalPagesRef.current = built.length;
       setPagesReady(true);
@@ -286,8 +288,14 @@ const ReadPage = () => {
             ? Math.min(lsPage, Math.max(built.length - 1, 0))
             : 0;
         setCurrentPage(sp);
+        currentPageRef.current = sp;
       } else {
-        setCurrentPage((prev) => Math.min(prev, Math.max(0, built.length - 1)));
+        // 리사이즈 시 읽던 위치를 진행률 기준으로 유지
+        const progress = prevTotal > 1 ? currentPageRef.current / (prevTotal - 1) : 0;
+        const newPage = Math.round(progress * Math.max(0, built.length - 1));
+        const clamped = Math.min(newPage, Math.max(0, built.length - 1));
+        setCurrentPage(clamped);
+        currentPageRef.current = clamped;
       }
     };
 
@@ -301,6 +309,7 @@ const ReadPage = () => {
     (e) => {
       const page = e.data;
       setCurrentPage(page);
+      currentPageRef.current = page;
       localStorage.setItem(LS_KEY(userEmail, id), String(page));
 
       if (loggedIn) {
@@ -344,7 +353,7 @@ const ReadPage = () => {
       timer = setTimeout(() => {
         setPagesReady(false);
         setDim(getPageDimensions());
-      }, 150);
+      }, 300);
     };
     window.addEventListener("resize", handleResize);
     return () => {
