@@ -192,6 +192,8 @@
 
 [data-theme="dark"] .read-container {
   position: relative;
+  background-color: #1c1614;
+  background-image: none;
 }
 
 [data-theme="dark"] .read-container::before {
