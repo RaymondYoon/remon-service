@@ -74,11 +74,11 @@
   --color-spinner-track: #3a3a3a;
 
   /* 독서 페이지 전용 */
-  --color-read-bg: #1a1a2e;
-  --color-read-page: #16213e;
-  --color-read-text: #d0c8be;
-  --color-read-title: #c8c0b8;
-  --color-read-border-left: #3a3632;
-  --color-read-progress-track: #333333;
-  --color-read-page-num: #8a8070;
+  --color-read-bg: #1c1614;
+  --color-read-page: #2a2220;
+  --color-read-text: #e8ddd0;
+  --color-read-title: #d4c8bc;
+  --color-read-border-left: #3d3028;
+  --color-read-progress-track: #2e2520;
+  --color-read-page-num: #a89888;
 }

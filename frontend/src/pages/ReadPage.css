@@ -175,11 +175,33 @@
   -webkit-backface-visibility: hidden;
 }
 
+[data-theme="dark"] .read-container {
+  position: relative;
+}
+
+[data-theme="dark"] .read-container::before {
+  content: "";
+  position: fixed;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(240, 199, 94, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="dark"] .read-header {
+  background: rgba(28, 22, 20, 0.7);
+  border-bottom: 1px solid rgba(232, 221, 208, 0.08);
+}
+
 [data-theme="dark"] .flip-page {
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.5),
-    0 8px 24px rgba(0,0,0,0.4),
-    0 16px 40px rgba(0,0,0,0.3);
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 16px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* 페이지 끝부분 살짝 휜 느낌 */
@@ -203,18 +225,18 @@
 
 [data-theme="dark"] .flip-page:first-child {
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.5),
-    0 8px 24px rgba(0,0,0,0.4),
-    0 16px 40px rgba(0,0,0,0.3),
-    inset -8px 0 12px -8px rgba(0,0,0,0.2);
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 16px 40px rgba(0, 0, 0, 0.3),
+    inset -8px 0 12px -8px rgba(0, 0, 0, 0.25);
 }
 
 [data-theme="dark"] .flip-page:last-child {
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.5),
-    0 8px 24px rgba(0,0,0,0.4),
-    0 16px 40px rgba(0,0,0,0.3),
-    inset 8px 0 12px -8px rgba(0,0,0,0.2);
+    0 2px 4px rgba(0, 0, 0, 0.6),
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 16px 40px rgba(0, 0, 0, 0.3),
+    inset 8px 0 12px -8px rgba(0, 0, 0, 0.25);
 }
 
 .flip-page-inner {
@@ -330,6 +352,21 @@
   font-weight: 500;
   min-width: 72px;
   text-align: center;
+}
+
+[data-theme="dark"] .read-progress-fill {
+  background: linear-gradient(90deg, #d4a04a, #8a6a3a);
+}
+
+[data-theme="dark"] .read-nav-btn {
+  background: rgba(42, 34, 32, 0.6);
+  border: 1px solid rgba(232, 221, 208, 0.15);
+  color: #e8ddd0;
+}
+
+[data-theme="dark"] .read-nav-btn:hover:not(:disabled) {
+  background: rgba(42, 34, 32, 0.85);
+  color: #f0c75e;
 }
 
 /* ─── 로딩/에러 상태 ─── */
