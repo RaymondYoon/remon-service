@@ -35,7 +35,7 @@
 /* ─── 상단 헤더 (뒤로가기 + 제목) ─── */
 .read-header {
   width: 100%;
-  max-width: 800px;
+  max-width: 1100px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -76,7 +76,7 @@
 /* ─── 독서 진행률 바 ─── */
 .read-progress-bar {
   width: 100%;
-  max-width: 800px;
+  max-width: 1100px;
   flex-shrink: 0;
   height: 2px;
   background: rgba(91, 126, 90, 0.15);

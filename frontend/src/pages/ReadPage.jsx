@@ -444,7 +444,10 @@ const ReadPage = () => {
         />
       </div>
 
-      <div className="read-book">
+      <div
+        className="read-book"
+        style={!dim.isMobile ? { maxWidth: dim.width * 2 } : undefined}
+      >
         <HTMLFlipBook
           key={`${dim.width}x${dim.height}-${pages.length}-${dim.isMobile}`}
           ref={bookRef}
