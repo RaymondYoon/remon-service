@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 24px;
+  padding: 16px 24px 24px;
   box-sizing: border-box;
   transition: background-color 0.3s;
   touch-action: pan-y;
@@ -104,7 +104,7 @@
   align-items: center;
   gap: 16px;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* ─── HTMLFlipBook 컨테이너 ─── */
@@ -328,32 +328,35 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   position: relative;
   z-index: 1;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
 }
 
 .read-nav-btn {
-  padding: 10px 24px;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: 8px 20px;
+  height: 36px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--color-primary);
   border: 1px solid rgba(61, 43, 31, 0.12);
-  border-radius: 24px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: all 0.15s ease;
 }
 
 .read-nav-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateY(-1px);
 }
 
 .read-nav-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -364,11 +367,12 @@
 }
 
 .read-page-num {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-read-page-num);
   font-weight: 500;
-  min-width: 72px;
+  min-width: 52px;
   text-align: center;
+  opacity: 0.6;
 }
 
 [data-theme="dark"] .read-progress-fill {
@@ -384,6 +388,7 @@
 [data-theme="dark"] .read-nav-btn:hover:not(:disabled) {
   background: rgba(42, 34, 32, 0.85);
   color: #f0c75e;
+  transform: translateY(-1px);
 }
 
 /* ─── 로딩/에러 상태 ─── */
@@ -429,7 +434,8 @@
   }
 
   .read-nav-btn {
-    padding: 9px 18px;
+    padding: 7px 16px;
+    height: 34px;
     font-size: 13px;
   }
 

@@ -483,7 +483,7 @@ const ReadPage = () => {
             onClick={goPrev}
             disabled={currentPage === 0}
           >
-            이전 페이지
+            이전
           </button>
           <span className="read-page-num">
             {currentPage + 1} / {pages.length}
@@ -493,7 +493,7 @@ const ReadPage = () => {
             onClick={goNext}
             disabled={isLastPage}
           >
-            다음 페이지
+            다음
           </button>
         </div>
       </div>
