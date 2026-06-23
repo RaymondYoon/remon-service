@@ -336,6 +336,31 @@ src/
 - [x] `Header.jsx` 둘러보기 드로어 링크 제거
 - [x] 다크모드 별점 색상 수정, 닉네임 에러 메시지, 엔터 제출 방지
 
+### 2026-06-23
+- [x] `MyPage.css` / `MyLibrary.css` 디자인 통일 — 글래스모피즘 + 레몬 옐로우 톤
+  - 프로필·레몬트리·계정 카드: `rgba(255,255,255,0.6)` + `backdrop-filter: blur(12px)` + `box-shadow: 0 4px 20px rgba(0,0,0,0.04)`, 테두리 `rgba(61,43,31,0.08)`
+  - 아바타: `linear-gradient(135deg, #5b7e5a, #4a6b49)` 그라데이션
+  - 레몬트리 통계 박스·empty 메시지: `rgba(240,199,94,0.1)` 옐로우 틴트
+  - 닉네임 input focus: `border-color: rgba(240,199,94,0.6)` + 옐로우 glow, 변경 버튼: `linear-gradient(135deg, #F0C75E, #E0AD3C)` + `color: #3D2B1F`
+  - 탈퇴 버튼: 테두리 제거, hover 시만 `rgba(220,53,69,0.08)` 틴트
+  - 서재 통계 카드: 글래스모피즘 + 숫자 `#E0AD3C` 강조
+  - 서재 필터 탭 선택: `linear-gradient(135deg, #F0C75E, #E0AD3C)` + `color: #3D2B1F`, 비선택: `rgba(61,43,31,0.15)` 테두리
+  - 서재 책 카드: 글래스모피즘 + hover `translateY(-3px)` + 그린 그림자
+- [x] `variables.css` 독서 다크모드 변수 교체 — `--color-read-bg: #1c1614`, `--color-read-page: #2a2220`, `--color-read-text: #e8ddd0`, `--color-read-page-num: #a89888`
+- [x] `ReadPage.css` 다크모드 전면 개편 — 차가운 네이비(`#1a1a2e`) → 따뜻한 브라운 블랙(`#1c1614`)
+  - `[data-theme="dark"] .read-container::before`: `position: fixed`, `radial-gradient(rgba(240,199,94,0.06))` 은은한 스탠드 불빛
+  - 다크 헤더: `rgba(28,22,20,0.7)`, 진행바: `linear-gradient(90deg, #d4a04a, #8a6a3a)`, 버튼: `rgba(255,255,255,0.08)` + 흰 테두리
+- [x] `ReadPage.css` 라이트모드 배경 나무 책상 텍스처 — `repeating-linear-gradient(91deg)` + `repeating-linear-gradient(90deg)` 나무 결 + `linear-gradient(180deg, #e0b888, #c99a64)`
+- [x] `ReadPage.css` 다크모드 배경 누수 버그 수정 — `[data-theme="dark"] .read-container`에 `background-color: #1c1614; background-image: none` 명시
+- [x] `ReadPage.jsx` 데스크톱 큰 화면(≥1400px) 책 너비 확장 → 재조정 — `Math.min(vw * 0.58, 950) / 2` (비율 0.68→0.58, 상한 1100→950px)
+- [x] `ReadPage.jsx` `.read-book` 동적 `maxWidth` 인라인 스타일 추가 — CSS `max-width: 800px` 고정 한계 해소, 책 너비에 맞춰 자동 확장
+- [x] `ReadPage.jsx` `VERTICAL_CHROME` 215→230, 모바일 높이 `vh-200`→`vh-220` (세로 스크롤바 방지 버퍼)
+- [x] `ReadPage.css` `.flip-page-inner` `overflow: hidden` 추가 (내용 넘침 스크롤 차단)
+- [x] `ReadPage.jsx` 이전/다음 버튼 라벨 단순화 — `"이전 페이지"/"다음 페이지"` → `"이전"/"다음"`
+- [x] `ReadPage.css` 이전/다음 버튼 글래스모피즘 물방울 스타일 — `backdrop-filter: blur(16px) saturate(180%)`, 라이트 `rgba(255,255,255,0.35)` / 다크 `rgba(255,255,255,0.08)`, `inset 0 1px 1px rgba(255,255,255,0.4)` 하이라이트
+- [x] `ReadPage.css` 하단 버튼 영역 잘림 수정 — `padding-bottom: 24px`, `.read-book` `overflow-x: hidden`(수직 잘림 제거), `.read-nav` `padding-bottom: env(safe-area-inset-bottom, 8px)`
+- [x] `ReadPage.css` 페이지 번호 `font-size: 13px` + `opacity: 0.6`, 헤더·진행바 `max-width: 1100px`으로 확장
+
 ### 2026-06-16
 - [x] `ReadPage.css` 책 읽기 화면 전면 디자인 개선:
   - 배경: 라이트 `#f5f0e8` (크림) / 다크 `#1a1a2e` (딥 네이비)

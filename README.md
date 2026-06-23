@@ -170,10 +170,12 @@ Remon은 "레몬처럼 상큼한 독서 경험"을 모티프로 한 AI 전자책
 
 ### 디자인 시스템
 
-- **글래스모피즘**: `backdrop-filter: blur()` + 반투명 배경을 장르 배지, 리뷰 폼, 읽기 화면 헤더/버튼, BookDetail 원형 보조버튼 전반에 적용
-- **레몬 옐로우 톤**: `#F0C75E / #E0AD3C` — 본문보기 버튼, 별점, 진행바 그라데이션 등 주요 액션 요소 통일
+- **글래스모피즘**: `backdrop-filter: blur()` + 반투명 배경을 장르 배지, 리뷰 폼, 읽기 화면 헤더/버튼, BookDetail 원형 보조버튼, 마이페이지·서재 카드 전반에 적용
+- **레몬 옐로우 톤**: `#F0C75E / #E0AD3C` — 본문보기 버튼, 별점, 진행바 그라데이션, 필터 탭 선택, 변경 버튼 등 주요 액션 요소 통일
 - **책 포스터 스타일 BookDetail**: 블러 배경(`position:fixed`, `blur(60px)`) + 명조체 제목 + 레몬옐로우 본문보기 버튼(240×52px) + 원형 보조버튼(서재담기/공유) 재설계
-- **읽기 화면 개선**: 명조체(`Georgia`, `Nanum Myeongjo`) + 크림/딥 네이비 배경 + 페이지 그림자 + `backdrop-filter` 헤더/버튼
+- **읽기 화면 이중 테마**: 라이트모드는 `repeating-linear-gradient` 나무 결 텍스처(`#e0b888→#c99a64`) 배경으로 책상 위에 책이 놓인 느낌 연출. 다크모드는 따뜻한 브라운 블랙(`#1c1614`) + `radial-gradient(rgba(240,199,94,0.06))` 은은한 스탠드 불빛 효과
+- **읽기 화면 글래스 버튼**: 이전/다음 버튼 `backdrop-filter: blur(16px) saturate(180%)` + `rgba(255,255,255,0.35)` 라이트 / `rgba(255,255,255,0.08)` 다크, `inset` 하이라이트로 물방울 글래스 스타일
+- **마이페이지·서재 디자인 통일**: 카드 `rgba(255,255,255,0.6)` + `blur(12px)` 글래스모피즘, 통계 숫자 `#E0AD3C`, 필터 탭 선택 레몬 그라데이션
 - **페이지 분할 고도화**: 창 크기(높이) 변경 시 자동 재분할, 문단 내 문장 단위 2차 분리로 빈공간 제거
 
 ### 닉네임 주 2회 제한
@@ -413,6 +415,9 @@ remon-service/
 | Gemini 503 동시 요청 한도 초과 | Gemini 무료 플랜은 분당 동시 생성 요청 수에 한도가 있어, 다수 사용자 동시 생성 시 503 반환 | `OpenAiService`의 3회 재시도 로직(3초 대기)이 일시 과부하를 흡수. 근본 해결은 Gemini 유료 플랜 전환 필요 |
 | `clientWidth` vs `innerWidth` — 모바일 텍스트 잘림 | `window.innerWidth`는 iOS Safari에서 스크롤바·노치 영역 포함 크기를 반환, 실제 콘텐츠 너비보다 커서 페이지 분할 시 텍스트 우측 잘림 발생 | `document.documentElement.clientWidth` 사용으로 변경 — 스크롤바 제외 실제 콘텐츠 너비 기준으로 페이지 분할 |
 | react-pageflip 모바일 텍스트 잘림 (단일 페이지) | 모바일에서 두 페이지 모드 유지 시 좁은 너비에 두 페이지를 억지로 렌더링, 단락이 화면 밖으로 넘침 | `usePortrait={dim.isMobile}` prop으로 모바일(`≤640px`)에서 단일 페이지 모드 강제 적용 |
+| 다크모드 읽기 배경 누수 (나무결 텍스처 노출) | `[data-theme="dark"] .read-container`에 `background-image: none`이 없어 라이트모드 `repeating-linear-gradient` 나무결 배경이 다크모드에서도 그대로 렌더링됨 | 다크모드 선택자에 `background-color: #1c1614; background-image: none` 명시적 재정의 추가 |
+| 데스크톱 책 너비 확장 후 텍스트 좌측 잘림 | CSS `.read-book`의 `max-width: 800px; overflow: hidden`이 확장된 책 너비(~950px)를 클리핑 — JS 측 `dim.width` 계산은 정상 | `.read-book`에 `style={{ maxWidth: dim.width * 2 }}`  인라인 스타일로 동적 재정의; CSS는 `overflow: hidden` → `overflow-x: hidden` 변경 |
+| 읽기 화면 세로 스크롤바 발생 | `VERTICAL_CHROME` 상수(215px)가 실제 크롬(헤더+진행바+네비) 높이보다 작아 페이지 높이 계산이 초과됨 + `.flip-page-inner`에 `overflow` 미설정으로 내용 넘침 | `VERTICAL_CHROME` 230으로 증가, `.flip-page-inner`에 `overflow: hidden` 추가 |
 
 ---
 

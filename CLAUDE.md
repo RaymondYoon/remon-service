@@ -167,9 +167,10 @@ remon-service/
 | 이메일/닉네임 중복 방지 | `UserRepository.existsByEmail()` / `existsByNickname()` 추가 — 회원가입·닉네임 변경 시 즉시 검증 |
 | 생성 옵션 확장 | `GenerateBookRequest`: 시놉시스·주인공 복수(최대 3명)·조연(최대 4명)·분위기/성격 다중 선택 지원 |
 | 전역 책 생성 폴링 | `BookGenerationContext` — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트 |
-| 책 읽기 UI 개선 | 명조체 + 종이 질감 배경 + 페이지 그림자 + 진행 바 그라데이션 + 딥 네이비 다크모드 |
+| 책 읽기 UI 개선 | 라이트모드: 나무 책상 텍스처(repeating-linear-gradient) 배경 + 명조체 + 종이 질감 / 다크모드: 따뜻한 브라운 톤(`#1c1614`) + 스탠드 불빛(radial-gradient) 효과 / 글래스모피즘 물방울 이전/다음 버튼 |
 | 모바일 뷰포트 수정 | `clientWidth` 기반 페이지 너비 계산 — iOS Safari innerWidth 불일치로 인한 텍스트 잘림 해결 |
-| 글래스모피즘 UI | 장르 배지, 리뷰 폼, 읽기 화면 헤더/버튼, BookDetail 원형 버튼 전반에 backdrop-filter 적용 |
+| 글래스모피즘 UI | 장르 배지, 리뷰 폼, 읽기 화면 헤더/버튼, BookDetail 원형 버튼, 마이페이지·서재 카드 전반에 backdrop-filter 적용 |
+| 마이페이지/서재 디자인 통일 | 글래스모피즘 카드 + 레몬 옐로우(`#F0C75E/#E0AD3C`) 강조 — 통계 숫자·선택 탭·변경 버튼·서재 카드 hover 일관성 확보 |
 | 책 포스터 상세 | BookDetail 전면 포스터 스타일 — 블러 배경, 레몬옐로우 본문보기 버튼, 원형 보조버튼 |
 | 페이지 분할 개선 | 창 크기 변경 시 재분할, 문장 단위 분리로 빈공간 제거 |
 | 전역 생성 폴링 | BookGenerationContext — 페이지 이동해도 생성 상태 유지, 완료 알림 토스트 |
