@@ -12,10 +12,13 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 43, 31, 0.08);
   border-radius: 20px;
   padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -23,7 +26,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #5b7e5a, #4a6b49);
   color: #fff;
   font-size: 22px;
   font-weight: 700;
@@ -205,14 +208,17 @@
 
 /* ─── 레몬트리 카드 ─── */
 .mypage-lemon-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 43, 31, 0.08);
   border-radius: 20px;
   padding: 28px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -247,7 +253,7 @@
   align-items: center;
   gap: 0;
   width: 100%;
-  background: var(--color-bg-subtle);
+  background: rgba(240, 199, 94, 0.1);
   border-radius: var(--radius-md);
   padding: 16px 0;
   transition: background-color 0.3s;
@@ -284,20 +290,23 @@
   text-align: center;
   margin: 0;
   padding: 8px 16px;
-  background: var(--color-bg-subtle);
+  background: rgba(240, 199, 94, 0.1);
   border-radius: var(--radius-md);
   width: 100%;
 }
 
 /* ─── 계정 설정 ─── */
 .mypage-account-section {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 43, 31, 0.08);
   border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -338,44 +347,46 @@
 }
 
 .mypage-nickname-input:focus {
-  border-color: var(--color-primary);
+  border-color: rgba(240, 199, 94, 0.6);
   background: var(--color-card);
+  box-shadow: 0 0 0 3px rgba(240, 199, 94, 0.15);
 }
 
 .mypage-nickname-btn {
   padding: 9px 16px;
-  background: var(--color-primary);
-  color: #fff;
+  background: linear-gradient(135deg, #F0C75E 0%, #E0AD3C 100%);
+  color: #3D2B1F;
   border: none;
   border-radius: var(--radius-sm);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  transition: opacity 0.2s, box-shadow 0.2s;
 }
 
 .mypage-nickname-btn:hover {
-  background: var(--color-primary-dark);
+  opacity: 0.88;
+  box-shadow: 0 2px 8px rgba(224, 173, 60, 0.35);
 }
 
 
 .mypage-withdraw-btn {
   align-self: flex-start;
-  background: none;
-  border: 1px solid var(--color-error-border);
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--color-error);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 16px;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  opacity: 0.75;
+  opacity: 0.65;
   transition: opacity 0.2s, background 0.2s;
 }
 
 .mypage-withdraw-btn:hover {
-  background: var(--color-error-bg);
+  background: rgba(220, 53, 69, 0.08);
   opacity: 1;
 }
 

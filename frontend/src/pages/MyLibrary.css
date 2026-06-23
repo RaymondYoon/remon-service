@@ -57,14 +57,17 @@
 
 .stat-card {
   flex: 1;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 43, 31, 0.08);
   border-radius: 14px;
   padding: 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -73,9 +76,9 @@
 }
 
 .stat-num {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
-  color: var(--color-primary);
+  color: #E0AD3C;
 }
 
 .stat-label {
@@ -96,9 +99,9 @@
   align-items: center;
   gap: 6px;
   padding: 8px 18px;
-  background: var(--color-card);
-  border: 1.5px solid var(--color-border);
-  border-radius: 30px;
+  background: transparent;
+  border: 1.5px solid rgba(61, 43, 31, 0.15);
+  border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -107,14 +110,14 @@
 }
 
 .library-tab:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: rgba(224, 173, 60, 0.5);
+  color: #3D2B1F;
 }
 
 .library-tab--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
+  background: linear-gradient(135deg, #F0C75E, #E0AD3C);
+  border-color: transparent;
+  color: #3D2B1F;
 }
 
 .library-tab-count {
@@ -131,7 +134,8 @@
 }
 
 .library-tab--active .library-tab-count {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(61, 43, 31, 0.15);
+  color: #3D2B1F;
 }
 
 .library-tab:not(.library-tab--active) .library-tab-count {
@@ -206,18 +210,22 @@
 }
 
 .lib-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(61, 43, 31, 0.08);
   border-radius: 14px;
   padding: 20px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s, background-color 0.3s;
 }
 
 .lib-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 28px rgba(91, 126, 90, 0.15);
+  transform: translateY(-3px);
 }
 
 .lib-cover {
