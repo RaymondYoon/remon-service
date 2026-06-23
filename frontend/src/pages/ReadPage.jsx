@@ -181,7 +181,7 @@ function PageMeasureFrame({ dim, contentMeasureRef }) {
   );
 }
 
-const VERTICAL_CHROME = 215; // 모바일 40px 안전마진은 데스크톱에 적용하지 않음
+const VERTICAL_CHROME = 230; // 헤더+진행바+네비+패딩 합산 + 15px 여유 버퍼
 const MIN_PAGE_HEIGHT = 500;
 
 function getPageDimensions() {
@@ -190,7 +190,7 @@ function getPageDimensions() {
   const clientW = document.documentElement.clientWidth;
   if (vw <= 640) {
     const w = clientW - 16;
-    const h = vh - 200; // 모바일 전용 40px 안전마진
+    const h = vh - 220; // 모바일 안전마진 (기존 200 → 220)
     return { width: w, height: h, isMobile: true };
   }
   const maxH = Math.max(vh - VERTICAL_CHROME, MIN_PAGE_HEIGHT);
