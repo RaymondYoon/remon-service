@@ -194,9 +194,9 @@ function getPageDimensions() {
     return { width: w, height: h, isMobile: true };
   }
   const maxH = Math.max(vh - VERTICAL_CHROME, MIN_PAGE_HEIGHT);
-  // 1400px 이상 대형 화면: 책 전체 너비를 화면의 68% (최대 1100px)로 확장
+  // 1400px 이상 대형 화면: 책 전체 너비를 화면의 58% (최대 950px)로 확장
   const pageWidth = vw >= 1400
-    ? Math.floor(Math.min(vw * 0.68, 1100) / 2)
+    ? Math.floor(Math.min(vw * 0.58, 950) / 2)
     : Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
   return { width: pageWidth, height: maxH, isMobile: false };
 }
