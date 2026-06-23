@@ -2,7 +2,22 @@
 .read-container {
   height: calc(var(--real-vh, 1vh) * 100 - 60px);
   overflow-y: auto;
-  background: var(--color-read-bg);
+  background-color: #d4a574;
+  background-image:
+    repeating-linear-gradient(
+      91deg,
+      rgba(101, 67, 33, 0.05) 0px,
+      transparent 3px,
+      transparent 60px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 94, 52, 0.08) 0px,
+      rgba(139, 94, 52, 0.08) 2px,
+      transparent 2px,
+      transparent 80px
+    ),
+    linear-gradient(180deg, #e0b888 0%, #c99a64 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,10 +41,10 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(224, 184, 136, 0.5);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(139, 94, 52, 0.12);
   padding: 8px 12px;
   border-radius: 8px;
 }
@@ -162,12 +177,12 @@
   background: var(--color-read-page);
   overflow: hidden;
   height: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(80, 50, 20, 0.1);
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.15),
-    0 8px 24px rgba(0,0,0,0.12),
-    0 16px 40px rgba(0,0,0,0.08),
-    inset 2px 0 4px rgba(0,0,0,0.06);
+    0 1px 2px rgba(80, 50, 20, 0.1),
+    0 4px 8px rgba(80, 50, 20, 0.15),
+    0 16px 40px rgba(80, 50, 20, 0.2),
+    inset 2px 0 4px rgba(80, 50, 20, 0.04);
   will-change: transform;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -207,20 +222,20 @@
 /* 페이지 끝부분 살짝 휜 느낌 */
 .flip-page:first-child {
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.15),
-    0 8px 24px rgba(0,0,0,0.12),
-    0 16px 40px rgba(0,0,0,0.08),
-    inset 2px 0 4px rgba(0,0,0,0.06),
-    inset -8px 0 12px -8px rgba(0,0,0,0.1);
+    0 1px 2px rgba(80, 50, 20, 0.1),
+    0 4px 8px rgba(80, 50, 20, 0.15),
+    0 16px 40px rgba(80, 50, 20, 0.2),
+    inset 2px 0 4px rgba(80, 50, 20, 0.04),
+    inset -8px 0 12px -8px rgba(80, 50, 20, 0.08);
 }
 
 .flip-page:last-child {
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.15),
-    0 8px 24px rgba(0,0,0,0.12),
-    0 16px 40px rgba(0,0,0,0.08),
-    inset 2px 0 4px rgba(0,0,0,0.06),
-    inset 8px 0 12px -8px rgba(0,0,0,0.1);
+    0 1px 2px rgba(80, 50, 20, 0.1),
+    0 4px 8px rgba(80, 50, 20, 0.15),
+    0 16px 40px rgba(80, 50, 20, 0.2),
+    inset 2px 0 4px rgba(80, 50, 20, 0.04),
+    inset 8px 0 12px -8px rgba(80, 50, 20, 0.08);
 }
 
 [data-theme="dark"] .flip-page:first-child {
