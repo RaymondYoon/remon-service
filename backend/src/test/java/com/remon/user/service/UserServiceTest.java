@@ -96,24 +96,18 @@ class UserServiceTest {
     @Test
     @DisplayName("중복 이메일 회원가입 시 예외 발생")
     void registerUser_withDuplicateEmail_shouldThrow() {
-        User existing = User.builder()
-                .email("dup@test.com")
-                .provider("local")
-                .role(Role.USER)
-                .build();
-
-        when(userRepository.findByEmail("dup@test.com")).thenReturn(Optional.of(existing));
+        when(userRepository.existsByEmail("dup@test.com")).thenReturn(true);
 
         assertThatThrownBy(() ->
                 userService.registerUser("dup@test.com", "pw", "local", null, "nick"))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("가입");
+                .hasMessageContaining("이메일");
     }
 
     @Test
     @DisplayName("신규 회원가입 성공 - 비밀번호는 암호화되어 저장")
     void registerUser_newUser_shouldEncodePassword() {
-        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(userRepository.existsByEmail("new@test.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         User result = userService.registerUser("new@test.com", "rawPw", "local", null, "newbie");

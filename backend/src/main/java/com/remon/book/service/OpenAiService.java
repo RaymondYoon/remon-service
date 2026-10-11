@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -31,8 +32,14 @@ public class OpenAiService {
     @Value("${gemini.url}")
     private String apiUrl;
 
-    public OpenAiService() {
-        this.restTemplate = new RestTemplate();
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+
+    public OpenAiService(@Value("${gemini.timeout-ms:120000}") int readTimeoutMs) {
+        // 타임아웃이 없으면 응답이 멈춘 요청이 생성 스레드(최대 5개)를 영원히 점유한다
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        factory.setReadTimeout(readTimeoutMs);
+        this.restTemplate = new RestTemplate(factory);
         this.objectMapper = new ObjectMapper();
     }
 
@@ -42,10 +49,15 @@ public class OpenAiService {
      *
      * @return 파싱된 결과 — result[0] = title, result[1] = content
      */
-    public String[] generate(List<String> keywords, String genre, List<String> tone, String ending,
-                             List<String> protagonistNames, List<String> protagonistTrait, String viewpoint,
-                             String synopsis, List<String> characters) {
-        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistNames, protagonistTrait, viewpoint, synopsis, characters);
+    public String[] generate(StoryPrompt storyPrompt) {
+        List<String> keywords = storyPrompt.keywords();
+        String genre = storyPrompt.genre();
+        List<String> tone = storyPrompt.tones();
+        String ending = storyPrompt.ending();
+        List<String> protagonistNames = storyPrompt.protagonistNames();
+        String prompt = buildPrompt(keywords, genre, tone, ending, protagonistNames,
+                storyPrompt.protagonistTraits(), storyPrompt.viewpoint(),
+                storyPrompt.synopsis(), storyPrompt.characters());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

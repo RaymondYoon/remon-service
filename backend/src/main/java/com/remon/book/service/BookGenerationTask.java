@@ -3,14 +3,20 @@ package com.remon.book.service;
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
+import com.remon.config.AsyncConfig;
 import com.remon.notification.entity.NotificationType;
 import com.remon.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,71 +32,111 @@ public class BookGenerationTask {
     private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
     private final CacheManager cacheManager;
+    private final BookGenerationFailureService failureService;
+    private final TaskExecutor executor;
 
     public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService,
                               ImagenService imagenService, CloudinaryService cloudinaryService,
-                              NotificationService notificationService, CacheManager cacheManager) {
+                              NotificationService notificationService, CacheManager cacheManager,
+                              BookGenerationFailureService failureService,
+                              @Qualifier(AsyncConfig.BOOK_GENERATION_EXECUTOR) TaskExecutor executor) {
         this.bookRepository      = bookRepository;
         this.openAiService       = openAiService;
         this.imagenService       = imagenService;
         this.cloudinaryService   = cloudinaryService;
         this.notificationService = notificationService;
         this.cacheManager        = cacheManager;
+        this.failureService      = failureService;
+        this.executor            = executor;
     }
 
-    @Async
-    public void run(Long bookId, List<String> keywords, String genre, List<String> tone, String ending,
-                    List<String> protagonistNames, List<String> protagonistTrait, String viewpoint,
-                    String synopsis, List<String> characters) {
-        bookRepository.updateStatus(bookId, BookStatus.GENERATING);
-        log.info("책 생성 시작 - bookId: {}, keywords: {}, genre: {}, tone: {}, ending: {}",
-                bookId, keywords, genre, tone, ending);
+    /**
+     * 책 저장 트랜잭션이 커밋된 뒤에만 생성 작업을 큐에 넣는다.
+     * (커밋 전에 비동기 스레드가 시작되면 아직 보이지 않는 행을 업데이트해 상태가 꼬인다)
+     * 작업 큐가 가득 차 거절되면 즉시 FAILED + 레몬 환불.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onGenerationRequested(BookGenerationRequestedEvent event) {
         try {
-            String[] result = openAiService.generate(keywords, genre, tone, ending, protagonistNames, protagonistTrait, viewpoint, synopsis, characters);
-            bookRepository.updateGenerationResult(bookId, result[0], result[1], BookStatus.GENERATING);
-            log.info("텍스트 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
-                    bookId, result[0] != null ? result[0].length() : 0, result[1] != null ? result[1].length() : 0);
+            executor.execute(() -> run(event.bookId(), event.prompt()));
+        } catch (TaskRejectedException e) {
+            log.warn("생성 작업 큐 포화로 거절 - bookId: {}", event.bookId());
+            failureService.failAndRefund(event.bookId());
+        }
+    }
 
-            Book book = bookRepository.findById(bookId).orElse(null);
-
-            try {
-                byte[] imageBytes = imagenService.generateCoverImage(result[0], genre, result[1]);
-                if (imageBytes != null) {
-                    String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
-                    log.info("Cloudinary URL: {}", coverImageUrl);
-                    if (coverImageUrl != null && book != null) {
-                        book.setCoverImageUrl(coverImageUrl);
-                        bookRepository.save(book);
-                        log.info("저장된 coverImageUrl: {}", book.getCoverImageUrl());
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
+    /**
+     * 상태 흐름: PENDING → GENERATING(텍스트) → GENERATING(이미지) → DONE / 실패 시 FAILED + 레몬 환불.
+     * 모든 상태 변경은 조건부 UPDATE 라서, 그 사이 복구 작업이 FAILED 처리했거나 책이 삭제됐다면
+     * 결과를 덮어쓰지 않고 조용히 종료한다.
+     */
+    public void run(Long bookId, StoryPrompt prompt) {
+        if (bookRepository.transitionStatus(bookId, List.of(BookStatus.PENDING), BookStatus.GENERATING) == 0) {
+            log.warn("PENDING 상태가 아니어서 생성을 건너뜀 (삭제/복구됨) - bookId: {}", bookId);
+            return;
+        }
+        log.info("책 생성 시작 - bookId: {}, keywords: {}, genre: {}, tone: {}, ending: {}",
+                bookId, prompt.keywords(), prompt.genre(), prompt.tones(), prompt.ending());
+        try {
+            String[] result = openAiService.generate(prompt);
+            String title = result[0];
+            String content = result[1];
+            if (bookRepository.saveGeneratedText(bookId, title, content) == 0) {
+                log.warn("텍스트 생성 후 상태가 바뀌어 결과를 버림 - bookId: {}", bookId);
+                return;
             }
+            log.info("텍스트 생성 완료 - bookId: {}, titleLength: {}, contentLength: {}",
+                    bookId, title != null ? title.length() : 0, content != null ? content.length() : 0);
 
-            // 이미지 처리 완료 후 DONE으로 변경
-            bookRepository.updateStatus(bookId, BookStatus.DONE);
+            saveCoverImage(bookId, title, prompt.genre(), content);
+
+            // 이미지 처리 완료 후 DONE으로 변경 (그 사이 FAILED 처리됐다면 되살리지 않음)
+            if (bookRepository.transitionStatus(bookId, List.of(BookStatus.GENERATING), BookStatus.DONE) == 0) {
+                log.warn("DONE 전환 실패 — 이미 다른 상태로 변경됨 - bookId: {}", bookId);
+                return;
+            }
             log.info("책 생성 완료(DONE) - bookId: {}", bookId);
 
             // 새 책이 추가됐으므로 평점순/조회수순 캐시 무효화
             evictSortedBookCaches();
+            sendGeneratedNotification(bookId);
+        } catch (Exception e) {
+            log.error("책 생성 실패 - bookId: {}, message: {}", bookId, e.getMessage(), e);
+            try {
+                failureService.failAndRefund(bookId);
+            } catch (Exception refundError) {
+                // 여기서도 실패하면 StaleGenerationRecoveryJob 이 나중에 다시 처리한다
+                log.error("실패 처리/환불 중 오류 - bookId: {}", bookId, refundError);
+            }
+        }
+    }
 
-            // 책 생성 완료 알림 (이미지 처리 완료 후 발송)
-            if (book != null && book.getPublishedBy() != null) {
-                try {
-                    notificationService.createBookNotification(
-                            book.getPublishedBy(),
-                            NotificationType.BOOK_GENERATED,
-                            "이야기가 완성됐어요! 지금 바로 읽어보세요.",
-                            bookId
-                    );
-                } catch (Exception e) {
-                    log.warn("책 생성 알림 발송 실패 - bookId: {}, message: {}", bookId, e.getMessage());
-                }
+    private void saveCoverImage(Long bookId, String title, String genre, String content) {
+        try {
+            byte[] imageBytes = imagenService.generateCoverImage(title, genre, content);
+            if (imageBytes == null) return;
+            String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
+            if (coverImageUrl != null) {
+                bookRepository.updateCoverImageUrl(bookId, coverImageUrl);
+                log.info("표지 저장 완료 - bookId: {}, url: {}", bookId, coverImageUrl);
             }
         } catch (Exception e) {
-            bookRepository.updateStatus(bookId, BookStatus.FAILED);
-            log.error("책 생성 실패 - bookId: {}, message: {}", bookId, e.getMessage(), e);
+            log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
+        }
+    }
+
+    private void sendGeneratedNotification(Long bookId) {
+        Long publisherId = bookRepository.findPublisherId(bookId).orElse(null);
+        if (publisherId == null) return;
+        try {
+            notificationService.createBookNotification(
+                    publisherId,
+                    NotificationType.BOOK_GENERATED,
+                    "이야기가 완성됐어요! 지금 바로 읽어보세요.",
+                    bookId
+            );
+        } catch (Exception e) {
+            log.warn("책 생성 알림 발송 실패 - bookId: {}, message: {}", bookId, e.getMessage());
         }
     }
 
@@ -114,8 +160,7 @@ public class BookGenerationTask {
                 if (imageBytes != null) {
                     String url = cloudinaryService.uploadImage(imageBytes, "book-" + book.getId());
                     if (url != null) {
-                        book.setCoverImageUrl(url);
-                        bookRepository.save(book);
+                        bookRepository.updateCoverImageUrl(book.getId(), url);
                         log.info("표지 생성 완료 - bookId: {}, url: {}", book.getId(), url);
                         success.incrementAndGet();
                         continue;

@@ -52,7 +52,7 @@ export const BookGenerationProvider = ({ children }) => {
           setStatus("done");
         } else if (s === "FAILED") {
           stopAll();
-          setMessage("❌ 생성에 실패했어요. 다시 시도해주세요.");
+          setMessage("❌ 생성에 실패했어요. 사용한 레몬은 돌려드렸어요.");
           setStatus("failed");
         } else if (step === "IMAGE" && stepRef.current !== "IMAGE") {
           stepRef.current = "IMAGE";

@@ -13,6 +13,7 @@ import com.remon.review.repository.ReviewRepository;
 import com.remon.user.entity.User;
 import com.remon.user.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,20 +36,20 @@ public class BookService {
     private final OpenAiService openAiService;
     private final UserRepository userRepository;
     private final UserBookRepository userBookRepository;
-    private final BookGenerationTask bookGenerationTask;
+    private final ApplicationEventPublisher eventPublisher;
     private final FollowRepository followRepository;
     private final ReviewRepository reviewRepository;
     private final LemonService lemonService;
 
     public BookService(BookRepository bookRepository, OpenAiService openAiService,
                        UserRepository userRepository, UserBookRepository userBookRepository,
-                       BookGenerationTask bookGenerationTask, FollowRepository followRepository,
+                       ApplicationEventPublisher eventPublisher, FollowRepository followRepository,
                        ReviewRepository reviewRepository, LemonService lemonService) {
         this.bookRepository     = bookRepository;
         this.openAiService      = openAiService;
         this.userRepository     = userRepository;
         this.userBookRepository = userBookRepository;
-        this.bookGenerationTask = bookGenerationTask;
+        this.eventPublisher     = eventPublisher;
         this.followRepository   = followRepository;
         this.reviewRepository   = reviewRepository;
         this.lemonService       = lemonService;
@@ -95,11 +96,8 @@ public class BookService {
                 .build();
 
         Book savedBook = bookRepository.save(book);
-        bookGenerationTask.run(savedBook.getId(), request.getKeywords(),
-                request.getGenre(), request.getTone(),
-                request.getEnding(), request.getProtagonistNames(),
-                request.getProtagonistTrait(), request.getViewpoint(),
-                request.getSynopsis(), request.getCharacters());
+        // 실제 생성은 트랜잭션 커밋 후 BookGenerationTask 가 시작한다 (AFTER_COMMIT)
+        eventPublisher.publishEvent(new BookGenerationRequestedEvent(savedBook.getId(), StoryPrompt.from(request)));
         return buildResponse(savedBook, null, null);
     }
 

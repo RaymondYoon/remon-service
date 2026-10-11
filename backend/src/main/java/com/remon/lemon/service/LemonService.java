@@ -54,6 +54,21 @@ public class LemonService {
         lemon.setLemonCount(lemon.getLemonCount() - 1);
     }
 
+    /**
+     * 생성 실패로 소모한 레몬 1개를 돌려준다.
+     * 중복 환불 방지는 호출부(BookGenerationFailureService)의 lemon_refunded 플래그가 담당한다.
+     *  - 오늘 충전분이 아니면(날짜가 지남) 다음 조회 시 어차피 최대치로 충전되므로 변경하지 않는다.
+     *  - 하루 최대치(MAX_DAILY)를 넘기지 않는다.
+     */
+    public void refundLemon(Long userId) {
+        userLemonRepository.findByUserIdWithLock(userId).ifPresent(lemon -> {
+            if (lemon.getLastChargeDate() == null || lemon.getLastChargeDate().isBefore(LocalDate.now())) {
+                return;
+            }
+            lemon.setLemonCount(Math.min(MAX_DAILY, lemon.getLemonCount() + 1));
+        });
+    }
+
     private UserLemon getOrCreateAndCharge(Long userId) {
         UserLemon lemon = userLemonRepository.findById(userId)
                 .orElseGet(() -> userLemonRepository.save(

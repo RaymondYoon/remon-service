@@ -117,4 +117,37 @@ class LemonServiceTest {
         assertThat(alreadyCharged.getLemonCount()).isEqualTo(2);
         assertThat(response.getLemonCount()).isEqualTo(2);
     }
+
+    @Test
+    @DisplayName("refundLemon - 오늘 소모한 레몬 1개를 돌려준다")
+    void refundLemon_오늘_소모분_환불() {
+        UserLemon lemon = new UserLemon(1L, 0, LocalDate.now());
+        when(userLemonRepository.findByUserIdWithLock(1L)).thenReturn(Optional.of(lemon));
+
+        lemonService.refundLemon(1L);
+
+        assertThat(lemon.getLemonCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("refundLemon - 하루 최대치(MAX_DAILY)를 넘기지 않는다")
+    void refundLemon_최대치_초과_방지() {
+        UserLemon lemon = new UserLemon(1L, LemonService.MAX_DAILY, LocalDate.now());
+        when(userLemonRepository.findByUserIdWithLock(1L)).thenReturn(Optional.of(lemon));
+
+        lemonService.refundLemon(1L);
+
+        assertThat(lemon.getLemonCount()).isEqualTo(LemonService.MAX_DAILY);
+    }
+
+    @Test
+    @DisplayName("refundLemon - 어제 충전분이면 변경하지 않는다 (다음 조회 시 어차피 최대치로 충전)")
+    void refundLemon_지난날_충전분은_변경없음() {
+        UserLemon lemon = new UserLemon(1L, 0, LocalDate.now().minusDays(1));
+        when(userLemonRepository.findByUserIdWithLock(1L)).thenReturn(Optional.of(lemon));
+
+        lemonService.refundLemon(1L);
+
+        assertThat(lemon.getLemonCount()).isZero();
+    }
 }
