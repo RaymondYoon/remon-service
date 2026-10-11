@@ -5,6 +5,9 @@ import com.remon.security.JwtAuthenticationFilter;
 import com.remon.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -49,6 +52,10 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         // Swagger UI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // 내 책 / 피드는 로그인 필요 — 아래 "/api/books/*" permitAll 보다 먼저 선언해야 함
+                        .requestMatchers(HttpMethod.GET, "/api/books/my", "/api/books/feed").authenticated()
+                        // 책 직접 등록은 관리자 전용 (일반 사용자는 /api/books/generate 사용)
+                        .requestMatchers(HttpMethod.POST, "/api/books").hasRole("ADMIN")
                         // 책 목록/상세 조회 (비로그인 허용)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/books/*").permitAll()
@@ -65,6 +72,14 @@ public class SecurityConfig {
                         // 그 외 모든 요청은 JWT 인증 필요
                         .anyRequest().authenticated()
                 )
+                // 인증 없음/만료 토큰 → 401 (기본값 403이면 클라이언트의 401 토큰 재발급 로직이 동작하지 않음)
+                // 권한 부족(로그인했지만 ADMIN 아님)은 기본 AccessDeniedHandler 로 403 유지
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write("{\"error\":\"로그인이 필요합니다.\"}");
+                }))
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);

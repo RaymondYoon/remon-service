@@ -151,7 +151,7 @@ export default function GenerateScreen({ navigation }) {
           stopGenerating(null);
           navigation.navigate('Read', { bookId, title: '생성된 책' });
         } else if (status === 'FAILED') {
-          stopGenerating('소설 생성에 실패했습니다. 다시 시도해주세요.');
+          stopGenerating('소설 생성에 실패했습니다. 사용한 레몬은 돌려드렸어요.');
         } else {
           // PENDING | GENERATING — 3초 후 재시도
           pollRef.current = setTimeout(poll, 3000);

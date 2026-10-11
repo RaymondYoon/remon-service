@@ -1,5 +1,7 @@
 package com.remon.notification.service;
 
+import com.remon.exception.BusinessException;
+import com.remon.exception.ErrorCode;
 import com.remon.notification.dto.NotificationResponse;
 import com.remon.notification.entity.Notification;
 import com.remon.notification.entity.NotificationType;
@@ -50,35 +52,31 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationResponse> getMyNotifications(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public NotificationResponse markAsRead(String email, Long notificationId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NoSuchElementException("알림을 찾을 수 없습니다. id=" + notificationId));
         if (!notification.getReceiverId().equals(user.getId())) {
-            throw new IllegalStateException("접근 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.ACCESS_DENIED, "접근 권한이 없습니다.");
         }
         notification.markAsRead();
         return toResponse(notification);
     }
 
     public void markAllAsRead(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         notificationRepository.markAllAsReadByReceiverId(user.getId());
     }
 
     @Transactional(readOnly = true)
     public long getUnreadCount(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         return notificationRepository.countByReceiverIdAndIsReadFalse(user.getId());
     }
 

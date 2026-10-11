@@ -77,6 +77,11 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    /** 이메일로 사용자 조회 — 없으면 UserNotFoundException(404) */
+    public User getByEmail(String email) {
+        return userRepository.getByEmail(email);
+    }
+
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
@@ -90,8 +95,7 @@ public class UserService {
     }
 
     public void updateNickname(String email, String nickname) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         if (!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) {
             throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
@@ -120,8 +124,7 @@ public class UserService {
 
     public void deleteAccount(String email) {
         log.info("회원 탈퇴 요청: {}", MaskingUtil.maskEmail(email));
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         userBookRepository.deleteByUserId(user.getId());
         userRepository.delete(user);
         log.info("회원 탈퇴 완료: {}", MaskingUtil.maskEmail(email));

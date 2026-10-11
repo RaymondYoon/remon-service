@@ -1,6 +1,9 @@
 package com.remon.user.controller;
 
 import com.remon.security.JwtTokenProvider;
+import com.remon.user.dto.CodeExchangeRequest;
+import com.remon.user.dto.MessageResponse;
+import com.remon.user.dto.OAuthTokenResponse;
 import com.remon.user.entity.RefreshToken;
 import com.remon.user.entity.User;
 import com.remon.user.service.KakaoAuthService;
@@ -14,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -83,16 +85,16 @@ public class KakaoAuthController {
      * Response: { "accessToken": "...", "refreshToken": "...", "email": "..." }
      */
     @PostMapping("/code-exchange")
-    public ResponseEntity<?> codeExchange(@RequestBody Map<String, String> body) {
-        String code = body.get("code");
+    public ResponseEntity<?> codeExchange(@RequestBody CodeExchangeRequest body) {
+        String code = body.code();
         if (code == null || code.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "코드가 필요합니다."));
+            return ResponseEntity.badRequest().body(new MessageResponse("코드가 필요합니다."));
         }
         try {
-            Map<String, String> tokens = oAuthCodeService.exchangeCode(code);
+            OAuthTokenResponse tokens = oAuthCodeService.exchangeCode(code);
             return ResponseEntity.ok(tokens);
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 }

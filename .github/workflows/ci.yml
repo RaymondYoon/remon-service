@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend:
-    name: Backend Build
+    name: Backend Build & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -32,8 +32,19 @@ jobs:
           key: gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
-      - name: Build with Gradle
-        run: ./gradlew build -x test
+      # 테스트는 H2 인메모리 DB(src/test/resources/application.properties)로 실행 — 외부 DB/Redis/API 키 불필요
+      - name: Build and test with Gradle
+        run: ./gradlew build
+
+      - name: Upload test & coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/build/reports/tests/test
+            backend/build/reports/jacoco/test
+          retention-days: 7
 
   frontend:
     name: Frontend Build

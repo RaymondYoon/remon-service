@@ -1,12 +1,13 @@
 package com.remon.user.service;
 
+import com.remon.user.dto.OAuthTokenResponse;
+
 import com.remon.user.entity.OAuthCode;
 import com.remon.user.repository.OAuthCodeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -35,7 +36,7 @@ public class OAuthCodeService {
         return code;
     }
 
-    public Map<String, String> exchangeCode(String code) {
+    public OAuthTokenResponse exchangeCode(String code) {
         OAuthCode oAuthCode = oAuthCodeRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalStateException("유효하지 않은 코드입니다."));
 
@@ -49,10 +50,6 @@ public class OAuthCodeService {
         String email = oAuthCode.getEmail();
         oAuthCodeRepository.delete(oAuthCode);
 
-        return Map.of(
-                "accessToken", accessToken,
-                "refreshToken", refreshToken,
-                "email", email
-        );
+        return new OAuthTokenResponse(accessToken, refreshToken, email);
     }
 }

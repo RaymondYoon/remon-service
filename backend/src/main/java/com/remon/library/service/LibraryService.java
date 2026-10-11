@@ -1,5 +1,6 @@
 package com.remon.library.service;
 
+import com.remon.exception.BookNotFoundException;
 import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
 import com.remon.library.dto.LibraryRequest;
@@ -29,11 +30,10 @@ public class LibraryService {
     private final BookRepository bookRepository;
 
     public LibraryResponse addToLibrary(String email, LibraryRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + request.getBookId()));
+                .orElseThrow(() -> new BookNotFoundException(request.getBookId()));
 
         if (userBookRepository.existsByUserIdAndBookId(user.getId(), book.getId())) {
             throw new IllegalStateException("이미 서재에 담긴 책입니다.");
@@ -49,8 +49,7 @@ public class LibraryService {
 
     @Transactional(readOnly = true)
     public List<LibraryResponse> getMyLibrary(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         return userBookRepository.findByUserId(user.getId()).stream()
                 .map(LibraryResponse::from)
@@ -58,8 +57,7 @@ public class LibraryService {
     }
 
     public LibraryResponse updateStatus(String email, Long bookId, UpdateStatusRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         UserBook userBook = userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
                 .orElseThrow(() -> new NoSuchElementException("서재에 없는 책입니다. bookId=" + bookId));
@@ -73,8 +71,7 @@ public class LibraryService {
      * SAVED 상태면 READING으로 변경, 이미 READING/DONE이면 그대로 유지.
      */
     public void startReading(String email, Long bookId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
                 .ifPresentOrElse(
@@ -85,7 +82,7 @@ public class LibraryService {
                         },
                         () -> {
                             Book book = bookRepository.findById(bookId)
-                                    .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+                                    .orElseThrow(() -> new BookNotFoundException(bookId));
                             UserBook newEntry = UserBook.builder()
                                     .user(user)
                                     .book(book)
@@ -100,8 +97,7 @@ public class LibraryService {
      * 현재 읽은 페이지 저장. 서재에 없으면 무시.
      */
     public void savePage(String email, Long bookId, int page) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
                 .ifPresent(ub -> ub.updateLastReadPage(page));
@@ -111,8 +107,7 @@ public class LibraryService {
      * 마지막 페이지 도달 시 DONE 처리. 서재에 없으면 무시.
      */
     public void markAsDone(String email, Long bookId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
                 .ifPresent(ub -> ub.updateStatus(ReadingStatus.DONE));
@@ -120,8 +115,7 @@ public class LibraryService {
 
     @Transactional(readOnly = true)
     public List<Long> getMyBookIds(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         return userBookRepository.findByUserId(user.getId()).stream()
                 .map(ub -> ub.getBook().getId())
                 .toList();
@@ -129,8 +123,7 @@ public class LibraryService {
 
     @Transactional(readOnly = true)
     public List<Long> getMyReadingBookIds(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         return userBookRepository
                 .findByUserIdAndStatusIn(user.getId(), Set.of(ReadingStatus.READING, ReadingStatus.DONE))
                 .stream()
@@ -139,8 +132,7 @@ public class LibraryService {
     }
 
     public void deleteFromLibrary(String email, Long bookId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
 
         UserBook userBook = userBookRepository.findByUserIdAndBookId(user.getId(), bookId)
                 .orElseThrow(() -> new NoSuchElementException("서재에 없는 책입니다. bookId=" + bookId));
