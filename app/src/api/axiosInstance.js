@@ -1,7 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://remon-service-production.up.railway.app';
+// API 주소: EXPO_PUBLIC_API_URL 환경변수 (app/.env 또는 EAS 환경변수) — 없으면 운영 서버
+// Expo가 번들 시점에 process.env.EXPO_PUBLIC_* 를 인라인하므로 반드시 이 형태 그대로 참조해야 한다.
+const DEFAULT_API_URL = 'https://remon-service-production.up.railway.app';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_URL;
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

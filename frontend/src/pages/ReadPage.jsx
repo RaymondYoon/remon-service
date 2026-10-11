@@ -1,150 +1,12 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import HTMLFlipBook from "react-pageflip";
 import { getBookById, startReading, savePage, markAsDone } from "../api/bookApi";
 import { isLoggedIn, getUser } from "../utils/auth";
+import usePagination from "../hooks/usePagination";
 import "./ReadPage.css";
 
 const SAVE_DEBOUNCE_MS = 1500;
-
-function cleanContent(text) {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/\*(.+?)\*/g, "$1")
-    .replace(/^[ \t]*[*-]{3,}[ \t]*$/gm, "")
-    .replace(/^[ \t]*\.\.\.[ \t]*$/gm, "…")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-function binarySearchSplit(probe, text, maxH, makeP) {
-  let lo = 0, hi = text.length, best = 0;
-  while (lo <= hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    probe.innerHTML = "";
-    probe.appendChild(makeP(text.slice(0, mid)));
-    if (probe.offsetHeight <= maxH) { best = mid; lo = mid + 1; }
-    else hi = mid - 1;
-  }
-  let cut = best;
-  if (cut > 0 && cut < text.length) {
-    const sp = text.lastIndexOf(" ", cut);
-    if (sp > 0) cut = sp;
-  }
-  return {
-    front: text.slice(0, cut).trimEnd(),
-    back: text.slice(cut).trimStart(),
-  };
-}
-
-// 문단을 문장 단위로 분리 (마침표·느낌표·물음표·… 뒤 공백 기준)
-function splitSentences(text) {
-  return text.split(/(?<=[.!?…])\s+/).filter((s) => s.trim().length > 0);
-}
-
-// 실제 .flip-page-content 높이(contentEl.clientHeight) 기준으로 페이지 분할
-function buildPagesByContentBox(content, contentEl) {
-  if (!content || !contentEl) return [];
-
-  const maxH = contentEl.clientHeight;
-  if (maxH < 20) return [];
-
-  const cleaned = cleanContent(content);
-  const paragraphs = cleaned
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0);
-  if (paragraphs.length === 0) return [];
-
-  const probe = document.createElement("div");
-  probe.className = "read-page-probe";
-  probe.style.width = "100%";
-  contentEl.appendChild(probe);
-
-  const makeP = (text) => {
-    const el = document.createElement("p");
-    el.className = "read-para";
-    el.textContent = text;
-    return el;
-  };
-
-  // probe를 items 배열 내용으로 재구성
-  const rebuildProbe = (items) => {
-    probe.innerHTML = "";
-    items.forEach((item) => probe.appendChild(makeP(item)));
-  };
-
-  const pages = [];
-  let current = [];
-  const queue = [...paragraphs];
-
-  while (queue.length > 0) {
-    const para = queue.shift();
-    probe.appendChild(makeP(para));
-
-    if (probe.offsetHeight <= maxH) {
-      current.push(para);
-    } else {
-      probe.removeChild(probe.lastChild);
-
-      if (current.length === 0) {
-        // 빈 페이지에서도 안 들어감 — 문자 단위 이진 탐색으로 분할
-        const split = binarySearchSplit(probe, para, maxH, makeP);
-        if (split.front.length > 0) {
-          pages.push([split.front]);
-          probe.innerHTML = "";
-          current = [];
-          if (split.back.length > 0) queue.unshift(split.back);
-        } else {
-          pages.push([para]);
-          probe.innerHTML = "";
-          current = [];
-        }
-      } else {
-        // 현재 페이지에 내용이 있음 — 문장 단위로 쪼개서 빈 공간 채우기
-        const sentences = splitSentences(para);
-        let fittedCount = 0;
-
-        if (sentences.length > 1) {
-          for (let i = 1; i <= sentences.length; i++) {
-            const partial = sentences.slice(0, i).join(" ");
-            rebuildProbe([...current, partial]);
-            if (probe.offsetHeight <= maxH) {
-              fittedCount = i;
-            } else {
-              break;
-            }
-          }
-        }
-
-        if (fittedCount > 0 && fittedCount < sentences.length) {
-          // 일부 문장만 현재 페이지에 들어감 — 현재 페이지 채우고 나머지는 다음 페이지로
-          const frontText = sentences.slice(0, fittedCount).join(" ");
-          const backText = sentences.slice(fittedCount).join(" ");
-          current.push(frontText);
-          pages.push([...current]);
-          probe.innerHTML = "";
-          current = [];
-          if (backText.trim()) queue.unshift(backText);
-        } else if (fittedCount === sentences.length) {
-          // 문장 재결합 시 전체 들어감 (원본과 미세한 차이)
-          current.push(sentences.join(" "));
-          rebuildProbe(current);
-        } else {
-          // 한 문장도 안 들어감 — 현재 페이지 확정, 다음 페이지에서 재시도
-          pages.push([...current]);
-          probe.innerHTML = "";
-          current = [];
-          queue.unshift(para);
-        }
-      }
-    }
-  }
-
-  if (current.length > 0) pages.push(current);
-  contentEl.removeChild(probe);
-  return pages;
-}
 
 const LS_KEY = (email, bookId) =>
   email ? `remon_page_${email}_${bookId}` : `remon_page_${bookId}`;
@@ -181,30 +43,6 @@ function PageMeasureFrame({ dim, contentMeasureRef }) {
   );
 }
 
-const VERTICAL_CHROME = 230; // 헤더+진행바+네비+패딩 합산 + 15px 여유 버퍼
-const MIN_PAGE_HEIGHT = 500;
-
-function getPageDimensions() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const clientW = document.documentElement.clientWidth;
-  if (vw <= 640) {
-    const w = clientW - 16;
-    const h = vh - 220; // 모바일 안전마진 (기존 200 → 220)
-    return { width: w, height: h, isMobile: true };
-  }
-  const maxH = Math.max(vh - VERTICAL_CHROME, MIN_PAGE_HEIGHT);
-  // 1400px 이상 대형 화면: 책 전체 너비를 화면의 58% (최대 950px)로 확장
-  const pageWidth = vw >= 1400
-    ? Math.floor(Math.min(vw * 0.58, 950) / 2)
-    : Math.max(260, Math.min(400, Math.floor((vw - 48) / 2)));
-  return { width: pageWidth, height: maxH, isMobile: false };
-}
-
-function setRealVh() {
-  document.documentElement.style.setProperty("--real-vh", `${window.innerHeight * 0.01}px`);
-}
-
 const ReadPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -215,25 +53,30 @@ const ReadPage = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pages, setPages] = useState([]);
-  const [pagesReady, setPagesReady] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [dim, setDim] = useState(() => getPageDimensions());
 
   const bookRef = useRef(null);
   const saveTimer = useRef(null);
-  const totalPagesRef = useRef(0);
-  const currentPageRef = useRef(0); // 리사이즈 시 비율 기반 페이지 복원용
-  const contentMeasureRef = useRef(null);
-  const initialPageSetRef = useRef(false);
   const loggedIn = isLoggedIn();
   const userEmail = getUser()?.email ?? null;
 
+  const {
+    pages,
+    pagesReady,
+    currentPage,
+    goToPage,
+    dim,
+    contentMeasureRef,
+    totalPagesRef,
+    resetPagination,
+  } = usePagination({
+    content: book?.content,
+    ready: !loading,
+    storageKey: LS_KEY(userEmail, id),
+    initialPage,
+  });
+
   useEffect(() => {
-    initialPageSetRef.current = false;
-    setPagesReady(false);
-    setPages([]);
-    setCurrentPage(0);
+    resetPagination();
 
     const fetchBook = async () => {
       setLoading(true);
@@ -252,67 +95,10 @@ const ReadPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // 렌더된 본문 칸 높이를 측정한 뒤 페이지 분할 (기종·뷰포트마다 자동 반영)
-  useLayoutEffect(() => {
-    if (loading || !book?.content) return;
-
-    let cancelled = false;
-
-    const paginate = () => {
-      if (cancelled) return;
-
-      const contentEl = contentMeasureRef.current;
-      if (!contentEl) {
-        requestAnimationFrame(paginate);
-        return;
-      }
-
-      const maxH = contentEl.clientHeight;
-      if (maxH < 40) {
-        requestAnimationFrame(paginate);
-        return;
-      }
-
-      const built = buildPagesByContentBox(book.content, contentEl);
-      if (cancelled) return;
-
-      const prevTotal = totalPagesRef.current; // 비율 계산용 이전 총 페이지 수
-      setPages(built);
-      totalPagesRef.current = built.length;
-      setPagesReady(true);
-
-      if (!initialPageSetRef.current) {
-        initialPageSetRef.current = true;
-        const lsPage = parseInt(localStorage.getItem(LS_KEY(userEmail, id)) ?? "", 10);
-        const sp =
-          initialPage != null
-            ? Math.min(initialPage, Math.max(built.length - 1, 0))
-            : !isNaN(lsPage)
-            ? Math.min(lsPage, Math.max(built.length - 1, 0))
-            : 0;
-        setCurrentPage(sp);
-        currentPageRef.current = sp;
-      } else {
-        // 리사이즈 시 읽던 위치를 진행률 기준으로 유지
-        const progress = prevTotal > 1 ? currentPageRef.current / (prevTotal - 1) : 0;
-        const newPage = Math.round(progress * Math.max(0, built.length - 1));
-        const clamped = Math.min(newPage, Math.max(0, built.length - 1));
-        setCurrentPage(clamped);
-        currentPageRef.current = clamped;
-      }
-    };
-
-    paginate();
-    return () => {
-      cancelled = true;
-    };
-  }, [book, dim, loading, id, initialPage, userEmail]);
-
   const onFlip = useCallback(
     (e) => {
       const page = e.data;
-      setCurrentPage(page);
-      currentPageRef.current = page;
+      goToPage(page);
       localStorage.setItem(LS_KEY(userEmail, id), String(page));
 
       if (loggedIn) {
@@ -324,7 +110,7 @@ const ReadPage = () => {
         );
       }
     },
-    [id, loggedIn, userEmail]
+    [id, loggedIn, userEmail, goToPage, totalPagesRef]
   );
 
   const goNext = useCallback(() => bookRef.current?.pageFlip().flipNext(), []);
@@ -338,32 +124,6 @@ const ReadPage = () => {
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [goNext, goPrev]);
-
-  useEffect(() => {
-    setRealVh();
-    window.addEventListener("resize", setRealVh);
-    window.addEventListener("orientationchange", setRealVh);
-    return () => {
-      window.removeEventListener("resize", setRealVh);
-      window.removeEventListener("orientationchange", setRealVh);
-    };
-  }, []);
-
-  useEffect(() => {
-    let timer;
-    const handleResize = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        setPagesReady(false);
-        setDim(getPageDimensions());
-      }, 300);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(timer);
-    };
-  }, []);
 
   if (loading) {
     return (
