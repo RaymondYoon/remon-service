@@ -6,6 +6,7 @@ import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import com.remon.follow.repository.FollowRepository;
 import com.remon.lemon.service.LemonService;
+import com.remon.notification.repository.NotificationRepository;
 import com.remon.library.repository.UserBookRepository;
 import com.remon.review.repository.ReviewRepository;
 import com.remon.user.entity.Role;
@@ -29,10 +30,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BookServiceGenerateTest {
+class BookServiceTest {
 
     @Mock private BookRepository bookRepository;
-    @Mock private OpenAiService openAiService;
+    @Mock private NotificationRepository notificationRepository;
     @Mock private UserRepository userRepository;
     @Mock private UserBookRepository userBookRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
@@ -69,6 +70,35 @@ class BookServiceGenerateTest {
         verify(eventPublisher).publishEvent(event.capture());
         assertThat(event.getValue().bookId()).isEqualTo(42L);
         assertThat(event.getValue().prompt().keywords()).containsExactly("우주");
-        verifyNoInteractions(openAiService);
+    }
+
+    @Test
+    @DisplayName("deleteMyBook - 리뷰·서재·알림을 함께 지우고 표지 정리 이벤트를 발행한다")
+    void deleteMyBook_연관데이터_정리() {
+        User owner = User.builder().id(7L).email("a@b.c").role(Role.USER).build();
+        Book book = Book.builder().id(42L).publishedBy(7L).coverImageUrl("https://res.cloudinary.com/x/image/upload/book-42.png").build();
+        when(userRepository.findByEmail("a@b.c")).thenReturn(Optional.of(owner));
+        when(bookRepository.findById(42L)).thenReturn(Optional.of(book));
+
+        bookService.deleteMyBook("a@b.c", 42L);
+
+        verify(reviewRepository).deleteByBookId(42L);
+        verify(userBookRepository).deleteByBookId(42L);
+        verify(notificationRepository).deleteByBookId(42L);
+        verify(bookRepository).delete(book);
+        verify(eventPublisher).publishEvent(new BookDeletedEvent(42L, book.getCoverImageUrl()));
+    }
+
+    @Test
+    @DisplayName("deleteMyBook - 남의 책은 삭제할 수 없다")
+    void deleteMyBook_권한_없음() {
+        User other = User.builder().id(8L).email("x@y.z").role(Role.USER).build();
+        Book book = Book.builder().id(42L).publishedBy(7L).build();
+        when(userRepository.findByEmail("x@y.z")).thenReturn(Optional.of(other));
+        when(bookRepository.findById(42L)).thenReturn(Optional.of(book));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> bookService.deleteMyBook("x@y.z", 42L))
+                .isInstanceOf(IllegalStateException.class);
+        verify(bookRepository, never()).delete(any());
     }
 }

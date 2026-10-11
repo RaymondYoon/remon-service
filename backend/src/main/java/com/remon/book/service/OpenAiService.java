@@ -71,7 +71,9 @@ public class OpenAiService {
                 )
         );
 
-        String url = apiUrl + "?key=" + apiKey;
+        // API 키는 쿼리스트링 대신 헤더로 전달 (URL이 예외 메시지·로그에 남아도 키가 노출되지 않도록)
+        headers.set("x-goog-api-key", apiKey);
+        String url = apiUrl;
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
         log.info("Gemini 요청 시작 - url: {}, keywords: {}, genre: {}, tone: {}, ending: {}, protagonistNamesProvided: {}",

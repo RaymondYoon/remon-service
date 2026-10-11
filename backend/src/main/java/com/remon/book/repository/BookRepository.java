@@ -146,7 +146,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             """)
     List<Book> findBooksSortedByViews(
             @Param("keyword") String keyword,
-            @Param("doneStatus") BookStatus doneStatus
+            @Param("doneStatus") BookStatus doneStatus,
+            Pageable pageable
     );
 
     @Cacheable("books-rating")
@@ -160,6 +161,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             """)
     List<Book> findBooksSortedByRating(
             @Param("keyword") String keyword,
-            @Param("doneStatus") BookStatus doneStatus
+            @Param("doneStatus") BookStatus doneStatus,
+            Pageable pageable
     );
 }

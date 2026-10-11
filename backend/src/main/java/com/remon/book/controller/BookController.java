@@ -1,7 +1,8 @@
 package com.remon.book.controller;
-//녹원 아파트?
+
 import com.remon.book.dto.BookRequest;
 import com.remon.book.dto.BookResponse;
+import com.remon.book.dto.BookSummaryResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
 import jakarta.validation.Valid;
@@ -19,6 +20,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
+    // 한 번에 조회할 수 있는 최대 개수 (과도한 size 요청으로 인한 부하 방지)
+    private static final int MAX_PAGE_SIZE = 50;
+
     private final BookService bookService;
 
     public BookController(BookService bookService){
@@ -36,14 +40,14 @@ public class BookController {
             @RequestParam(required = false) Integer page,
             @RequestParam(defaultValue = "12") int size) {
         if (page != null) {
-            PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+            PageRequest pageable = PageRequest.of(page, clampSize(size), Sort.by(Sort.Direction.DESC, "id"));
             return bookService.getAllBooksPageable(keyword, pageable);
         }
         return bookService.getAllBooks(keyword);
     }
 
     @GetMapping("/my")
-    public List<BookResponse> getMyBooks(Authentication authentication) {
+    public List<BookSummaryResponse> getMyBooks(Authentication authentication) {
         return bookService.getMyBooks(authentication.getName());
     }
 
@@ -76,16 +80,20 @@ public class BookController {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "latest") String sort) {
-        return bookService.getBooksCursor(keyword, cursor, size, sort);
+        return bookService.getBooksCursor(keyword, cursor, clampSize(size), sort);
+    }
+
+    private static int clampSize(int size) {
+        return Math.max(1, Math.min(size, MAX_PAGE_SIZE));
     }
 
     @GetMapping("/explore")
-    public List<BookResponse> getExploreBooks() {
+    public List<BookSummaryResponse> getExploreBooks() {
         return bookService.getPublicBooks();
     }
 
     @GetMapping("/feed")
-    public List<BookResponse> getFeedBooks(Authentication authentication) {
+    public List<BookSummaryResponse> getFeedBooks(Authentication authentication) {
         return bookService.getFeedBooks(authentication.getName());
     }
 }

@@ -2,7 +2,7 @@ package com.remon.admin;
 
 import com.remon.book.repository.BookRepository;
 import com.remon.book.service.BookGenerationTask;
-import com.remon.library.repository.UserBookRepository;
+import com.remon.book.service.BookService;
 import com.remon.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,19 +23,13 @@ public class AdminController {
 
     private final BookRepository bookRepository;
     private final ReviewRepository reviewRepository;
-    private final UserBookRepository userBookRepository;
+    private final BookService bookService;
     private final BookGenerationTask bookGenerationTask;
 
     @DeleteMapping("/books/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Transactional
     public void deleteBook(@PathVariable Long id) {
-        if (!bookRepository.existsById(id)) {
-            throw new NoSuchElementException("책을 찾을 수 없습니다. id=" + id);
-        }
-        reviewRepository.deleteByBookId(id);
-        userBookRepository.deleteByBookId(id);
-        bookRepository.deleteById(id);
+        bookService.deleteBookAsAdmin(id);
     }
 
     @DeleteMapping("/reviews/{id}")
