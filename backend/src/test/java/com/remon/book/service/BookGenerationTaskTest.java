@@ -138,6 +138,29 @@ class BookGenerationTaskTest {
     }
 
     @Test
+    @DisplayName("단일 표지 생성 성공 시 표지 URL 저장 + 정렬 캐시 무효화")
+    void generateCoverAsync_성공() {
+        when(coverImageGenerator.generateCoverImage("제목", "SF", "본문")).thenReturn(new byte[]{1});
+        when(cloudinaryService.uploadImage(any(), eq("book-" + BOOK_ID))).thenReturn("https://cdn.example.com/c.png");
+
+        bookGenerationTask.generateCoverAsync(BOOK_ID, "제목", "SF", "본문");
+
+        verify(bookRepository).updateCoverImageUrl(BOOK_ID, "https://cdn.example.com/c.png");
+        verify(cache, times(2)).clear();
+    }
+
+    @Test
+    @DisplayName("단일 표지 생성 실패 시 DB 를 건드리지 않는다")
+    void generateCoverAsync_실패() {
+        when(coverImageGenerator.generateCoverImage(any(), any(), any())).thenReturn(null);
+
+        bookGenerationTask.generateCoverAsync(BOOK_ID, "제목", "SF", "본문");
+
+        verify(bookRepository, never()).updateCoverImageUrl(anyLong(), any());
+        verifyNoInteractions(cache);
+    }
+
+    @Test
     @DisplayName("작업 큐가 가득 차 거절되면 즉시 FAILED + 환불")
     void onGenerationRequested_큐_거절_시_환불() {
         TaskExecutor rejecting = task -> { throw new TaskRejectedException("full"); };

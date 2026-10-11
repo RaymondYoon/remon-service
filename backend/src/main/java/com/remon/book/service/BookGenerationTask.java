@@ -115,17 +115,35 @@ public class BookGenerationTask {
         }
     }
 
-    private void saveCoverImage(Long bookId, String title, String genre, String content) {
+    /** @return 표지를 저장했으면 true */
+    private boolean saveCoverImage(Long bookId, String title, String genre, String content) {
         try {
             byte[] imageBytes = coverImageGenerator.generateCoverImage(title, genre, content);
-            if (imageBytes == null) return;
+            if (imageBytes == null) return false;
             String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
             if (coverImageUrl != null) {
                 bookRepository.updateCoverImageUrl(bookId, coverImageUrl);
                 log.info("표지 저장 완료 - bookId: {}, url: {}", bookId, coverImageUrl);
+                return true;
             }
         } catch (Exception e) {
             log.warn("표지 이미지 생성/업로드 실패 (책은 DONE 유지) - bookId: {}, message: {}", bookId, e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * 책 한 권의 표지를 (다시) 생성한다 — 관리자 API 용.
+     * 같은 Cloudinary public id(book-{id})로 올리므로 기존 표지가 있으면 덮어쓴다.
+     */
+    @Async
+    public void generateCoverAsync(Long bookId, String title, String genre, String content) {
+        log.info("단일 표지 생성 시작 - bookId: {}", bookId);
+        if (saveCoverImage(bookId, title, genre, content)) {
+            // 정렬 목록 캐시에 이전 표지 URL 이 남지 않도록 무효화
+            evictSortedBookCaches();
+        } else {
+            log.warn("단일 표지 생성 실패 - bookId: {}", bookId);
         }
     }
 

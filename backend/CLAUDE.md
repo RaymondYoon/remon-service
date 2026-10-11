@@ -170,6 +170,7 @@ com.remon/
 |--------|----------|------|------|
 | DELETE | `/api/admin/books/{id}` | 책 삭제 (관리자) | 필요 (ADMIN) |
 | DELETE | `/api/admin/reviews/{id}` | 리뷰 삭제 (관리자) | 필요 (ADMIN) |
+| POST | `/api/admin/books/{id}/cover` | 책 한 권 표지 (재)생성 — DONE 책만, 기존 표지 덮어씀 (202, 백그라운드) | 필요 (ADMIN) |
 | POST | `/api/admin/books/generate-covers` | 표지 없는 DONE 책 표지 일괄 생성 (202, 백그라운드) | 필요 (ADMIN) |
 
 ---

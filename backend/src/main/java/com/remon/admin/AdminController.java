@@ -30,6 +30,14 @@ public class AdminController {
         reviewService.deleteReviewAsAdmin(id);
     }
 
+    @PostMapping("/books/{id}/cover")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public CoverGenerationResponse generateCover(@PathVariable Long id) {
+        bookService.generateCover(id);
+        log.info("단일 표지 생성 요청 - bookId: {}", id);
+        return new CoverGenerationResponse(1, "백그라운드로 표지 생성을 시작했습니다. 1~3분 뒤 책 상세에서 확인하세요.");
+    }
+
     @PostMapping("/books/generate-covers")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public CoverGenerationResponse generateMissingCovers() {

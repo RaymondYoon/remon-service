@@ -8,6 +8,7 @@
 ## 2026-10-11 — 표지 생성 타임아웃 수정
 - gpt-image-1 표지 생성이 60초 읽기 타임아웃에 걸려 실패하던 문제 → 180초로 늘리고 설정값(`openai.image.timeout-ms`)으로 분리
 - 표지 품질 `auto` → `medium` (`openai.image.quality`) — 생성 시간·비용 절감
+- 관리자 단일 책 표지 (재)생성 API `POST /api/admin/books/{id}/cover` 추가
 
 ---
 

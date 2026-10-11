@@ -163,6 +163,19 @@ public class BookService {
     }
 
     /**
+     * 책 한 권의 표지를 백그라운드로 (다시) 생성한다 (관리자). 생성이 끝난(DONE) 책만 대상.
+     */
+    @Transactional(readOnly = true)
+    public void generateCover(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException(bookId));
+        if (book.getStatus() != BookStatus.DONE) {
+            throw new IllegalStateException("생성이 완료된 책만 표지를 만들 수 있습니다. status=" + book.getStatus());
+        }
+        bookGenerationTask.generateCoverAsync(book.getId(), book.getTitle(), book.getGenre(), book.getContent());
+    }
+
+    /**
      * 책과 연관 데이터(리뷰·서재·알림)를 삭제하고, 커밋 후 Cloudinary 표지 삭제를 위해 이벤트를 발행한다.
      */
     private void deleteWithRelations(Book book) {
