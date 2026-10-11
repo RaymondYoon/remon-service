@@ -5,7 +5,13 @@
 
 ---
 
-## [Unreleased] — `refactor/stabilize-and-cleanup`
+## 2026-10-11 — 표지 생성 타임아웃 수정
+- gpt-image-1 표지 생성이 60초 읽기 타임아웃에 걸려 실패하던 문제 → 180초로 늘리고 설정값(`openai.image.timeout-ms`)으로 분리
+- 표지 품질 `auto` → `medium` (`openai.image.quality`) — 생성 시간·비용 절감
+
+---
+
+## 2026-10-11 — `refactor/stabilize-and-cleanup` (PR #1)
 
 ### 안정화 (책 생성)
 - 책 생성 비동기 작업을 트랜잭션 커밋 후(`@TransactionalEventListener(AFTER_COMMIT)`)에만 시작 — 커밋 전 비동기 스레드가 상태를 갱신하던 경쟁 조건 제거

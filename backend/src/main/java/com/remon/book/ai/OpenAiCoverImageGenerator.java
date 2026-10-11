@@ -24,13 +24,22 @@ public class OpenAiCoverImageGenerator implements CoverImageGenerator {
     @Value("${openai.api-key}")
     private String openaiApiKey;
 
-    private final RestTemplate restTemplate;
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
 
-    public OpenAiCoverImageGenerator() {
+    private final RestTemplate restTemplate;
+    private final String quality;
+
+    /**
+     * @param readTimeoutMs gpt-image-1 세로 이미지(1024x1536)는 60초를 넘기는 경우가 많아 기본 180초
+     * @param quality       low | medium | high | auto — 기본 medium (표지 크기에서 품질 차이는 작고 더 빠르고 저렴)
+     */
+    public OpenAiCoverImageGenerator(@Value("${openai.image.timeout-ms:180000}") int readTimeoutMs,
+                                     @Value("${openai.image.quality:medium}") String quality) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000);
-        factory.setReadTimeout(60000);
+        factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        factory.setReadTimeout(readTimeoutMs);
         this.restTemplate = new RestTemplate(factory);
+        this.quality = quality;
     }
 
     @Override
@@ -51,7 +60,7 @@ public class OpenAiCoverImageGenerator implements CoverImageGenerator {
                     "prompt", prompt,
                     "n", 1,
                     "size", "1024x1536",
-                    "quality", "auto"
+                    "quality", quality
             );
 
             HttpHeaders headers = new HttpHeaders();

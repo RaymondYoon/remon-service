@@ -226,6 +226,7 @@ Authorization: Bearer <token>
 - AI 모델: `gemini-2.5-flash` (연결 10초 / 읽기 `gemini.timeout-ms`=120초, 500·503 은 3초 간격 최대 3회 시도), API 키는 `x-goog-api-key` 헤더로 전달
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
 - 분량: 6000자 내외 고정 (프롬프트 지침: 5500자 이상 6500자 이내)
+- 표지: gpt-image-1, 1024x1536, `openai.image.quality`=medium, 읽기 타임아웃 `openai.image.timeout-ms`=180초 (실패해도 책은 DONE)
 - 생성 시 레몬 1개 소모 (서버측 처리)
 - **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 / 시놉시스·조연·다중 성격·다중 분위기 반영
 
