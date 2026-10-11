@@ -1,5 +1,8 @@
 package com.remon.review.service;
 
+import com.remon.exception.BookNotFoundException;
+import com.remon.exception.BusinessException;
+import com.remon.exception.ErrorCode;
 import com.remon.book.entity.Book;
 import com.remon.book.repository.BookRepository;
 import com.remon.notification.entity.NotificationType;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,10 +37,9 @@ public class ReviewService {
     }
 
     public ReviewResponse createReview(String email, Long bookId, ReviewRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+                .orElseThrow(() -> new BookNotFoundException(bookId));
         if (reviewRepository.existsByBookIdAndUserId(bookId, user.getId())) {
             throw new IllegalStateException("이미 리뷰를 작성했습니다.");
         }
@@ -64,16 +65,22 @@ public class ReviewService {
     }
 
     public void deleteReview(String email, Long bookId, Long reviewId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new NoSuchElementException("리뷰를 찾을 수 없습니다. id=" + reviewId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND, "리뷰를 찾을 수 없습니다. id=" + reviewId));
         if (!review.getBook().getId().equals(bookId)) {
             throw new IllegalArgumentException("해당 책의 리뷰가 아닙니다.");
         }
         if (!review.getUser().getId().equals(user.getId())) {
-            throw new IllegalStateException("삭제 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.ACCESS_DENIED, "삭제 권한이 없습니다.");
         }
+        reviewRepository.delete(review);
+    }
+
+    /** 관리자 리뷰 삭제 — 작성자 확인 없이 삭제 */
+    public void deleteReviewAsAdmin(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND, "리뷰를 찾을 수 없습니다. id=" + reviewId));
         reviewRepository.delete(review);
     }
 

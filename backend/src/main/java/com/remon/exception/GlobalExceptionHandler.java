@@ -1,6 +1,7 @@
 package com.remon.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,19 +15,29 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     /**
+     * 도메인 예외 → ErrorCode 에 정의된 상태 코드
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e) {
+        ErrorCode code = e.getErrorCode();
+        return ResponseEntity.status(code.getStatus()).body(ErrorResponse.of(code, e.getMessage()));
+    }
+
+    /**
      * @Valid 검증 실패 (이메일 형식, 비밀번호 길이, 빈값 등)
      * → 400 Bad Request
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, Object> handleValidation(MethodArgumentNotValidException e) {
+    public ErrorResponse handleValidation(MethodArgumentNotValidException e) {
         Map<String, String> fieldErrors = e.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         fe -> fe.getField(),
                         fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "유효하지 않은 값입니다.",
                         (existing, duplicate) -> existing
                 ));
-        return Map.of("error", "입력값 검증 실패", "fields", fieldErrors);
+        ErrorCode code = ErrorCode.VALIDATION_FAILED;
+        return new ErrorResponse(code.getDefaultMessage(), code.name(), fieldErrors);
     }
 
     /**
@@ -35,8 +46,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalStateException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleIllegalState(IllegalStateException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleIllegalState(IllegalStateException e) {
+        return ErrorResponse.of(ErrorCode.INVALID_REQUEST, e.getMessage());
     }
 
     /**
@@ -45,17 +56,17 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleIllegalArgument(IllegalArgumentException e) {
+        return ErrorResponse.of(ErrorCode.INVALID_REQUEST, e.getMessage());
     }
 
     /**
-     * 리소스 없음 (존재하지 않는 책 id 등)
+     * 리소스 없음
      * → 404 Not Found
      */
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNoSuchElement(NoSuchElementException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleNoSuchElement(NoSuchElementException e) {
+        return ErrorResponse.of(ErrorCode.NOT_FOUND, e.getMessage());
     }
 }

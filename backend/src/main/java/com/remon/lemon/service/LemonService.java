@@ -1,5 +1,7 @@
 package com.remon.lemon.service;
 
+import com.remon.exception.BusinessException;
+import com.remon.exception.ErrorCode;
 import com.remon.lemon.dto.LemonResponse;
 import com.remon.lemon.entity.UserLemon;
 import com.remon.lemon.repository.UserLemonRepository;
@@ -49,7 +51,7 @@ public class LemonService {
 
         // 차감 전 잔량 재확인
         if (lemon.getLemonCount() < 1) {
-            throw new IllegalStateException("레몬이 부족합니다. 내일 다시 충전됩니다.");
+            throw new BusinessException(ErrorCode.LEMON_INSUFFICIENT);
         }
         lemon.setLemonCount(lemon.getLemonCount() - 1);
     }
@@ -81,7 +83,6 @@ public class LemonService {
     }
 
     private User findUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        return userRepository.getByEmail(email);
     }
 }

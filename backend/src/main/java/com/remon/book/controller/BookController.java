@@ -1,7 +1,9 @@
 package com.remon.book.controller;
 
 import com.remon.book.dto.BookRequest;
+import com.remon.book.dto.BookCursorResponse;
 import com.remon.book.dto.BookResponse;
+import com.remon.book.dto.BookStatusResponse;
 import com.remon.book.dto.BookSummaryResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.service.BookService;
@@ -15,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
@@ -64,7 +65,7 @@ public class BookController {
     }
 
     @GetMapping("/{id}/status")
-    public Map<String, String> getBookStatus(@PathVariable Long id) {
+    public BookStatusResponse getBookStatus(@PathVariable Long id) {
         return bookService.getBookStatus(id);
     }
 
@@ -75,7 +76,7 @@ public class BookController {
     }
 
     @GetMapping("/cursor")
-    public Map<String, Object> getBooksCursor(
+    public BookCursorResponse getBooksCursor(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "12") int size,

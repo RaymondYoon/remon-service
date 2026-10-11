@@ -1,4 +1,4 @@
-package com.remon.book.service;
+package com.remon.book.ai;
 
 import com.remon.book.dto.GenerateBookRequest;
 

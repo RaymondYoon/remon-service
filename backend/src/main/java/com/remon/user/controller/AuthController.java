@@ -1,6 +1,7 @@
 package com.remon.user.controller;
 
 import com.remon.security.JwtTokenProvider;
+import com.remon.user.dto.AccessTokenResponse;
 import com.remon.user.dto.RefreshRequest;
 import com.remon.user.entity.RefreshToken;
 import com.remon.user.entity.User;
@@ -9,7 +10,6 @@ import com.remon.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,7 +34,7 @@ public class AuthController {
      * Response: { "accessToken": "..." }
      */
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(@RequestBody RefreshRequest request) {
+    public ResponseEntity<AccessTokenResponse> refresh(@RequestBody RefreshRequest request) {
         RefreshToken refreshToken = refreshTokenService.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new IllegalStateException("유효하지 않은 Refresh Token입니다."));
 
@@ -43,10 +43,9 @@ public class AuthController {
             throw new IllegalStateException("만료된 Refresh Token입니다. 다시 로그인해주세요.");
         }
 
-        User user = userService.findByEmail(refreshToken.getEmail())
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userService.getByEmail(refreshToken.getEmail());
 
         String newAccessToken = jwtTokenProvider.generateToken(user.getEmail(), user.getRole().name());
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        return ResponseEntity.ok(new AccessTokenResponse(newAccessToken));
     }
 }

@@ -1,4 +1,4 @@
-package com.remon.book.service;
+package com.remon.book.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,10 +18,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Google Gemini(generateContent) 기반 소설 텍스트 생성기.
+ * (이전 이름 OpenAiService — 실제로는 Gemini 를 호출하던 이름/역할 불일치를 정리)
+ */
 @Service
-public class OpenAiService {
+public class GeminiTextGenerator implements StoryTextGenerator {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenAiService.class);
+    private static final Logger log = LoggerFactory.getLogger(GeminiTextGenerator.class);
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -34,7 +38,7 @@ public class OpenAiService {
 
     private static final int CONNECT_TIMEOUT_MS = 10_000;
 
-    public OpenAiService(@Value("${gemini.timeout-ms:120000}") int readTimeoutMs) {
+    public GeminiTextGenerator(@Value("${gemini.timeout-ms:120000}") int readTimeoutMs) {
         // 타임아웃이 없으면 응답이 멈춘 요청이 생성 스레드(최대 5개)를 영원히 점유한다
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -47,9 +51,10 @@ public class OpenAiService {
      * Gemini generateContent API 호출.
      * 프롬프트에서 [TITLE] / [CONTENT] 구분자 형식으로 응답받는다.
      *
-     * @return 파싱된 결과 — result[0] = title, result[1] = content
+     * @return 파싱된 제목·본문
      */
-    public String[] generate(StoryPrompt storyPrompt) {
+    @Override
+    public GeneratedStory generate(StoryPrompt storyPrompt) {
         List<String> keywords = storyPrompt.keywords();
         String genre = storyPrompt.genre();
         List<String> tone = storyPrompt.tones();
@@ -251,7 +256,7 @@ public class OpenAiService {
 
     // ── 응답 파싱 ──────────────────────────────────────────────────────────
 
-    private String[] parseResponse(String responseBody) {
+    private GeneratedStory parseResponse(String responseBody) {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
             JsonNode candidates = root.path("candidates");
@@ -277,7 +282,7 @@ public class OpenAiService {
      * [TITLE] ~ [CONTENT] 구분자로 title/content 추출.
      * 파싱 실패 시 첫 줄을 title, 나머지를 content로 사용하는 fallback 적용.
      */
-    private String[] parseDelimited(String raw) {
+    private GeneratedStory parseDelimited(String raw) {
         Pattern pattern = Pattern.compile(
                 "\\[TITLE]\\s*(.+?)\\s*\\[CONTENT]\\s*(.+)",
                 Pattern.DOTALL | Pattern.CASE_INSENSITIVE
@@ -289,7 +294,7 @@ public class OpenAiService {
             String content = matcher.group(2).strip();
             if (!title.isBlank() && !content.isBlank()) {
                 log.info("구분자 파싱 성공 - title: '{}', contentLength: {}", title, content.length());
-                return new String[]{title, content};
+                return new GeneratedStory(title, content);
             }
         }
 
@@ -303,6 +308,6 @@ public class OpenAiService {
         if (title.isBlank() || content.isBlank()) {
             throw new RuntimeException("AI 응답에서 title 또는 content를 추출할 수 없습니다. raw: " + raw);
         }
-        return new String[]{title, content};
+        return new GeneratedStory(title, content);
     }
 }

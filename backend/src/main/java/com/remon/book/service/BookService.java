@@ -1,7 +1,13 @@
 package com.remon.book.service;
 
+import com.remon.exception.BookNotFoundException;
+import com.remon.exception.BusinessException;
+import com.remon.exception.ErrorCode;
+import com.remon.book.ai.StoryPrompt;
 import com.remon.book.dto.BookRequest;
+import com.remon.book.dto.BookCursorResponse;
 import com.remon.book.dto.BookResponse;
+import com.remon.book.dto.BookStatusResponse;
 import com.remon.book.dto.BookSummaryResponse;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
@@ -28,7 +34,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,12 +47,13 @@ public class BookService {
     private final ReviewRepository reviewRepository;
     private final NotificationRepository notificationRepository;
     private final LemonService lemonService;
+    private final BookGenerationTask bookGenerationTask;
 
     public BookService(BookRepository bookRepository,
                        UserRepository userRepository, UserBookRepository userBookRepository,
                        ApplicationEventPublisher eventPublisher, FollowRepository followRepository,
                        ReviewRepository reviewRepository, NotificationRepository notificationRepository,
-                       LemonService lemonService) {
+                       LemonService lemonService, BookGenerationTask bookGenerationTask) {
         this.bookRepository         = bookRepository;
         this.userRepository         = userRepository;
         this.userBookRepository     = userBookRepository;
@@ -56,6 +62,7 @@ public class BookService {
         this.reviewRepository       = reviewRepository;
         this.notificationRepository = notificationRepository;
         this.lemonService           = lemonService;
+        this.bookGenerationTask     = bookGenerationTask;
     }
 
     public BookResponse createBook(BookRequest request){
@@ -80,8 +87,7 @@ public class BookService {
 
         lemonService.consumeLemon(email);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         String author = (user.getNickname() != null && !user.getNickname().isBlank())
                 ? user.getNickname() : "Remon AI";
 
@@ -105,42 +111,34 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, String> getBookStatus(Long id) {
+    public BookStatusResponse getBookStatus(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
-        String status = book.getStatus() != null ? book.getStatus().name() : BookStatus.DONE.name();
-        String step;
-        if ("DONE".equals(status)) {
-            step = "DONE";
-        } else if ("FAILED".equals(status)) {
-            step = "FAILED";
-        } else if ("GENERATING".equals(status)) {
-            step = (book.getContent() != null && !book.getContent().isBlank()) ? "IMAGE" : "TEXT";
-        } else {
-            step = "TEXT";
-        }
-        Map<String, String> result = new HashMap<>();
-        result.put("status", status);
-        result.put("step", step);
-        return result;
+                .orElseThrow(() -> new BookNotFoundException(id));
+        BookStatus status = book.getStatus() != null ? book.getStatus() : BookStatus.DONE;
+        String step = switch (status) {
+            case DONE -> "DONE";
+            case FAILED -> "FAILED";
+            // 본문이 저장됐으면 표지 생성 단계
+            case GENERATING -> (book.getContent() != null && !book.getContent().isBlank()) ? "IMAGE" : "TEXT";
+            case PENDING -> "TEXT";
+        };
+        return new BookStatusResponse(status.name(), step);
     }
 
     @Transactional(readOnly = true)
     public List<BookSummaryResponse> getMyBooks(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         return toSummaries(bookRepository.findMyGeneratedBooks(user.getId()), false);
     }
 
     /** 본인이 만든 책 삭제 */
     @CacheEvict(value = {"books-rating", "books-views"}, allEntries = true)
     public void deleteMyBook(String email, Long bookId) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+                .orElseThrow(() -> new BookNotFoundException(bookId));
         if (!user.getId().equals(book.getPublishedBy())) {
-            throw new IllegalStateException("삭제 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.ACCESS_DENIED, "삭제 권한이 없습니다.");
         }
         deleteWithRelations(book);
     }
@@ -149,8 +147,19 @@ public class BookService {
     @CacheEvict(value = {"books-rating", "books-views"}, allEntries = true)
     public void deleteBookAsAdmin(Long bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + bookId));
+                .orElseThrow(() -> new BookNotFoundException(bookId));
         deleteWithRelations(book);
+    }
+
+    /**
+     * 표지가 없는 DONE 책 전체에 대해 백그라운드 표지 생성을 시작한다 (관리자).
+     * @return 대상 책 수
+     */
+    @Transactional(readOnly = true)
+    public int generateMissingCovers() {
+        int queued = bookRepository.findByStatusAndNoCover(BookStatus.DONE).size();
+        bookGenerationTask.generateMissingCoversAsync();
+        return queued;
     }
 
     /**
@@ -171,7 +180,7 @@ public class BookService {
      */
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("책을 찾을 수 없습니다. id=" + id));
+                .orElseThrow(() -> new BookNotFoundException(id));
         bookRepository.incrementViewCount(id);
         Double avgRating = reviewRepository.findAverageRatingByBookId(id);
         return buildResponse(book, avgRating);
@@ -179,17 +188,12 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public List<BookSummaryResponse> getAllBooks(String keyword) {
-        List<Book> books = (keyword != null && !keyword.isBlank())
-                ? bookRepository.searchByKeywordAndDone(keyword, BookStatus.DONE)
-                : bookRepository.findAllDone(BookStatus.DONE);
-        return toSummaries(books, false);
+        return toSummaries(bookRepository.findVisibleBooks(normalizeKeyword(keyword), BookStatus.DONE), false);
     }
 
     @Transactional(readOnly = true)
     public Page<BookSummaryResponse> getAllBooksPageable(String keyword, Pageable pageable) {
-        Page<Book> page = (keyword != null && !keyword.isBlank())
-                ? bookRepository.searchByKeywordPageableAndDone(keyword, BookStatus.DONE, pageable)
-                : bookRepository.findAllDonePageable(BookStatus.DONE, pageable);
+        Page<Book> page = bookRepository.findVisibleBooksPage(normalizeKeyword(keyword), BookStatus.DONE, pageable);
         return new PageImpl<>(toSummaries(page.getContent(), false), pageable, page.getTotalElements());
     }
 
@@ -198,8 +202,8 @@ public class BookService {
      * rating / views: 상위 size 개만 반환 (hasMore=false) — 결과는 5분 캐시.
      */
     @Transactional(readOnly = true)
-    public Map<String, Object> getBooksCursor(String keyword, Long cursor, int size, String sort) {
-        String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+    public BookCursorResponse getBooksCursor(String keyword, Long cursor, int size, String sort) {
+        String kw = normalizeKeyword(keyword);
         PageRequest limit = PageRequest.of(0, size);
         List<Book> books;
         Long nextCursor;
@@ -219,11 +223,7 @@ public class BookService {
             hasMore = books.size() == size;
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("books", toSummaries(books, false));
-        result.put("nextCursor", nextCursor);
-        result.put("hasMore", hasMore);
-        return result;
+        return new BookCursorResponse(toSummaries(books, false), nextCursor, hasMore);
     }
 
     @Transactional(readOnly = true)
@@ -233,11 +233,14 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public List<BookSummaryResponse> getFeedBooks(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User user = userRepository.getByEmail(email);
         List<Long> followingIds = followRepository.findFollowingIds(user.getId());
         if (followingIds.isEmpty()) return List.of();
         return toSummaries(bookRepository.findFeedBooks(followingIds), true);
+    }
+
+    private static String normalizeKeyword(String keyword) {
+        return (keyword != null && !keyword.isBlank()) ? keyword : null;
     }
 
     /** 평점(배치 조회)과 필요 시 작가 닉네임을 붙여 목록용 응답으로 변환 */

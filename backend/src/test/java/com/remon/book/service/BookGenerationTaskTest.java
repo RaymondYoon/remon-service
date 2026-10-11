@@ -1,5 +1,9 @@
 package com.remon.book.service;
 
+import com.remon.book.ai.CoverImageGenerator;
+import com.remon.book.ai.GeneratedStory;
+import com.remon.book.ai.StoryPrompt;
+import com.remon.book.ai.StoryTextGenerator;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
 import com.remon.notification.entity.NotificationType;
@@ -30,8 +34,8 @@ import static org.mockito.Mockito.*;
 class BookGenerationTaskTest {
 
     @Mock private BookRepository bookRepository;
-    @Mock private OpenAiService openAiService;
-    @Mock private ImagenService imagenService;
+    @Mock private StoryTextGenerator textGenerator;
+    @Mock private CoverImageGenerator coverImageGenerator;
     @Mock private CloudinaryService cloudinaryService;
     @Mock private NotificationService notificationService;
     @Mock private CacheManager cacheManager;
@@ -54,7 +58,7 @@ class BookGenerationTaskTest {
 
     private BookGenerationTask newTask(TaskExecutor executor) {
         return new BookGenerationTask(
-                bookRepository, openAiService, imagenService, cloudinaryService,
+                bookRepository, textGenerator, coverImageGenerator, cloudinaryService,
                 notificationService, cacheManager, failureService, executor);
     }
 
@@ -66,9 +70,9 @@ class BookGenerationTaskTest {
     @DisplayName("성공: PENDING→GENERATING → 텍스트 저장 → 표지 저장 → DONE 순서로 진행하고 알림 발송")
     void run_성공_상태_전이_순서() {
         givenTransitionsSucceed();
-        when(openAiService.generate(PROMPT)).thenReturn(new String[]{"우주 고양이", "소설 본문..."});
+        when(textGenerator.generate(PROMPT)).thenReturn(new GeneratedStory("우주 고양이", "소설 본문..."));
         when(bookRepository.saveGeneratedText(BOOK_ID, "우주 고양이", "소설 본문...")).thenReturn(1);
-        when(imagenService.generateCoverImage(any(), any(), any())).thenReturn(new byte[]{1, 2, 3});
+        when(coverImageGenerator.generateCoverImage(any(), any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(cloudinaryService.uploadImage(any(), any())).thenReturn("https://cdn.example.com/cover.jpg");
         when(bookRepository.findPublisherId(BOOK_ID)).thenReturn(Optional.of(USER_ID));
 
@@ -87,9 +91,9 @@ class BookGenerationTaskTest {
     @DisplayName("표지 생성이 null을 반환해도 최종 상태는 DONE, 환불 없음")
     void run_표지_실패해도_DONE() {
         givenTransitionsSucceed();
-        when(openAiService.generate(PROMPT)).thenReturn(new String[]{"제목", "본문"});
+        when(textGenerator.generate(PROMPT)).thenReturn(new GeneratedStory("제목", "본문"));
         when(bookRepository.saveGeneratedText(BOOK_ID, "제목", "본문")).thenReturn(1);
-        when(imagenService.generateCoverImage(any(), any(), any())).thenReturn(null);
+        when(coverImageGenerator.generateCoverImage(any(), any(), any())).thenReturn(null);
 
         bookGenerationTask.run(BOOK_ID, PROMPT);
 
@@ -102,7 +106,7 @@ class BookGenerationTaskTest {
     @DisplayName("Gemini 예외 발생 시 FAILED 전환 + 레몬 환불 위임, DONE 전환 없음")
     void run_Gemini_실패_시_환불() {
         givenTransitionsSucceed();
-        when(openAiService.generate(PROMPT)).thenThrow(new RuntimeException("Gemini 서버 오류"));
+        when(textGenerator.generate(PROMPT)).thenThrow(new RuntimeException("Gemini 서버 오류"));
 
         bookGenerationTask.run(BOOK_ID, PROMPT);
 
@@ -117,20 +121,20 @@ class BookGenerationTaskTest {
 
         bookGenerationTask.run(BOOK_ID, PROMPT);
 
-        verifyNoInteractions(openAiService, failureService);
+        verifyNoInteractions(textGenerator, failureService);
     }
 
     @Test
     @DisplayName("텍스트 생성 도중 FAILED 처리됐다면 결과를 저장하지 않고 DONE으로 되살리지 않는다")
     void run_생성_중_FAILED_처리되면_되살리지_않음() {
         when(bookRepository.transitionStatus(BOOK_ID, List.of(BookStatus.PENDING), BookStatus.GENERATING)).thenReturn(1);
-        when(openAiService.generate(PROMPT)).thenReturn(new String[]{"제목", "본문"});
+        when(textGenerator.generate(PROMPT)).thenReturn(new GeneratedStory("제목", "본문"));
         when(bookRepository.saveGeneratedText(BOOK_ID, "제목", "본문")).thenReturn(0);
 
         bookGenerationTask.run(BOOK_ID, PROMPT);
 
         verify(bookRepository, never()).transitionStatus(BOOK_ID, List.of(BookStatus.GENERATING), BookStatus.DONE);
-        verifyNoInteractions(imagenService, notificationService, failureService);
+        verifyNoInteractions(coverImageGenerator, notificationService, failureService);
     }
 
     @Test
@@ -142,6 +146,6 @@ class BookGenerationTaskTest {
         task.onGenerationRequested(new BookGenerationRequestedEvent(BOOK_ID, PROMPT));
 
         verify(failureService).failAndRefund(BOOK_ID);
-        verifyNoInteractions(openAiService);
+        verifyNoInteractions(textGenerator);
     }
 }

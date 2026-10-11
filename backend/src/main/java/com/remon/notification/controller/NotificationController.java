@@ -1,13 +1,13 @@
 package com.remon.notification.controller;
 
 import com.remon.notification.dto.NotificationResponse;
+import com.remon.notification.dto.UnreadCountResponse;
 import com.remon.notification.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -36,8 +36,7 @@ public class NotificationController {
     }
 
     @GetMapping("/unread-count")
-    public Map<String, Long> getUnreadCount(Authentication authentication) {
-        long count = notificationService.getUnreadCount(authentication.getName());
-        return Map.of("count", count);
+    public UnreadCountResponse getUnreadCount(Authentication authentication) {
+        return new UnreadCountResponse(notificationService.getUnreadCount(authentication.getName()));
     }
 }

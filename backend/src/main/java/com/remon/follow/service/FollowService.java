@@ -30,8 +30,7 @@ public class FollowService {
     }
 
     public void follow(String followerEmail, Long targetUserId) {
-        User follower = userRepository.findByEmail(followerEmail)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User follower = userRepository.getByEmail(followerEmail);
         if (follower.getId().equals(targetUserId)) {
             throw new IllegalArgumentException("자기 자신을 팔로우할 수 없습니다.");
         }
@@ -46,8 +45,7 @@ public class FollowService {
     }
 
     public void unfollow(String followerEmail, Long targetUserId) {
-        User follower = userRepository.findByEmail(followerEmail)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+        User follower = userRepository.getByEmail(followerEmail);
         if (!followRepository.existsByFollowerIdAndFollowingId(follower.getId(), targetUserId)) {
             throw new IllegalStateException("팔로우 중이 아닙니다.");
         }

@@ -1,5 +1,7 @@
 package com.remon.book.service;
 
+import com.remon.exception.BusinessException;
+import com.remon.exception.ErrorCode;
 import com.remon.book.dto.GenerateBookRequest;
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
@@ -47,7 +49,7 @@ class BookServiceTest {
     @DisplayName("generateBook - 레몬 차감 후 PENDING 책을 저장하고, 생성은 이벤트로만 요청한다 (커밋 후 시작)")
     void generateBook_이벤트_발행() {
         User user = User.builder().id(7L).email("a@b.c").nickname("작가").role(Role.USER).build();
-        when(userRepository.findByEmail("a@b.c")).thenReturn(Optional.of(user));
+        when(userRepository.getByEmail("a@b.c")).thenReturn(user);
         when(bookRepository.save(any(Book.class))).thenAnswer(inv -> {
             Book b = inv.getArgument(0);
             ReflectionTestUtils.setField(b, "id", 42L);
@@ -77,7 +79,7 @@ class BookServiceTest {
     void deleteMyBook_연관데이터_정리() {
         User owner = User.builder().id(7L).email("a@b.c").role(Role.USER).build();
         Book book = Book.builder().id(42L).publishedBy(7L).coverImageUrl("https://res.cloudinary.com/x/image/upload/book-42.png").build();
-        when(userRepository.findByEmail("a@b.c")).thenReturn(Optional.of(owner));
+        when(userRepository.getByEmail("a@b.c")).thenReturn(owner);
         when(bookRepository.findById(42L)).thenReturn(Optional.of(book));
 
         bookService.deleteMyBook("a@b.c", 42L);
@@ -94,11 +96,13 @@ class BookServiceTest {
     void deleteMyBook_권한_없음() {
         User other = User.builder().id(8L).email("x@y.z").role(Role.USER).build();
         Book book = Book.builder().id(42L).publishedBy(7L).build();
-        when(userRepository.findByEmail("x@y.z")).thenReturn(Optional.of(other));
+        when(userRepository.getByEmail("x@y.z")).thenReturn(other);
         when(bookRepository.findById(42L)).thenReturn(Optional.of(book));
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> bookService.deleteMyBook("x@y.z", 42L))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ACCESS_DENIED);
         verify(bookRepository, never()).delete(any());
     }
 }

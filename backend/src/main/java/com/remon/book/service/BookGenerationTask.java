@@ -1,5 +1,9 @@
 package com.remon.book.service;
 
+import com.remon.book.ai.CoverImageGenerator;
+import com.remon.book.ai.GeneratedStory;
+import com.remon.book.ai.StoryPrompt;
+import com.remon.book.ai.StoryTextGenerator;
 import com.remon.book.entity.Book;
 import com.remon.book.entity.BookStatus;
 import com.remon.book.repository.BookRepository;
@@ -27,22 +31,22 @@ public class BookGenerationTask {
     private static final Logger log = LoggerFactory.getLogger(BookGenerationTask.class);
 
     private final BookRepository bookRepository;
-    private final OpenAiService openAiService;
-    private final ImagenService imagenService;
+    private final StoryTextGenerator textGenerator;
+    private final CoverImageGenerator coverImageGenerator;
     private final CloudinaryService cloudinaryService;
     private final NotificationService notificationService;
     private final CacheManager cacheManager;
     private final BookGenerationFailureService failureService;
     private final TaskExecutor executor;
 
-    public BookGenerationTask(BookRepository bookRepository, OpenAiService openAiService,
-                              ImagenService imagenService, CloudinaryService cloudinaryService,
+    public BookGenerationTask(BookRepository bookRepository, StoryTextGenerator textGenerator,
+                              CoverImageGenerator coverImageGenerator, CloudinaryService cloudinaryService,
                               NotificationService notificationService, CacheManager cacheManager,
                               BookGenerationFailureService failureService,
                               @Qualifier(AsyncConfig.BOOK_GENERATION_EXECUTOR) TaskExecutor executor) {
         this.bookRepository      = bookRepository;
-        this.openAiService       = openAiService;
-        this.imagenService       = imagenService;
+        this.textGenerator       = textGenerator;
+        this.coverImageGenerator = coverImageGenerator;
         this.cloudinaryService   = cloudinaryService;
         this.notificationService = notificationService;
         this.cacheManager        = cacheManager;
@@ -78,9 +82,9 @@ public class BookGenerationTask {
         log.info("책 생성 시작 - bookId: {}, keywords: {}, genre: {}, tone: {}, ending: {}",
                 bookId, prompt.keywords(), prompt.genre(), prompt.tones(), prompt.ending());
         try {
-            String[] result = openAiService.generate(prompt);
-            String title = result[0];
-            String content = result[1];
+            GeneratedStory story = textGenerator.generate(prompt);
+            String title = story.title();
+            String content = story.content();
             if (bookRepository.saveGeneratedText(bookId, title, content) == 0) {
                 log.warn("텍스트 생성 후 상태가 바뀌어 결과를 버림 - bookId: {}", bookId);
                 return;
@@ -113,7 +117,7 @@ public class BookGenerationTask {
 
     private void saveCoverImage(Long bookId, String title, String genre, String content) {
         try {
-            byte[] imageBytes = imagenService.generateCoverImage(title, genre, content);
+            byte[] imageBytes = coverImageGenerator.generateCoverImage(title, genre, content);
             if (imageBytes == null) return;
             String coverImageUrl = cloudinaryService.uploadImage(imageBytes, "book-" + bookId);
             if (coverImageUrl != null) {
@@ -156,7 +160,7 @@ public class BookGenerationTask {
         AtomicInteger failed = new AtomicInteger(0);
         for (Book book : books) {
             try {
-                byte[] imageBytes = imagenService.generateCoverImage(book.getTitle(), book.getGenre(), book.getContent());
+                byte[] imageBytes = coverImageGenerator.generateCoverImage(book.getTitle(), book.getGenre(), book.getContent());
                 if (imageBytes != null) {
                     String url = cloudinaryService.uploadImage(imageBytes, "book-" + book.getId());
                     if (url != null) {

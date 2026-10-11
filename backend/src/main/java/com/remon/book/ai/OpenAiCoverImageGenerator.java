@@ -1,4 +1,4 @@
-package com.remon.book.service;
+package com.remon.book.ai;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,23 +12,28 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * OpenAI gpt-image-1 기반 표지 이미지 생성기.
+ * (이전 이름 ImagenService — Google Imagen 이 아니라 OpenAI 를 호출하던 이름/역할 불일치를 정리)
+ */
 @Service
-public class ImagenService {
+public class OpenAiCoverImageGenerator implements CoverImageGenerator {
 
-    private static final Logger log = LoggerFactory.getLogger(ImagenService.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenAiCoverImageGenerator.class);
 
     @Value("${openai.api-key}")
     private String openaiApiKey;
 
     private final RestTemplate restTemplate;
 
-    public ImagenService() {
+    public OpenAiCoverImageGenerator() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10000);
         factory.setReadTimeout(60000);
         this.restTemplate = new RestTemplate(factory);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public byte[] generateCoverImage(String title, String genre, String content) {
         try {
