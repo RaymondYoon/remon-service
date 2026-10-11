@@ -91,89 +91,50 @@ remon-service/
 │   ├── App.js
 │   ├── app.json
 │   └── package.json
+├── .github/workflows/ci.yml — CI (백엔드 빌드·테스트·JaCoCo, 프론트 빌드)
 ├── docker-compose.yml — 로컬 개발 환경 (MySQL + Spring Boot)
 ├── railway.json       — Railway 배포 설정
 ├── nixpacks.toml      — Railway 빌드 설정 (JDK17)
-└── CLAUDE.md          — 이 파일 (프로젝트 전체 개요)
+├── CHANGELOG.md       — 변경 이력
+└── CLAUDE.md          — 이 파일 (프로젝트 전체 개요, 현재 상태)
 ```
 
 ---
 
-## 주요 완성 기능
+## 주요 기능 (현재 상태)
+> 기능이 추가·변경된 이력은 [`CHANGELOG.md`](CHANGELOG.md) 참고
 
-| 기능 | 설명 |
-|------|------|
-| 회원가입/로그인 | 이메일 + 카카오 OAuth 2.0 |
-| JWT 인증 | Access Token 15분 + Refresh Token 7일 자동 재발급 |
-| AI 책 생성 | 키워드·장르·분위기(다중)·결말·주인공(최대 3명)·성격(다중)·서술 시점·시놉시스·조연(최대 4명) → Gemini 비동기 생성 (폴링) |
-| AI 소설 품질 향상 | 서사구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상 내부 단계 / 6000자 |
-| 레몬 시스템 | 하루 1개 자동 충전, 책 생성 시 소모, 1일 2회 제한 |
-| 레몬트리 UI | 레몬 개수별 나무 시각화, 소모 시 낙하 애니메이션 |
-| 내 서재 | 책 저장, 독서 상태(SAVED/READING/DONE), 페이지 저장 |
-| 책 뷰어 (웹) | react-pageflip 두 페이지(데스크톱)/단일 페이지(모바일), DOM 높이 기반 자동 분할, 모바일 40px 안전 마진·DOM 높이 측정, 키보드 방향키 지원 |
-| 책 뷰어 (앱) | PanGestureHandler 스와이프 애니메이션, 화면 크기 기반 자동 분할 |
-| 팔로우/언팔로우 | 유저 간 소셜 연결 |
-| 별점·리뷰 | 1~5점 별점 + 텍스트 리뷰 (유저당 1개 제한) |
-| 탐색 페이지 | 공개 책 목록 + 작가 팔로우 버튼 |
-| 피드 | 팔로잉 유저가 만든 책 목록 |
-| 알림 | 리뷰/팔로우 이벤트 알림 + 헤더 뱃지 + 드롭다운 |
-| 다크모드 | 헤더 토글 + localStorage 유지 + CSS 변수 기반 |
-| 성능 최적화 | React.memo, lazy loading, code splitting, SEO 메타 태그 |
-| 기본 표지 통일 | 표지 없을 때 🍋 이모지 + 레몬색(#FFF9E6) 배경 |
-| AI 표지 이미지 | gpt-image-1으로 책 생성 시 Studio Ghibli 스타일 표지 자동 생성 → Cloudinary CDN 저장 |
-| 표지 일괄 생성 | 관리자 API (`POST /api/admin/books/generate-covers`) — 표지 없는 DONE 책 전체 백그라운드 생성 |
-| 홈 스켈레톤 로딩 | 홈 화면 로딩 중 카드 형태 플레이스홀더 + 서버 다운 에러 화면 |
-| BookCard 개선 | 그리드 레이아웃, 장르 배지, hover 효과, coverImageUrl 표지 |
-| 홈 읽기 배지 | 읽기 시작한 책(READING+DONE)에 ✓ 배지 표시 |
-| 레몬 동시성 처리 | 레몬 차감에 비관적 락(`PESSIMISTIC_WRITE`) 적용 — 동시 요청 시 중복 차감 방지 |
-| 커서 기반 무한 스크롤 | `GET /api/books/cursor` — nextCursor/hasMore 기반 페이지네이션, 프론트 useInfiniteBooks 연동 |
-| 책 생성 완료 알림 | 이미지 저장 완료 후 `BOOK_GENERATED` 알림 자동 발송 (이미지 실패 시에도 발송, bookId 포함) |
-| 서재 탭 필터 | 전체/읽는 중/읽고 싶어요/완독 탭 필터 (프론트에서 즉시 처리) |
-| 모바일 앱 | React Native (Expo SDK 54) — 10개 화면, 로그인/회원가입/홈/탐색/생성/읽기/서재/마이페이지 |
-| 홈 DONE 책만 노출 | `GET /api/books`, `GET /api/books/cursor` — AI 생성 책 중 DONE 상태만 반환 (PENDING/GENERATING 제외) |
-| 생성 진행도 바 | 생성 중 단계별 프로그레스 바 (TEXT 10→50% / IMAGE 50→90% / 완료 100%) + 단계 메시지 |
-| 생성 상태 step 필드 | `GET /api/books/{id}/status` 응답에 `step` 추가 (TEXT/IMAGE/DONE/FAILED) |
-| 책 공유 버튼 | BookDetail "본문 보기" 옆 📤 공유 버튼 — Web Share API / 미지원 시 URL 클립보드 복사 |
-| 장르별 제목 생성 | Gemini 프롬프트 — 본문 기반 장르별 문학적 제목 스타일 지침 추가 (9개 장르 커버) |
-| 조회수 카운트 | `GET /api/books/{id}` 호출 시 `viewCount` 1 증가, `BookResponse`에 viewCount 포함 |
-| 홈 정렬 탭 | "추천 전자책" 섹션에 최신순/평점순/조회수순 탭 — 정렬 변경 시 목록 초기화 후 재조회 |
-| 앱 탭바 FAB | 중앙 만들기 버튼 원형 FAB 스타일 (🍋, #5B7E5A, top:-20, 60px) — `tabBarButton` prop |
-| 앱 리뷰 작성 | BookDetailScreen 별점+텍스트 리뷰 작성 폼 (로그인 시 노출), `addReview` API 연동 |
-| 앱 UI 버그 수정 | 카드 이미지 height 고정(Android), 서재 탭 높이, 장르 필터 빈공간, coverImageUrl 표시 |
-| 앱 GenerateScreen 옵션 | 서술 시점(1인칭/3인칭) + 주인공 성격(6종 칩) 선택 — 웹과 동일한 옵션 세트 |
-| Flyway 마이그레이션 | `ddl-auto=validate` 전환 + `db/migration/V1~V3` SQL로 스키마 버전 관리 — 데이터 유실 방지 |
-| Redis 캐싱 | `books-rating` / `books-views` 캐시 (TTL 5분) — `@Cacheable` on BookRepository, `CacheManager` evict on DONE |
-| DB 인덱스 | `book` 테이블 `status`, `view_count DESC`, `(status, id DESC)` 인덱스 — Flyway V1 SQL로 관리 |
-| 장르 9종 확장 | SF/판타지/로맨스/일상/공포 + 액션/스릴러/드라마/느와르 추가, 제목 스타일 가이드 4개 장르 확장 |
-| 분위기 10종 | 따뜻하게/긴장감/유쾌하게/신비로운/쓸쓸한/웅장한/잔혹한/몽환적인/냉소적인 + TENSE(긴장감) |
-| 성격 17종 | 소심한/까칠한/비밀있는/천재적인/상처받은/엉뚱한/고집스러운/순수한/냉소적인/외로운/야망있는/겁쟁이/반항적인/활발한/긍정적인/다정한/유쾌한 |
-| 소설 분량 3000자 | buildPrompt 분량 2500자 → 3000자로 변경 |
-| 공유 버튼 개선 | BookDetail 공유 버튼 위치 재배치 (내서재 오른쪽) + 44px 원형 아이콘 스타일 |
-| 소설 분량 6000자 | buildPrompt 분량 4000자 → 6000자로 증가 |
-| 검색 범위 제한 | BookRepository LIKE 쿼리에서 description 제거, title + author만 검색 (7개 JPQL 수정) |
-| 닉네임 주 2회 제한 | ISO Week 기준 주 2회 초과 시 오류, Flyway V4 마이그레이션 (`nickname_change_count`, `nickname_changed_at`) |
-| 웹 작가 이름→프로필 링크 | BookCard 저자명 클릭 시 `/profile/:id` 이동 (`e.stopPropagation()` 처리) |
-| 탐색 장르 필터 | ExplorePage 장르 10종 칩 필터 + 엣지-투-엣지 커버 이미지 카드 구조 |
-| 피드 UI 개선 | FeedPage 작가 아바타 가로 스크롤 행 + 책 그리드 카드 + 빈 화면 안내 |
-| 마이페이지 팔로워/팔로잉 | 클릭 가능 카운트 버튼 + 탭 전환 모달 목록 (아바타 + 프로필 링크) |
-| 웹 둘러보기 메뉴 제거 | Header 드로어에서 "둘러보기" 링크 제거 (라우트 `/explore`는 유지) |
-| 앱 4탭 구성 | ExploreScreen 탭 제거 → 홈/만들기(FAB)/서재/마이 4탭, UserProfile Stack 스크린 추가 |
-| 앱 작가 프로필 화면 | `UserProfileScreen.js` — 72px 아바타, 팔로워/팔로잉 수, 공개 책 목록 |
-| 앱 공유 버튼 | BookDetailScreen 🔗 공유 버튼 (`Share.share()` API, 44px 원형) |
-| 앱 BookCard 컴포넌트 | `app/src/components/BookCard.js` 신규 — 저자명 클릭 시 UserProfile 이동 |
-| OAuth 단기 코드 보안 | 카카오 로그인 redirect URL에서 JWT 토큰 제거 → 30초 유효 UUID 코드 발급 → `POST /api/auth/code-exchange`로 토큰 교환 (브라우저 히스토리·로그 토큰 노출 차단) |
-| 마이페이지 userId 실시간 조회 | 로컬 스토리지 캐시 제거, 서버에서 userId 직접 조회 — 로그인 직후 팔로워/팔로잉 모달 즉시 반영 |
-| Flyway V5 마이그레이션 | `oauth_codes` 테이블 추가 (code VARCHAR UNIQUE, access_token TEXT, expires_at DATETIME) |
-| 이메일/닉네임 중복 방지 | `UserRepository.existsByEmail()` / `existsByNickname()` 추가 — 회원가입·닉네임 변경 시 즉시 검증 |
-| 생성 옵션 확장 | `GenerateBookRequest`: 시놉시스·주인공 복수(최대 3명)·조연(최대 4명)·분위기/성격 다중 선택 지원 |
-| 전역 책 생성 폴링 | `BookGenerationContext` — 페이지 이동해도 생성 상태 유지, 완료 시 알림 토스트 |
-| 책 읽기 UI 개선 | 라이트모드: 나무 책상 텍스처(repeating-linear-gradient) 배경 + 명조체 + 종이 질감 / 다크모드: 따뜻한 브라운 톤(`#1c1614`) + 스탠드 불빛(radial-gradient) 효과 / 글래스모피즘 물방울 이전/다음 버튼 |
-| 모바일 뷰포트 수정 | `clientWidth` 기반 페이지 너비 계산 — iOS Safari innerWidth 불일치로 인한 텍스트 잘림 해결 |
-| 글래스모피즘 UI | 장르 배지, 리뷰 폼, 읽기 화면 헤더/버튼, BookDetail 원형 버튼, 마이페이지·서재 카드 전반에 backdrop-filter 적용 |
-| 마이페이지/서재 디자인 통일 | 글래스모피즘 카드 + 레몬 옐로우(`#F0C75E/#E0AD3C`) 강조 — 통계 숫자·선택 탭·변경 버튼·서재 카드 hover 일관성 확보 |
-| 책 포스터 상세 | BookDetail 전면 포스터 스타일 — 블러 배경, 레몬옐로우 본문보기 버튼, 원형 보조버튼 |
-| 페이지 분할 개선 | 창 크기 변경 시 재분할, 문장 단위 분리로 빈공간 제거 |
-| 전역 생성 폴링 | BookGenerationContext — 페이지 이동해도 생성 상태 유지, 완료 알림 토스트 |
+### 책 생성
+- **입력 옵션**: 키워드(최대 4) · 장르 9종 · 분위기 10종(최대 2) · 결말(해피/새드/열린) · 주인공(최대 3명) · 성격 17종(최대 3) · 서술 시점(1/3인칭) · 한 줄 시놉시스 · 조연(최대 4명)
+- **본문**: Gemini 2.5 Flash, 6000자 내외(프롬프트 지침 5500~6500자), 서사구조·Showing>Telling·오감 묘사·CoT 구상, 장르별 제목 가이드, `[TITLE]`/`[CONTENT]` 구분자 파싱
+- **표지**: gpt-image-1(Studio Ghibli 스타일) → Cloudinary CDN, 실패해도 책은 완성 / 표지 없으면 🍋 + `#FFF9E6` 기본 표지 / 관리자 일괄 생성 API
+- **파이프라인**: `PENDING` → (트랜잭션 커밋 후) `GENERATING`(텍스트 → 표지) → `DONE`, 실패 시 `FAILED` + 레몬 자동 환불, 15분 넘게 멈춘 작업 자동 복구
+- **진행 표시**: 상태 API `step`(TEXT/IMAGE/DONE/FAILED) 기반 진행 바, 웹은 전역 폴링(`BookGenerationContext`) + 완료 토스트, 완료 시 `BOOK_GENERATED` 알림
+
+### 레몬
+- 하루 2개(`MAX_DAILY=2`) 충전, 생성 시 1개 소모(비관적 락으로 동시 요청 중복 차감 방지), 생성 실패 시 환불
+- 레몬트리 시각화 + 소모 시 낙하 애니메이션
+
+### 읽기 · 서재
+- 웹 뷰어: react-pageflip, 데스크톱 2쪽 / 모바일 1쪽, 렌더 높이 기반 문장 단위 페이지 분할(`usePagination`), 창 크기 변경 시 재분할, 방향키 지원, 나무 책상/스탠드 불빛 테마
+- 앱 뷰어: 스와이프 애니메이션, 화면 크기 기반 분할
+- 서재: SAVED/READING/DONE 상태, 마지막 페이지 저장, 탭 필터, 홈 ✓ 배지(읽기 시작한 책)
+
+### 탐색 · 소셜
+- 홈: 최신순 커서 무한 스크롤, 평점순/조회수순 상위 12개(Redis 5분 캐시), 스켈레톤 로딩, 제목·작가 검색
+- 탐색(장르 필터) · 피드(팔로잉 작가) · 작가 프로필 · 팔로우 · 별점 리뷰(1인 1개) · 공유 · 조회수
+- 알림: REVIEW / FOLLOW / BOOK_GENERATED, 헤더 뱃지 + 드롭다운
+
+### 계정 · 보안
+- 이메일 + 카카오 OAuth(30초 단기 코드 교환 방식), JWT Access 15분 / Refresh 7일, 401 시 자동 재발급
+- 닉네임 주 2회 변경 제한, 이메일·닉네임 중복 방지
+- IP 기준 Rate Limit (인증 10회/분, 그 외 60회/분), 책 직접 등록·관리자 API 는 ADMIN 전용
+- 오류 응답 형식: `{ "error": "메시지", "code": "BOOK_NOT_FOUND" }`
+
+### 인프라 · 품질
+- Flyway(V1~V6) + `ddl-auto=validate`, DB 인덱스, Redis 캐시(`books-rating`/`books-views`)
+- GitHub Actions CI: 백엔드 빌드 + 테스트(H2) + JaCoCo 리포트, 프론트 빌드
+- 다크모드(CSS 변수), 글래스모피즘 UI, React.lazy 코드 스플리팅, SEO 메타 태그
 
 ---
 
@@ -203,16 +164,19 @@ npx expo start --tunnel   # 실기기 테스트 시 (방화벽 환경)
 npx expo start --clear    # 캐시 초기화 후 실행
 ```
 - Expo Go 앱에서 QR 코드 스캔 또는 iOS/Android 시뮬레이터 실행
-- API URL은 `src/api/axiosInstance.js`의 `BASE_URL`에서 변경
+- API URL: `app/.env`의 `EXPO_PUBLIC_API_URL` (없으면 운영 서버, `app/.env.example` 참고)
 
 ---
 
 ## 앞으로 할 작업
+- [ ] **기본 관리자 계정 비밀번호 교체** — `DataInitializer`가 `admin@remon.com / admin1234` 계정을 생성함 (운영 확인 필요)
+- [ ] 책 생성 스트리밍(SSE) / DB·Redis 기반 작업 큐 / 시리즈(이어쓰기) / 토큰 httpOnly 쿠키 전환
+- [ ] 웹·앱 공용 상수·API 패키지 (현재 CRA·Metro 빌드 구조상 보류 — 워크스페이스 구성 필요)
 - [ ] 앱 EAS Build 설정 및 스토어 배포 (iOS/Android)
 - [ ] 앱 아이콘 레몬 이미지로 교체 (assets/icon.png, adaptive-icon.png)
 - [ ] 앱 팔로우/알림 기능 연동 (BOOK_GENERATED, REVIEW, FOLLOW)
 - [ ] 앱 GenerateScreen 시놉시스·조연·주인공 여러 명 UI 추가 (웹과 동기화)
-- [ ] GitHub Actions CI/CD 파이프라인
+- [ ] CD (main 머지 시 자동 배포) — CI 는 구축됨
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득
 - [ ] 서비스 스크린샷 촬영 및 README 갱신 (`docs/screenshots/`)

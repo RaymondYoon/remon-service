@@ -19,7 +19,7 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 - Lombok, Spring Data JPA / Hibernate
 - springdoc-openapi 2.8.3 (Swagger UI: `/swagger-ui.html`)
 - jjwt 0.12.6 (jjwt-api, jjwt-impl, jjwt-jackson)
-- bucket4j-core 8.10.1 (API Rate Limiting)
+- bucket4j-core 8.10.1 + Caffeine (API Rate Limiting, IP별 버킷 만료 캐시)
 - Google Gemini API (gemini-2.5-flash) — AI 책 생성 (텍스트)
 - OpenAI API (gpt-image-1) — AI 표지 이미지 생성 (응답: b64_json)
 - Cloudinary (cloudinary-http45:1.39.0) — 이미지 CDN 업로드/저장
@@ -30,7 +30,7 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 - **플랫폼**: Railway
 - **운영 URL**: `https://remon-service-production.up.railway.app`
 - **DB**: MySQL (Railway 내부 연결)
-- **빌드**: nixpacks (JDK17), `./gradlew bootJar -x test`
+- **빌드**: nixpacks (JDK17), `./gradlew bootJar -x test` (테스트는 CI에서 실행)
 - **시작 명령**: `java -Xms128m -Xmx400m -jar build/libs/remon-backend.jar`
 - **헬스체크**: `GET /actuator/health`
 - `application.properties`는 git 추적 포함 (운영 시크릿은 Railway 환경변수로 주입)
@@ -40,17 +40,25 @@ AI가 짧은 전자책/소설을 생성해주는 서비스다.
 ## 패키지 구조
 ```
 com.remon/
-├── admin/              — 관리자 전용 컨트롤러 (책/리뷰 삭제)
+├── admin/              — 관리자 전용 컨트롤러 (책/리뷰 삭제, 표지 일괄 생성) — 서비스 계층만 호출
 ├── book/               — 책 CRUD, AI 생성 (비동기), 공개 탐색, 피드
+│   ├── ai/             StoryTextGenerator ← GeminiTextGenerator (본문, Gemini)
+│   │                   CoverImageGenerator ← OpenAiCoverImageGenerator (표지, gpt-image-1)
+│   │                   StoryPrompt (생성 입력 값 객체), GeneratedStory (제목+본문)
 │   ├── controller/     BookController.java
-│   ├── dto/            BookRequest, BookResponse, GenerateBookRequest
+│   ├── dto/            BookRequest, BookResponse(상세, 본문 포함), BookSummaryResponse(목록, 본문 제외),
+│   │                   BookStatusResponse, BookCursorResponse, GenerateBookRequest
 │   ├── entity/         Book.java, BookStatus.java
-│   ├── repository/     BookRepository.java
-│   └── service/        BookService.java, BookGenerationTask.java, OpenAiService.java,
-│                       ImagenService.java (gpt-image-1 표지 생성), CloudinaryService.java (이미지 CDN 업로드)
-├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig, DataInitializer,
-│                       CloudinaryConfig.java
-├── exception/          — GlobalExceptionHandler
+│   ├── repository/     BookRepository.java (공통 JPQL 조건 상수 VISIBLE / KEYWORD_MATCH)
+│   └── service/        BookService, BookGenerationTask (커밋 후 생성 실행),
+│                       BookGenerationFailureService (FAILED + 레몬 환불, 멱등),
+│                       StaleGenerationRecoveryJob (멈춘 생성 복구), CloudinaryService,
+│                       BookCoverCleanupListener (삭제 커밋 후 표지 삭제), 이벤트 record 2종
+├── config/             — SecurityConfig, SwaggerConfig, JpaAuditingConfig, AsyncConfig(생성 전용 스레드풀 +
+│                       @EnableScheduling), CacheConfig, RedisConfig(spring.cache.type=redis 일 때만),
+│                       ClockConfig, DataInitializer, CloudinaryConfig
+├── exception/          — GlobalExceptionHandler, ErrorCode, BusinessException, UserNotFoundException,
+│                       BookNotFoundException, ErrorResponse
 ├── follow/             — 팔로우/언팔로우, 팔로워·팔로잉 목록
 ├── lemon/              — 레몬 시스템 (하루 1개 자동 충전, 책 생성 시 소모)
 ├── library/            — 내 서재 (사용자-책 관계, 독서 상태 추적)
@@ -73,11 +81,11 @@ com.remon/
 | 테이블 | 주요 컬럼 | 비고 |
 |--------|-----------|------|
 | `users` | id, email, password, provider, providerId, nickname, role, created_at, nickname_change_count (default 0), nickname_changed_at (nullable) | email UNIQUE |
-| `books` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl, viewCount (bigint default 0) | status: PENDING/GENERATING/DONE/FAILED |
+| `book` | id, title, author, content (TEXT), genre, tone, status, isAiGenerated, isPublic, publishedBy, coverImageUrl, viewCount (bigint default 0), created_at, lemon_refunded | status: PENDING/GENERATING/DONE/FAILED — created_at·lemon_refunded 는 V6 |
 | `user_books` | id, user_id, book_id, status, lastReadPage, savedAt | UNIQUE(user_id, book_id); status: SAVED/READING/DONE |
 | `reviews` | id, book_id, user_id, rating (1–5), content (TEXT), createdAt | UNIQUE(book_id, user_id) — 중복 방지 |
 | `follows` | id, follower_id, following_id, createdAt | UNIQUE(follower_id, following_id) |
-| `notifications` | id, receiverId, senderId, type, message, isRead, createdAt | type: REVIEW/FOLLOW |
+| `notifications` | id, receiverId, senderId, type, message, bookId, isRead, createdAt | type: REVIEW/FOLLOW/BOOK_GENERATED — 책 삭제 시 함께 삭제 |
 | `user_lemons` | userId (PK), lemonCount, lastChargeDate | 유저 1명당 1행 |
 | `refresh_tokens` | id, email, token, expiryDate | email 인덱스 |
 | `oauth_codes` | id, code (UUID), email, access_token (TEXT), refresh_token (TEXT), expires_at, created_at | code UNIQUE, 30초 유효 — V5 마이그레이션 |
@@ -111,13 +119,13 @@ com.remon/
 | Method | Endpoint | 설명 | Auth |
 |--------|----------|------|------|
 | GET | `/api/books` | 책 목록 (keyword, page, size 쿼리) | 불필요 |
-| GET | `/api/books/my` | 내가 만든 책 목록 | 필요 |
+| GET | `/api/books/my` | 내가 만든 책 목록 (본문 제외) | 필요 (비로그인 401) |
 | GET | `/api/books/explore` | 공개 책 탐색 | 불필요 |
-| GET | `/api/books/feed` | 팔로잉 유저 책 피드 | 필요 |
-| GET | `/api/books/cursor` | 커서 기반 책 목록 (`cursor`, `keyword`, `size`, `sort=latest\|rating\|views`) | 불필요 |
+| GET | `/api/books/feed` | 팔로잉 유저 책 피드 (본문 제외) | 필요 (비로그인 401) |
+| GET | `/api/books/cursor` | 커서 기반 책 목록 (`cursor`, `keyword`, `size`(최대 50), `sort=latest\|rating\|views` — rating/views 는 상위 size개) | 불필요 |
 | GET | `/api/books/{id}` | 책 상세 (조회 시 viewCount +1) | 불필요 |
 | GET | `/api/books/{id}/status` | AI 생성 상태 + step (TEXT/IMAGE/DONE/FAILED) | 필요 |
-| POST | `/api/books` | 책 직접 등록 | 필요 |
+| POST | `/api/books` | 책 직접 등록 | 필요 (ADMIN) |
 | POST | `/api/books/generate` | AI 책 생성 (202 Accepted, 비동기) | 필요 |
 | DELETE | `/api/books/{id}` | 책 삭제 | 필요 |
 
@@ -162,17 +170,32 @@ com.remon/
 |--------|----------|------|------|
 | DELETE | `/api/admin/books/{id}` | 책 삭제 (관리자) | 필요 (ADMIN) |
 | DELETE | `/api/admin/reviews/{id}` | 리뷰 삭제 (관리자) | 필요 (ADMIN) |
+| POST | `/api/admin/books/generate-covers` | 표지 없는 DONE 책 표지 일괄 생성 (202, 백그라운드) | 필요 (ADMIN) |
 
 ---
 
 ## 인증 방식
 - **일반 로그인**: `POST /api/users/login` → accessToken(15분) + refreshToken(7일) 발급
-- **카카오 로그인**: OAuth 2.0 → JWT 발급 → 프론트 `/oauth-callback?accessToken=...&refreshToken=...` redirect
+- **카카오 로그인**: OAuth 2.0 → JWT 발급 → 30초 단기 코드로 프론트 `/oauth-callback?code=...` redirect → `POST /api/auth/code-exchange`로 토큰 교환
 - **토큰 재발급**: `POST /api/auth/refresh` → refreshToken → 새 accessToken 발급
 - **보호 엔드포인트**: `Authorization: Bearer <accessToken>` 헤더 필수
 - 세션 정책: STATELESS
 - JWT secret: Base64 인코딩 적용
 - RefreshToken: DB 저장, 발급 시 deleteByEmail + flush 후 새로 save
+- 인증 없음/만료 토큰 → **401** `{"error":"로그인이 필요합니다."}` (클라이언트가 토큰 재발급), 로그인했지만 권한 부족 → **403**
+
+---
+
+## 오류 응답
+```json
+{ "error": "책을 찾을 수 없습니다. id=99", "code": "BOOK_NOT_FOUND" }
+{ "error": "입력값 검증 실패", "code": "VALIDATION_FAILED", "fields": { "email": "..." } }
+```
+- 클라이언트는 `error`(메시지)를 표시하고, 분기가 필요하면 `code`를 사용한다
+- 도메인 오류는 `BusinessException(ErrorCode)` 로 던진다 — 상태 코드는 `ErrorCode`에 정의
+  (USER_NOT_FOUND·BOOK_NOT_FOUND·REVIEW_NOT_FOUND 404, ACCESS_DENIED 403, LEMON_INSUFFICIENT 400)
+- 이메일로 사용자 조회는 `userRepository.getByEmail(email)` (없으면 UserNotFoundException)
+- 아직 전용 예외가 없는 곳의 `IllegalStateException`/`IllegalArgumentException` 은 400 `INVALID_REQUEST`, `NoSuchElementException` 은 404 `NOT_FOUND`
 
 ---
 
@@ -193,13 +216,16 @@ Authorization: Bearer <token>
 }
 → 202 Accepted + { "id": 123 }
 ```
-- Book을 PENDING 상태로 즉시 저장 → `@Async`로 Gemini API 호출 → 텍스트 완료 시 GENERATING 유지 → 이미지 저장 완료 후 DONE, 실패 시 FAILED
+- 레몬 차감 + Book을 PENDING 으로 저장 → `BookGenerationRequestedEvent` 발행 → **트랜잭션 커밋 후**(`@TransactionalEventListener(AFTER_COMMIT)`) 생성 스레드풀에 작업 등록 (큐 포화로 거절되면 즉시 FAILED + 환불)
 - 상태 흐름: `PENDING → GENERATING(시작) → GENERATING(텍스트 완료) → DONE(이미지 포함)/FAILED`
+- 모든 상태 변경은 **조건부 UPDATE** (`transitionStatus(id, from, to)`, `saveGeneratedText`는 GENERATING 일 때만) — 그 사이 FAILED 처리·삭제된 책을 덮어쓰거나 되살리지 않음
+- **실패 시**: `BookGenerationFailureService.failAndRefund` — FAILED 전환 + 레몬 1개 환불, `lemon_refunded` 플래그로 중복 환불 방지
+- **멈춘 작업 복구**: `StaleGenerationRecoveryJob` — 서버 시작 시 + 5분마다, `created_at` 이 15분보다 오래된 PENDING/GENERATING 을 FAILED + 환불 (`book.generation.stale-after-minutes`, `book.generation.recovery-interval-ms`)
 - 알림(`BOOK_GENERATED`)은 이미지 처리 완료 후 발송 (이미지 실패 시에도 발송, 책 자체는 완성)
 - 클라이언트는 `GET /api/books/{id}/status`를 폴링하여 완료 감지 — DONE 수신 시 coverImageUrl 포함된 완성 책
-- AI 모델: `gemini-2.5-flash` (30초 타임아웃)
+- AI 모델: `gemini-2.5-flash` (연결 10초 / 읽기 `gemini.timeout-ms`=120초, 500·503 은 3초 간격 최대 3회 시도), API 키는 `x-goog-api-key` 헤더로 전달
 - 응답 파싱: JSON 대신 `[TITLE]` / `[CONTENT]` 구분자 방식 (소설 본문 내 따옴표·쉼표 파싱 오류 방지)
-- 분량: 항상 6000자 내외 고정
+- 분량: 6000자 내외 고정 (프롬프트 지침: 5500자 이상 6500자 이내)
 - 생성 시 레몬 1개 소모 (서버측 처리)
 - **프롬프트 엔지니어링**: 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 타겟독자(성인) / CoT 집필 구상 단계 / 시놉시스·조연·다중 성격·다중 분위기 반영
 
@@ -207,8 +233,9 @@ Authorization: Bearer <token>
 
 ## 레몬 시스템
 - 유저당 레몬 보유량은 `user_lemons` 테이블에서 관리
-- 하루 1개 자동 충전 (`lastChargeDate` 비교)
-- 책 생성 시 레몬 1개 소모, 하루 최대 2회 제한 (`MAX_DAILY = 2`)
+- 날짜가 바뀐 뒤 첫 조회/사용 시 `MAX_DAILY = 2`개로 충전 (`lastChargeDate` 비교)
+- 책 생성 시 레몬 1개 소모 (비관적 락 `findByUserIdWithLock`), 레몬 부족 시 `LEMON_INSUFFICIENT`
+- 생성 실패 시 `refundLemon` 으로 1개 환불 (오늘 충전분일 때만, 최대치 초과 없음)
 - `GET /api/users/me/lemon` — `{ lemonCount, usedToday, maxDaily }` 반환
 
 ---
@@ -232,6 +259,8 @@ Authorization: Bearer <token>
 | `SPRING_PROFILES_ACTIVE` | 프로파일 (local/production) | Railway 환경변수 |
 
 로컬 개발: `docker-compose.yml` + `.env` 파일 사용 (`application-local.properties`로 로컬 DB 설정 분리)
+
+선택 설정 (application.properties 기본값 있음): `book.generation.stale-after-minutes`(15), `book.generation.recovery-interval-ms`(300000), `ratelimit.trusted-proxy-hops`(1 — X-Forwarded-For 에서 신뢰할 프록시 수)
 
 ---
 
@@ -266,139 +295,16 @@ CLOUDINARY_API_SECRET=...
 
 ---
 
-## 완료된 작업
+## 테스트
 
-### 2026-04-26
-- [x] JWT Refresh Token 구조 도입 (Access 15분 + Refresh 7일, DB 저장)
-- [x] `POST /api/auth/refresh` 구현
-- [x] 카카오 OAuth redirect에 accessToken + refreshToken 파라미터 연동
-- [x] `createRefreshToken`에서 `deleteByEmail` 후 `flush()` 추가 — duplicate key 버그 수정
-- [x] Docker + docker-compose 로컬 개발환경 구축
-
-### 2026-04-30
-- [x] 팔로우/언팔로우 API
-- [x] 유저 프로필 API (`GET /api/users/{userId}/profile`)
-- [x] 공개 책 탐색 API (`GET /api/books/explore`)
-- [x] 팔로잉 피드 API (`GET /api/books/feed`)
-- [x] 별점·리뷰 CRUD (중복 방지, N+1 방지 배치 쿼리, averageRating 포함)
-- [x] AI 책 생성 비동기 처리 (@Async + PENDING→DONE/FAILED)
-- [x] nixpacks.toml 추가 — Railway JAVA_HOME 빌드 문제 해결
-
-### 2026-05-01
-- [x] 알림 기능 (REVIEW/FOLLOW 타입)
-- [x] 레몬 시스템 (`UserLemon` 엔티티, 책 생성 시 서버측 소모)
-- [x] OpenAI → Groq → Gemini API 마이그레이션 (gemini-2.5-flash)
-- [x] Railway 메모리 부족 해결 — JVM 옵션 `-Xms128m -Xmx400m`
-
-### 2026-05-08
-- [x] 책 생성 옵션 확장: `ending`(결말), `protagonistName`(주인공 이름) 추가
-- [x] 분량 선택 제거 — 3000자 내외로 고정
-
-### 2026-05-11
-- [x] Gemini 응답 파싱 방식 변경: JSON → `[TITLE]`/`[CONTENT]` 구분자 (파싱 오류 근본 해결)
-- [x] `GET /api/library/my-reading-book-ids` 신규 엔드포인트 (READING+DONE bookId 목록)
-- [x] `startReading` upsert 방식으로 변경 — 서재에 없어도 ReadPage 방문 시 READING 자동 등록
-
-### 2026-05-27
-- [x] AI 표지 이미지 생성 파이프라인 구축: `ImagenService`(gpt-image-1) + `CloudinaryService`(CDN 업로드)
-- [x] `Book` 엔티티 / `BookResponse` DTO에 `coverImageUrl` 필드 추가
-- [x] gpt-image-1 모델: size `"1024x1536"`, quality `"auto"`, 응답 형식 `b64_json` → `Base64.getDecoder().decode()`
-- [x] `OpenAiService` Gemini 500/503 재시도 로직 추가 (maxAttempts=3, 3초 대기 후 재시도)
-
-### 2026-05-28
-- [x] 레몬 차감 비관적 락 적용 (`@Lock(LockModeType.PESSIMISTIC_WRITE)`) — `findByUserIdWithLock` 추가, 차감 전 잔량 재확인(`< 1` 시 예외), `consumeLemon` `@Transactional` 명시
-- [x] 관리자 API 표지 일괄 생성 (`POST /api/admin/books/generate-covers`) — 표지 없는 DONE 책 전체 대상, 즉시 202 반환 후 `@Async` 백그라운드 처리
-- [x] 커서 기반 페이지네이션 (`GET /api/books/cursor?cursor=&keyword=&size=`) — `findBooksWithCursor` JPQL, `{ books, nextCursor, hasMore }` 응답
-- [x] 책 생성 완료 알림 (`NotificationType.BOOK_GENERATED`) — `createBookNotification(userId, type, message, bookId)` 자기 자신 알림 허용, `Notification` 엔티티 `bookId` nullable 필드 추가, `NotificationResponse` `bookId` 포함
-- [x] `BookGenerationTask.run`: DONE 직후 알림 발송 + `book` 조회를 알림·표지 이미지 공유하여 중복 쿼리 제거
-
-### 2026-05-30
-- [x] `BookGenerationTask.run`: 알림 발송 위치 변경 — 텍스트 완료 직후 → 이미지 저장 완료 후 발송 (이미지 실패 시에도 알림 발송)
-- [x] `BookGenerationTask.run`: 상태 흐름 변경 — 텍스트 완료 후 GENERATING 유지 → 이미지 처리 완료 후 `updateStatus(DONE)` (폴링 클라이언트가 coverImageUrl 포함된 완성 책 수신)
-- [x] `Notification` 엔티티 `type` 컬럼 `length = 20` 명시 — `BOOK_GENERATED`(14자) DB truncation 방지
-
-### 2026-06-01
-- [x] `OpenAiService.buildPrompt` 프롬프트 전면 개선 — 서사구조(훅+기승전결) / Showing > Telling / 오감 묘사 / 서술 시점 적용 / 타겟독자(성인) / 분량 3000자→2500자
-- [x] `GenerateBookRequest` DTO에 `protagonistTrait`(주인공 성격), `viewpoint`(서술 시점) 필드 추가
-- [x] `OpenAiService.generate()` / `BookGenerationTask.run()` / `BookService.generateBook()` 메서드 시그니처 확장 (7개 파라미터로)
-- [x] `buildPrompt`에 CoT(Chain-of-Thought) 집필 구상 단계 추가 — 출력 금지 내부 구상(주인공 비밀·갈등·오감 묘사 요소)으로 소설 품질 향상
-- [x] `ReadPage.css` GPU 가속 강제 활성화 — 안드로이드 모바일 책 넘김 버벅임 수정 (`will-change: transform`, `translateZ(0)`, `backface-visibility: hidden`)
-
-### 2026-06-05
-- [x] `OpenAiService.buildPrompt` 제목 생성 지침 개선 — 본문 기반 장르별 문학적 제목 스타일 가이드 추가 (SF/판타지/로맨스/일상/공포 각 예시 포함, 10자 내외)
-- [x] `BookRepository` DONE 필터 쿼리 추가 — `findBooksWithCursor`에 `doneStatus` 파라미터 추가, `searchByKeywordAndDone` / `searchByKeywordPageableAndDone` / `findAllDone` / `findAllDonePageable` 신규 메서드
-- [x] `BookService.getAllBooks` / `getAllBooksPageable` — DONE 필터 쿼리로 교체 (PENDING/GENERATING AI 책 제외)
-- [x] `BookService.getBooksCursor` — `findBooksWithCursor`에 `BookStatus.DONE` 파라미터 추가
-- [x] `BookService.getBookStatus` 반환 타입 `String` → `Map<String, String>` 변경 + `step` 필드 추가
-  - GENERATING + content 없음 → `step: "TEXT"` (텍스트 생성 중)
-  - GENERATING + content 있음 → `step: "IMAGE"` (이미지 생성 중)
-  - DONE → `step: "DONE"` / FAILED → `step: "FAILED"`
-- [x] `BookController.getBookStatus` — `bookService.getBookStatus(id)` 반환값 그대로 전달 (Map)
-
-### 2026-06-07
-- [x] `Book` 엔티티에 `viewCount` 필드 추가 (`@Builder.Default`, `@Column(columnDefinition = "bigint default 0")`) — DDL-auto=update로 DB 컬럼 자동 추가
-- [x] `BookResponse` DTO에 `viewCount` 필드 추가 및 `buildResponse`에서 매핑
-- [x] `BookRepository` — `incrementViewCount` (`@Modifying` JPQL UPDATE), `findBooksSortedByViews` (ORDER BY viewCount DESC), `findBooksSortedByRating` (상관 서브쿼리: AVG(r.rating) DESC) 추가
-- [x] `BookService.getBookById` — 조회 시 `bookRepository.incrementViewCount(id)` 호출로 조회수 1 증가
-- [x] `BookService.getBooksCursor` — `sort` 파라미터 추가: `latest`(기존 cursor 방식) / `rating`·`views`(상위 size개 고정 반환, hasMore=false)
-- [x] `BookController.getBooksCursor` — `@RequestParam(defaultValue = "latest") String sort` 추가
-
-### 2026-06-10
-- [x] `OpenAiService.buildPrompt` 장르 확장 — 액션/스릴러/드라마/느와르 4개 추가 (총 9개 장르 지원)
-- [x] `OpenAiService.buildPrompt` 제목 스타일 가이드 확장 — 액션("강렬한 동사 + 대상") / 스릴러("긴장감·불안감 조성") / 드라마("인물 관계·감정 핵심") / 느와르("어둠·배신·도시 이미지") 예시 추가
-- [x] `OpenAiService.buildPrompt` 분위기(tone) 확장 — MYSTERIOUS(신비롭고 미스터리하게) / MELANCHOLY(쓸쓸하고 애잔하게) / TENSE(긴장감 넘치게) / EPIC(웅장하고 압도적으로) 추가 (총 7종)
-- [x] 소설 분량 2500자 → 3000자로 변경
-
-### 2026-06-11
-- [x] `OpenAiService.buildPrompt` 소설 분량 3000자 → 4000자로 증가
-- [x] `BookRepository` 검색 LIKE 범위 제한 — `description` 컬럼 제거, `title` + `author`만 검색 (7개 JPQL 쿼리 수정: `searchByKeyword`, `searchByKeywordPageable`, `findBooksWithCursor`, `searchByKeywordAndDone`, `searchByKeywordPageableAndDone`, `findBooksSortedByViews`, `findBooksSortedByRating`)
-- [x] `User` 엔티티 `nicknameChangedAt`(LocalDateTime), `nicknameChangeCount`(int, @Builder.Default 0) 필드 추가
-- [x] `User` 엔티티 `updateNickname()` / `resetNicknameCountAndUpdate()` 메서드 추가 — 닉네임 변경 시 count 누적 / 주 리셋 후 변경
-- [x] `UserService.updateNickname` 닉네임 주 2회 제한 로직 추가 — ISO Week(`IsoFields.WEEK_OF_WEEK_BASED_YEAR` + `IsoFields.WEEK_BASED_YEAR`) 기준, 같은 주 2회 초과 시 `IllegalStateException` 발생
-- [x] Flyway `V4__add_nickname_change_columns.sql` 마이그레이션 추가 — `user` 테이블에 `nickname_change_count INT NOT NULL DEFAULT 0`, `nickname_changed_at DATETIME NULL` 컬럼 추가
-
-### 2026-06-14
-- [x] OAuth 단기 코드 방식 도입 — `OAuthCode` 엔티티 / `OAuthCodeRepository` / `OAuthCodeService` 신규 생성
-  - `generateCode(email, accessToken, refreshToken)`: UUID 단기 코드 생성 → `oauth_codes` 저장 (30초 유효), 기존 코드 먼저 삭제
-  - `exchangeCode(code)`: 코드 조회 → 만료 확인 → `{ accessToken, refreshToken, email }` Map 반환 → 코드 즉시 삭제, 만료/미존재 시 `IllegalStateException`
-- [x] `KakaoAuthController.kakaoCallback` 변경 — redirect URL에서 `accessToken`·`refreshToken` 제거, `OAuthCodeService.generateCode`로 단기 코드 발급 후 `?code={uuid}&nickname={}&email={}` 파라미터로 redirect
-- [x] `POST /api/auth/code-exchange` 신규 엔드포인트 추가 — Request `{ "code": "uuid" }` → Response `{ "accessToken", "refreshToken", "email" }`, 오류 시 400 반환
-- [x] `SecurityConfig` — `/api/auth/code-exchange` permitAll 추가
-- [x] Flyway `V5__add_oauth_codes_table.sql` 마이그레이션 추가 — `oauth_codes` 테이블 생성 (code UNIQUE, access_token/refresh_token TEXT, expires_at/created_at DATETIME)
-
-### 2026-06-15
-- [x] `LemonService` `MAX_DAILY` 3 → 2로 변경 — 하루 레몬 생성 제한 2회로 하향
-- [x] `UserRepository` `existsByEmail(String email)` Spring Data 메서드 추가 — 회원가입 시 이메일 중복 확인
-- [x] `UserService.registerUser` 이메일 중복 방지 — `existsByEmail()` 사용, 중복 시 `"이미 사용 중인 이메일입니다."` 오류 반환
-- [x] `UserRepository` `existsByNickname(String nickname)` Spring Data 메서드 추가 — 닉네임 변경 시 중복 확인
-- [x] `UserService.updateNickname` 닉네임 중복 방지 — 현재 닉네임과 다를 때만 `existsByNickname()` 검사, 중복 시 `"이미 사용 중인 닉네임입니다."` 오류 반환
-- [x] `GenerateBookRequest` DTO 확장:
-  - `String protagonistName` → `List<String> protagonistNames` (주인공 복수 지원, 최대 3명)
-  - `String protagonistTrait` → `List<String> protagonistTrait` (다중 선택, 최대 3개)
-  - `List<String> tone` (`@NotEmpty`, 다중 선택, 최대 2개) — 기존 `String`에서 변경
-  - `String synopsis` 신규 (한 줄 시놉시스, 선택사항)
-  - `List<String> characters` 신규 (조연 등장인물, 최대 4명, 선택사항)
-- [x] `OpenAiService.generate()` / `BookGenerationTask.run()` / `BookService.generateBook()` 메서드 시그니처 전체 확장 — `protagonistNames`, `characters` 파라미터 추가
-- [x] `OpenAiService.buildPrompt` 전면 확장:
-  - `toneDesc`: `List<String>` 스트림 → 한국어 묘사 + `", "` 조인
-  - `protagonistLine`: 복수 주인공 필터·조인, 2명 이상 시 "여러 명이 함께 이야기를 이끌어갈 것" 문구 추가
-  - `protagonistTraitLine`: `List<String>` → `", "` 조인
-  - `charactersLine`: 조연 목록 조인 + "조연은 자연스럽게 등장, 주인공 서사 보조" 지시
-  - `synopsisLine`: 시놉시스 기반 확장 지시 조건부 삽입
-- [x] `OpenAiService.buildPrompt` 소설 분량 4000자 → 6000자로 증가
-
-### 2026-06-14~22
-- [x] 카카오 OAuth Rate Limit 상향 — `@KakaoRateLimiter` 허용량 증가 (동시 로그인 급증 대응)
-- [x] 레몬 하루 2개 제한 — `LemonService.useLemon()` 일일 사용 횟수 2회로 제한 (기존 3회)
-- [x] 이메일/닉네임 중복 가입 방지 — `UserRepository.existsByEmail()` / `existsByNickname()` 추가, 회원가입·닉네임 변경 시 즉시 검증
-- [x] `GenerateBookRequest` 확장 — `synopsis` (String), `characters` (List<CharacterDto>), `protagonistNames` (List<String>), `tone` (List<String>), `protagonistTrait` (List<String>) 다중값 지원
-- [x] `OpenAiService.buildPrompt()` 전면 확장 — 시놉시스·조연 설명·다중 성격·다중 분위기 프롬프트 삽입, 문단 구분 강화, 서사 구조(훅+기승전결) / Showing>Telling / 오감 묘사 / CoT 집필 구상
-- [x] 소설 분량 6000자 — `buildPrompt` 목표 분량 4000자 → 6000자
-- [x] 분위기 10종 확장 — 잔혹한(BRUTAL)/몽환적인(DREAMY)/냉소적인(CYNICAL) 추가 (기존 7종 → 10종)
-- [x] 성격 17종 확장 — 활발한/긍정적인/다정한/유쾌한 추가 (기존 13종 → 17종)
-- [x] Flyway V4 마이그레이션 — `users` 테이블에 `nickname_change_count`, `nickname_changed_at` 컬럼 추가 (주 2회 닉네임 변경 제한)
-- [x] Flyway V5 마이그레이션 — `oauth_codes` 테이블 추가 (`code` VARCHAR UNIQUE, `access_token` TEXT, `expires_at` DATETIME)
-- [x] OAuth 단기 코드 보안 개선 — 카카오 로그인 redirect URL에서 JWT 토큰 제거 → 30초 유효 UUID 코드 발급 → `POST /api/auth/code-exchange`로 토큰 교환 (브라우저 히스토리·로그 토큰 노출 차단)
+```bash
+./gradlew build          # 컴파일 + 테스트 + JaCoCo 리포트
+./gradlew test           # 테스트만
+```
+- 테스트 설정: `src/test/resources/application.properties` — H2 인메모리(MySQL 모드), Flyway 끄고 `ddl-auto=create-drop`, Redis 대신 `spring.cache.type=none`, 외부 API 키는 더미
+- 커버리지 리포트: `build/reports/jacoco/test/html/index.html`
+- 리포지토리 쿼리는 `@DataJpaTest` + `@AutoConfigureTestDatabase(replace = NONE)` 로 H2 에서 검증
+- `GeminiApiTest` 는 `GEMINI_API_KEY` 환경변수가 있을 때만 실제 호출하는 수동 테스트
 
 ---
 
@@ -424,11 +330,11 @@ CLOUDINARY_API_SECRET=...
 ---
 
 ## 앞으로 할 작업
-- [ ] GitHub Actions CI/CD 파이프라인
-- [ ] Redis 캐싱 도입 (책 목록, 탐색 API 응답 캐시)
+- [ ] 기본 관리자 계정(`DataInitializer`, admin1234) 비밀번호 환경변수화
+- [ ] CD (자동 배포) — CI 는 구축됨
 - [ ] Elasticsearch 도입 (키워드 검색 고도화)
 - [ ] 광고 보고 레몬 추가 획득 API
-- [ ] 테스트 코드 작성 (JUnit — LemonService 동시성, BookGenerationTask, NotificationService)
+- [ ] 테스트 보강 (NotificationService, FollowService, LibraryService — 현재 라인 커버리지 약 45%)
 - [ ] Oracle Cloud 이전 검토 (Railway 메모리 제한 대응)
 - [ ] 앱 EAS Build 배포를 위한 카카오 OAuth 앱 도메인 추가
 - [ ] Python 분석 스크립트 (생성된 책 장르·분위기 분포, 사용자 활동 통계)
